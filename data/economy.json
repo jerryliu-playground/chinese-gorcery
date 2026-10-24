@@ -24,8 +24,21 @@
     "priorities": [
       { "taskType": "checkout", "priority": 20 },
       { "taskType": "restock", "priority": 10 },
-      { "taskType": "cut_meat", "priority": 5 }
-    ]
+      { "taskType": "cut_meat", "priority": 5 },
+      { "taskType": "tidy", "priority": 8 }
+    ],
+    "tidyMinutes": 2
+  },
+  "freshness": {
+    "priceFactorsPermille": { "fresh": 1000, "normal": 850, "ripe": 500 },
+    "scores": { "fresh": 100, "normal": 60, "ripe": 20 }
+  },
+  "display": {
+    "weights": { "fullness": 30, "freshness": 30, "tidiness": 20, "pairing": 20 },
+    "noNeighborPairing": 50,
+    "buyChancePoints": [{ "score": 0, "permille": 800 }, { "score": 50, "permille": 1000 }, { "score": 100, "permille": 1250 }],
+    "messPerItemTaken": 10,
+    "tidyBelow": 60
   },
   "startingLayout": [
     { "fixtureId": "entrance", "origin": { "x": 5, "y": 7 } },

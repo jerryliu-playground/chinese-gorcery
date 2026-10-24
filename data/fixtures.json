@@ -45,5 +45,13 @@
     "size": { "w": 2, "h": 2 }, "interactionCells": [{ "x": 0, "y": 2 }],
     "customerCells": [],
     "capacity": 6, "storage": ["chilled"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
+  },
+  {
+    "id": "produce_stand", "nameKey": "fixture.produce_stand.name", "kind": "produce_stand",
+    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
+    "customerCells": [{ "x": 0, "y": 1 }],
+    "capacity": 2, "storage": ["ambient"], "priceCents": 25000, "unlockStage": 2,
+    "sprite": { "main": "produce_stand_full", "alternate": "produce_stand_full_b", "empty": "produce_stand_empty" },
+    "_tbd": true
   }
 ]

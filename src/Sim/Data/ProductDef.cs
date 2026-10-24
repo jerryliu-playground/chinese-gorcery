@@ -6,6 +6,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="UnitsPerShelfSlot">Units one shelf / display slot holds.</param>
 /// <param name="UnitsPerStorageSlot">Units one backroom / cold storage slot holds (bulky goods hold fewer).</param>
 /// <param name="WeightGrams">Weight of one unit (a whole primal, or one packaged box of cut meat); required for meat.</param>
+/// <param name="FreshnessDays">Produce: days spent in each freshness tier from arrival; they add up to shelfLifeDays.</param>
 /// <param name="Orderable">False for goods that only come from in-store processing (e.g. meat cuts).</param>
 public sealed record ProductDef(
     string Id,
@@ -20,4 +21,7 @@ public sealed record ProductDef(
     bool Orderable,
     int? WeightGrams = null,
     string? Sprite = null,
+    TierValues? FreshnessDays = null,
+    ProduceCategory? Category = null,
+    ProduceColor? Color = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

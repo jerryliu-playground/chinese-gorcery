@@ -171,3 +171,23 @@ customer.family.line.kids,"Kids, stay close!",小朋友别乱跑！
 customer.family.line.rice,We're almost out of rice.,米快吃完了。
 ui.tag.stock,{have}/{max},{have}/{max}
 ui.report.order,Order stock,进货
+product.napa_cabbage.name,Napa Cabbage,大白菜
+product.bok_choy.name,Bok Choy,小白菜
+product.scallion.name,Scallion,葱
+product.ginger.name,Ginger,姜
+product.daikon.name,Daikon,白萝卜
+product.orange.name,Orange,橙子
+product.lychee.name,Lychee,荔枝
+fixture.produce_stand.name,Produce Stand,果蔬架
+ui.freshness.fresh,Fresh,新鲜
+ui.freshness.normal,OK,一般
+ui.freshness.ripe,Ripe,临期
+ui.freshness.spoiled,Spoiled,坏掉
+ui.tag.sale,Sale,特价
+ui.display.score,Display {score},陈列分 {score}
+ui.display.fullness,Fullness,丰满度
+ui.display.freshness,Freshness,新鲜度
+ui.display.tidiness,Tidiness,整齐度
+ui.display.pairing,Pairing,搭配
+ui.display.part,{name} {value},{name} {value}
+ui.report.produce_loss,Produce waste,果蔬损耗

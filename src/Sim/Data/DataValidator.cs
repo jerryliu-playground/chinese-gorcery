@@ -37,6 +37,7 @@ public static partial class DataValidator
         ValidateStages(data.Stages, errors);
         ValidateEconomy(data.Economy, errors);
         ValidateStartingLayout(data, errors);
+        ValidateProduceSettings(data, errors);
 
         return errors;
     }
@@ -57,6 +58,12 @@ public static partial class DataValidator
             if (p.UnitsPerShelfSlot <= 0) errors.Add($"{at}: unitsPerShelfSlot must be > 0");
             if (p.UnitsPerStorageSlot <= 0) errors.Add($"{at}: unitsPerStorageSlot must be > 0");
             if (p.Orderable && p.CostCents <= 0) errors.Add($"{at}: orderable products need costCents > 0");
+            if (p.Department == Department.Produce)
+            {
+                if (p.FreshnessDays is not { } f || p.Category is null || p.Color is null) errors.Add($"{at}: produce needs freshnessDays, category and color");
+                else if (f.Fresh <= 0 || f.Normal <= 0 || f.Ripe <= 0) errors.Add($"{at}: freshnessDays must all be > 0");
+                else if (f.Fresh + f.Normal + f.Ripe != p.ShelfLifeDays) errors.Add($"{at}: freshnessDays must add up to shelfLifeDays");
+            }
         }
     }
 
@@ -106,7 +113,7 @@ public static partial class DataValidator
     }
 
     /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
-    public static bool IsDisplay(FixtureKind kind) => kind is FixtureKind.Shelf or FixtureKind.MeatDisplay;
+    public static bool IsDisplay(FixtureKind kind) => kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand;
 
     /// <summary>Fixture kinds that receive deliveries.</summary>
     public static bool IsStorageArea(FixtureKind kind) => kind is FixtureKind.Backroom or FixtureKind.ColdStorage;
@@ -385,6 +392,36 @@ public static partial class DataValidator
         {
             var slots = Inventory.StorageCapacity.SlotsNeeded(holdings);
             if (slots > storage.Capacity) errors.Add($"{at}: needs {slots} slots in '{storage.Id}' but it has {storage.Capacity}");
+        }
+    }
+
+    private static void ValidateProduceSettings(GameData data, List<string> errors)
+    {
+        const string file = DataFiles.Economy;
+        if (!data.Products.Any(p => p.FreshnessDays is not null)) return;
+
+        if (data.Economy.Freshness is not { } fr) errors.Add($"{file}: freshness settings are needed for produce");
+        else
+        {
+            foreach (var v in new[] { fr.PriceFactorsPermille.Fresh, fr.PriceFactorsPermille.Normal, fr.PriceFactorsPermille.Ripe }) CheckPermille(file, "freshness.priceFactorsPermille", v, errors);
+            foreach (var v in new[] { fr.Scores.Fresh, fr.Scores.Normal, fr.Scores.Ripe }) if (v is < 0 or > 100) errors.Add($"{file}: freshness.scores must be 0-100");
+        }
+
+        if (data.Economy.Display is not { } d)
+        {
+            errors.Add($"{file}: display settings are needed for produce");
+            return;
+        }
+
+        var w = d.Weights;
+        if (w.Fullness < 0 || w.Freshness < 0 || w.Tidiness < 0 || w.Pairing < 0 || w.Fullness + w.Freshness + w.Tidiness + w.Pairing <= 0) errors.Add($"{file}: display.weights must be >= 0 and add up to > 0");
+        if (d.NoNeighborPairing is < 0 or > 100) errors.Add($"{file}: display.noNeighborPairing must be 0-100");
+        if (d.TidyBelow is < 0 or > 100) errors.Add($"{file}: display.tidyBelow must be 0-100");
+        if (d.MessPerItemTaken < 0) errors.Add($"{file}: display.messPerItemTaken must be >= 0");
+        var points = d.BuyChancePoints;
+        if (points.Count < 2 || points[0].Score != 0 || points[^1].Score != 100 || points.Zip(points.Skip(1)).Any(p => p.First.Score >= p.Second.Score) || points.Any(p => p.Permille < 0))
+        {
+            errors.Add($"{file}: display.buyChancePoints must run from score 0 to 100 in rising order");
         }
     }
 

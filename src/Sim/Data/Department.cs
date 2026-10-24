@@ -7,4 +7,5 @@ public enum Department
     Snacks,
     Drinks,
     Meat,
+    Produce,
 }

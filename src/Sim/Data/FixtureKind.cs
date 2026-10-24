@@ -9,4 +9,5 @@ public enum FixtureKind
     MeatDisplay,
     CuttingTable,
     ColdStorage,
+    ProduceStand,
 }

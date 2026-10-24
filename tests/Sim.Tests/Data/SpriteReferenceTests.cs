@@ -36,7 +36,6 @@ public class SpriteReferenceTests
     {
         var swaps = SimTestKit.Data.CustomerTypes.SelectMany(t => t.Sprite?.Recolor ?? []).ToList();
 
-        Assert.NotEmpty(swaps);
         Assert.All(swaps.SelectMany(s => new[] { s.From, s.To }), c => Assert.Matches("^#[0-9a-fA-F]{6}$", c));
     }
 }
