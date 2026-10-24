@@ -21,4 +21,6 @@ public sealed record DailyReport(
     int AngryLeaves,
     int ItemsNotFound,
     int ItemsTooExpensive,
-    IReadOnlyList<ProductSales> Sales);
+    IReadOnlyList<ProductSales> Sales,
+    int SeafoodDeaths = 0,
+    long SeafoodLossCents = 0);

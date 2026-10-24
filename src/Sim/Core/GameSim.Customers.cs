@@ -286,7 +286,7 @@ public sealed partial class GameSim
             else
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
-                Economy.RecordLoss(loss);
+                Economy.RecordLoss(loss, product.Department);
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, null, loss));
             }
         }

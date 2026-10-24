@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Seafood;
 
 namespace ChineseGrocery.Sim.Tests.Core;
 
@@ -100,10 +101,12 @@ public class InvariantTests
         var ordered = events.OfType<OrderPlaced>().Sum(e => e.Quantity);
         var delivered = events.OfType<OrderDelivered>().Sum(e => e.Quantity);
         var expired = events.OfType<ProductExpired>().Sum(e => e.Quantity);
+        // Live seafood left in storage dies and is thrown away (no tanks at stage 1, so nothing dies anywhere else).
+        var died = events.OfType<SeafoodDied>().ToList();
         var onHand = sim.Inventory.Locations.SelectMany(l => l.Lots).Sum(l => l.Quantity);
 
         Assert.Equal(ordered, delivered + sim.PendingOrders.Sum(o => o.Quantity));
-        Assert.Equal(delivered, onHand + expired);
-        Assert.Equal(events.OfType<ProductExpired>().Sum(e => e.LossCents), sim.Reports.Sum(r => r.LossCents));
+        Assert.Equal(delivered, onHand + expired + died.Sum(e => e.Count));
+        Assert.Equal(events.OfType<ProductExpired>().Sum(e => e.LossCents) + died.Sum(e => e.LossCents), sim.Reports.Sum(r => r.LossCents));
     }
 }

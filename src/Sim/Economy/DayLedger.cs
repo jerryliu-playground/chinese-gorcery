@@ -14,6 +14,8 @@ public sealed class DayLedger(int day, long cashStartCents)
     public long FixtureSpendCents { get; internal set; }
     public long LossCents { get; internal set; }
     public long ProduceLossCents { get; internal set; }
+    public long SeafoodLossCents { get; internal set; }
+    public int SeafoodDeaths { get; internal set; }
     public int Customers { get; internal set; }
     public int AngryLeaves { get; internal set; }
 
@@ -32,10 +34,11 @@ public sealed class DayLedger(int day, long cashStartCents)
     public int ItemsTooExpensive { get; internal set; }
     public IReadOnlyList<ProductSales> Sales => _sales.Values.ToList();
 
-    internal void AddLoss(long cents, bool produce)
+    internal void AddLoss(long cents, Data.Department? department)
     {
         LossCents += cents;
-        if (produce) ProduceLossCents += cents;
+        if (department == Data.Department.Produce) ProduceLossCents += cents;
+        if (department == Data.Department.Seafood) SeafoodLossCents += cents;
     }
 
     internal void AddSale(string productId, int units, long revenueCents, long costCents)
@@ -57,6 +60,7 @@ public sealed class DayLedger(int day, long cashStartCents)
     internal void CountAngryLeave() => AngryLeaves++;
     internal void CountItemNotFound() => ItemsNotFound++;
     internal void CountItemTooExpensive() => ItemsTooExpensive++;
+    internal void CountSeafoodDeaths(int count) => SeafoodDeaths += count;
 
     internal DailyReport ToReport(long cashEndCents) => new(
         Day,
@@ -74,5 +78,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         AngryLeaves,
         ItemsNotFound,
         ItemsTooExpensive,
-        _sales.Values.ToList());
+        _sales.Values.ToList(),
+        SeafoodDeaths,
+        SeafoodLossCents);
 }

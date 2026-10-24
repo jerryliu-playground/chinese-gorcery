@@ -10,4 +10,6 @@ public enum WorkStep
     Serving,
     Cutting,
     Tidying,
+    Cleaning,
+    RemovingDead,
 }

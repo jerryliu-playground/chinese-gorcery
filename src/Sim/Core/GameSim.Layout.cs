@@ -53,7 +53,7 @@ public sealed partial class GameSim
             return Reject(RejectReason.LastEntrance);
         }
 
-        if (Inventory.Holds(sell.InstanceId)) return Reject(RejectReason.FixtureNotEmpty);
+        if (Inventory.Holds(sell.InstanceId) || DeadIn(sell.InstanceId).Count > 0) return Reject(RejectReason.FixtureNotEmpty);
         if (IsFixtureInUse(sell.InstanceId)) return Reject(RejectReason.FixtureInUse);
         if (_orders.Pending.Any(o => StorageRouting.FindDestination(Data, remaining, _products[o.ProductId]) is null))
         {
@@ -67,6 +67,7 @@ public sealed partial class GameSim
         Inventory.Forget(sell.InstanceId);
         Shelves.Forget(sell.InstanceId);
         _tidiness.Remove(sell.InstanceId);
+        _water.Remove(sell.InstanceId);
         Tasks.RemoveOpen(t => Involves(t, sell.InstanceId));
         RebuildOccupancy();
         Economy.Refund(ExpenseCategory.Fixtures, refund);

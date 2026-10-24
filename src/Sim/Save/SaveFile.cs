@@ -38,4 +38,5 @@ public sealed record SaveFile(
     int NextCustomerId,
     long NextQueueNumber,
     IReadOnlyList<SimCommand> QueuedCommands,
-    IReadOnlyList<TidinessSave>? Tidiness = null);
+    IReadOnlyList<TidinessSave>? Tidiness = null,
+    IReadOnlyList<TankSave>? Tanks = null);

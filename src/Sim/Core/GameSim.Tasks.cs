@@ -20,6 +20,7 @@ public sealed partial class GameSim
         RefreshCheckoutTasks();
         RefreshCutMeatTasks();
         RefreshTidyTasks();
+        RefreshTankTasks();
     }
 
     private void RefreshRestockTasks()
@@ -122,6 +123,8 @@ public sealed partial class GameSim
         CheckoutTask c => c.CheckoutInstanceId,
         CutMeatTask c => c.Source.FixtureInstanceId,
         TidyTask t => t.StandInstanceId,
+        CleanTankTask c => c.TankInstanceId,
+        RemoveDeadTask r => r.TankInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -198,6 +201,14 @@ public sealed partial class GameSim
 
             case TidyTask:
                 BeginStep(worker, WorkStep.Tidying, settings.TidyMinutes);
+                break;
+
+            case CleanTankTask:
+                BeginStep(worker, WorkStep.Cleaning, settings.CleanTankMinutes);
+                break;
+
+            case RemoveDeadTask:
+                BeginStep(worker, WorkStep.RemovingDead, settings.RemoveDeadMinutes);
                 break;
 
             case CheckoutTask c:
@@ -410,6 +421,16 @@ public sealed partial class GameSim
 
             case (WorkStep.Tidying, TidyTask t):
                 Tidy(worker, t);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Cleaning, CleanTankTask c):
+                CleanTank(worker, c.TankInstanceId);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.RemovingDead, RemoveDeadTask r):
+                TakeOutDead(worker, r.TankInstanceId);
                 FinishTask(worker, completed: true);
                 break;
 

@@ -51,10 +51,11 @@ public sealed class EconomyState
         Today.AddSale(productId, units, revenueCents, costCents);
     }
 
-    internal void RecordLoss(long cents, bool produce = false)
+    /// <summary>Writes off goods; produce and seafood waste are also counted on their own lines.</summary>
+    internal void RecordLoss(long cents, Data.Department? department = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(cents);
-        Today.AddLoss(cents, produce);
+        Today.AddLoss(cents, department);
     }
 
     internal void AdvanceStage() => Stage++;

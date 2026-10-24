@@ -90,6 +90,7 @@ public sealed partial class GameSim
 
         if (Clock.Phase == DayPhase.Open)
         {
+            FoulTankWater();
             Clock.Advance(Data.Economy.SecondsPerTick);
 
             // Doors shut at closing time, but the day only ends once the last customer is out.
@@ -152,13 +153,15 @@ public sealed partial class GameSim
     {
         Clock.Close();
         _events.Add(new StoreClosed(Clock.Day));
+        KillTankAnimals();
+        KillStrandedLiveSeafood();
 
         foreach (var pile in Inventory.Locations)
         {
             foreach (var lot in pile.RemoveExpired(Clock.Day))
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
-                Economy.RecordLoss(loss, IsProduce(lot.ProductId));
+                Economy.RecordLoss(loss, _products[lot.ProductId].Department);
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, pile.Location, loss));
             }
         }
@@ -170,7 +173,7 @@ public sealed partial class GameSim
             foreach (var lot in worker.RemoveExpired(Clock.Day))
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
-                Economy.RecordLoss(loss, IsProduce(lot.ProductId));
+                Economy.RecordLoss(loss, _products[lot.ProductId].Department);
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, null, loss));
             }
 
