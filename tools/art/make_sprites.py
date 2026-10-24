@@ -2,7 +2,7 @@
 from pathlib import Path
 from PIL import Image
 
-# Sprites go straight into the Godot project; previews stay next to this script.
+# Sprites go straight into the Godot project; sheets and previews stay next to this script.
 ART_DIR = Path(__file__).resolve().parent
 OUT_DIR = ART_DIR.parents[1] / "game" / "assets" / "sprites"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -254,62 +254,319 @@ def pork_primal():
     r(im, 22, 13, 4, 8, "wht"); r(im, 23, 14, 2, 6, "fat")
     return shadow(outline(im), rx=12)
 
-# ---------- characters (front view) ----------
-def person(shirt, shirt_d, pants, hair="hair", hat=None, apron=None, extra=None):
+# ---------- batch 2: more products ----------
+def bottle2(liquid, cap, label, wide=False):
     im = new()
-    # legs + shoes
-    r(im, 12, 25, 3, 4, pants); r(im, 17, 25, 3, 4, pants)
-    r(im, 11, 29, 4, 1, "soy"); r(im, 17, 29, 4, 1, "soy")
-    # body + arms
+    w = 12 if wide else 8
+    x0 = 16 - w // 2
+    r(im, 14, 3, 4, 3, cap)
+    r(im, 14, 6, 4, 4, liquid)
+    r(im, x0, 10, w, 18, liquid); r(im, x0 + 1, 9, w - 2, 1, liquid)
+    r(im, x0, 15, w, 7, label); r(im, x0, 18, w, 1, "gold")
+    r(im, x0 + 1, 11, 1, 15, "wht")
+    return shadow(outline(im), rx=6)
+
+def vermicelli():
+    im = new()
+    r(im, 6, 9, 20, 16, "wht")
+    for y in range(11, 23, 2):
+        for x in range(8, 24, 3):
+            p(im, x + (y // 2) % 2, y, "fs")
+    r(im, 6, 14, 20, 5, "blu"); r(im, 12, 15, 8, 3, "yel")
+    r(im, 6, 9, 20, 1, "glass")
+    return shadow(outline(im), rx=10)
+
+def dumplings_frozen():
+    im = new()
+    r(im, 7, 6, 18, 21, "blul"); r(im, 7, 4, 18, 2, "blud"); r(im, 7, 27, 18, 2, "blud")
+    # dumpling
+    r(im, 10, 15, 12, 5, "wht"); r(im, 12, 13, 8, 2, "wht"); r(im, 10, 20, 12, 1, "fs")
+    for x in range(12, 21, 2):
+        p(im, x, 13, "fs")
+    r(im, 9, 8, 14, 3, "red"); r(im, 9, 23, 14, 2, "wht")
+    p(im, 8, 6, "wht"); p(im, 8, 7, "wht")
+    return shadow(outline(im), rx=8)
+
+def tofu():
+    im = new()
+    r(im, 6, 12, 20, 13, "wht"); r(im, 6, 12, 20, 2, "glass")
+    r(im, 9, 15, 14, 8, (246, 238, 214)); r(im, 9, 22, 14, 1, "fs")
+    r(im, 6, 23, 20, 2, "grn")
+    return shadow(outline(im), rx=10)
+
+def red_dates():
+    im = new()
+    r(im, 8, 6, 16, 21, "glass"); r(im, 8, 4, 16, 2, "red")
+    for (x, y) in ((10, 10), (14, 9), (18, 11), (11, 14), (16, 15), (20, 16), (10, 19), (14, 20), (19, 21), (12, 24), (17, 24)):
+        r(im, x, y, 3, 2, "redd"); p(im, x, y, "redl")
+    r(im, 8, 16, 16, 3, "gold")
+    return shadow(outline(im), rx=8)
+
+# ---------- produce ----------
+def napa():
+    im = new()
+    r(im, 10, 6, 12, 22, (232, 236, 196)); r(im, 9, 9, 14, 17, (232, 236, 196))
+    r(im, 10, 6, 12, 8, "grnl"); r(im, 9, 9, 2, 6, "grnl"); r(im, 21, 9, 2, 6, "grnl")
+    for y in range(14, 27, 3):
+        r(im, 15, y, 2, 2, "wht")
+    r(im, 15, 6, 1, 22, (210, 216, 170))
+    return shadow(outline(im), rx=7)
+
+def bok_choy():
+    im = new()
+    r(im, 9, 4, 6, 12, "grn"); r(im, 17, 4, 6, 12, "grn"); r(im, 13, 3, 6, 11, "grnl")
+    r(im, 12, 15, 8, 12, "wht"); r(im, 11, 18, 10, 8, "wht")
+    r(im, 13, 15, 1, 11, "grnl"); r(im, 18, 15, 1, 11, "grnl")
+    r(im, 12, 26, 8, 1, "fs")
+    return shadow(outline(im), rx=6)
+
+def scallion():
+    im = new()
+    for x in (11, 14, 17, 20):
+        r(im, x, 3, 2, 15, "grn"); p(im, x, 3, "grnl")
+        r(im, x, 18, 2, 8, "wht")
+        p(im, x, 26, (220, 210, 180)); p(im, x + 1, 27, (220, 210, 180))
+    r(im, 10, 18, 13, 2, "red")
+    return shadow(outline(im), rx=6)
+
+def ginger():
+    im = new()
+    col, cold = (216, 172, 104), (176, 132, 72)
+    r(im, 7, 14, 18, 9, col); r(im, 10, 10, 5, 5, col); r(im, 18, 11, 5, 4, col); r(im, 22, 17, 4, 4, col)
+    r(im, 7, 21, 18, 2, cold)
+    for x, y in ((11, 16), (16, 18), (20, 15), (13, 11)):
+        p(im, x, y, cold)
+    p(im, 12, 10, "yel"); p(im, 19, 11, "yel")
+    return shadow(outline(im), rx=10)
+
+def orange():
+    im = new()
+    oc, od = (240, 146, 48), (204, 104, 32)
+    for y in range(9, 27):
+        half = int((81 - (y - 18) ** 2) ** 0.5)
+        r(im, 16 - half, y, half * 2, 1, oc)
+        r(im, 16 + half - 3, y, 3, 1, od) if half > 2 else None
+    r(im, 15, 7, 2, 3, "grnd"); r(im, 17, 6, 4, 2, "grn")
+    p(im, 11, 12, "yel"); p(im, 12, 12, "yel"); p(im, 11, 13, "yel")
+    return shadow(outline(im), rx=8)
+
+def lychee():
+    im = new()
+    for cx, cy in ((12, 18), (20, 18), (16, 12)):
+        for y in range(cy - 4, cy + 4):
+            for x in range(cx - 4, cx + 4):
+                if (x - cx + .5) ** 2 + (y - cy + .5) ** 2 < 17:
+                    p(im, x, y, "redl" if (x + y) % 3 else "redd")
+    r(im, 15, 5, 2, 4, "grnd"); r(im, 17, 4, 4, 2, "grn")
+    return shadow(outline(im), rx=9)
+
+def daikon():
+    im = new()
+    for y in range(9, 28):
+        w = max(2, 8 - (y - 9) // 3)
+        r(im, 16 - w // 2, y, w, 1, "wht")
+    r(im, 12, 3, 3, 7, "grn"); r(im, 17, 3, 3, 7, "grn"); r(im, 15, 2, 2, 8, "grnl")
+    for y in (14, 19, 23):
+        p(im, 14, y, "fs")
+    return shadow(outline(im), rx=5)
+
+# ---------- fixtures batch 2 ----------
+PRODUCE_FILL = [("grnl", "grn"), ((240, 146, 48), (204, 104, 32)), ("redl", "redd"), ((232, 236, 196), "grnl")]
+
+def produce_stand(full=True, seed=0):
+    im = new()
+    r(im, 1, 18, 30, 12, "wm"); r(im, 1, 29, 30, 1, "wd")
+    for x in (2, 16):
+        r(im, x, 20, 13, 1, "wd"); r(im, x, 25, 13, 1, "wd")
+    # two slanted crates
+    for i, x in enumerate((2, 17)):
+        r(im, x, 4, 13, 14, "wl"); r(im, x, 4, 13, 1, "wm"); r(im, x, 17, 13, 1, "wd")
+        r(im, x, 4, 1, 14, "wm"); r(im, x + 12, 4, 1, 14, "wm")
+        if full:
+            a, b = PRODUCE_FILL[(seed + i) % len(PRODUCE_FILL)]
+            for yy in range(6, 16, 3):
+                for xx in range(x + 2, x + 11, 3):
+                    r(im, xx, yy, 3, 3, a); p(im, xx + 2, yy + 2, b); p(im, xx, yy, "wht")
+    r(im, 6, 21, 6, 3, "wht"); r(im, 20, 21, 6, 3, "wht")          # price cards
+    p(im, 7, 22, "red"); p(im, 21, 22, "red")
+    return outline(im)
+
+def freezer():
+    im = new()
+    r(im, 1, 6, 30, 10, "glass"); r(im, 1, 6, 30, 1, "wht"); r(im, 16, 6, 1, 10, "gry")
+    for x, c in ((4, "blul"), (9, "red"), (19, "blul"), (24, "yel")):
+        r(im, x, 9, 4, 5, c); p(im, x, 9, "wht")
+    r(im, 1, 16, 30, 14, "wht"); r(im, 1, 16, 30, 2, "gry"); r(im, 1, 29, 30, 1, "gryd")
+    r(im, 4, 22, 24, 1, "blul"); r(im, 26, 19, 3, 2, "grnl")
+    return outline(im)
+
+def fu_poster():
+    im = new()
+    for y in range(4, 28):
+        half = 12 - abs(y - 16)
+        r(im, 16 - half, y, half * 2, 1, "red")
+    for y in range(9, 23):
+        half = max(0, 7 - abs(y - 16))
+        r(im, 16 - half, y, half * 2, 1, "redd")
+    r(im, 14, 13, 4, 6, "gold"); r(im, 12, 15, 8, 2, "gold")
+    r(im, 15, 1, 2, 3, "goldd")
+    return outline(im)
+
+def plant():
+    im = new()
+    r(im, 11, 21, 10, 8, "redd"); r(im, 10, 20, 12, 2, "red"); r(im, 12, 28, 8, 1, "out")
+    for x, y in ((10, 8), (15, 4), (20, 9), (13, 13), (18, 14), (8, 15), (22, 16)):
+        r(im, x, y, 4, 4, "grn"); p(im, x, y, "grnl"); p(im, x + 3, y + 3, "grnd")
+    r(im, 15, 12, 2, 9, "wd")
+    return shadow(outline(im), rx=6)
+
+def basket():
+    im = new()
+    r(im, 7, 16, 18, 11, "red"); r(im, 6, 15, 20, 2, "redl")
+    for x in range(9, 24, 3):
+        r(im, x, 18, 1, 8, "redd")
+    r(im, 8, 9, 2, 7, "gryd"); r(im, 22, 9, 2, 7, "gryd"); r(im, 8, 8, 16, 2, "gryd")
+    return shadow(outline(im), rx=9)
+
+def mat():
+    im = new()
+    r(im, 3, 10, 26, 14, "redd"); r(im, 5, 12, 22, 10, "red")
+    for x in range(7, 26, 4):
+        r(im, x, 14, 2, 6, "gold")
+    return im
+
+# ---------- UI icons ----------
+def icon_coin():
+    im = new()
+    for y in range(8, 25):
+        half = int((72 - (y - 16) ** 2) ** 0.5) if (y - 16) ** 2 < 72 else 0
+        r(im, 16 - half, y, half * 2, 1, "gold")
+    r(im, 13, 12, 6, 8, "goldd"); r(im, 14, 13, 4, 6, "gold"); r(im, 11, 10, 2, 2, "wht")
+    return outline(im)
+
+def icon_clock():
+    im = new()
+    for y in range(7, 26):
+        half = int((90 - (y - 16) ** 2) ** 0.5) if (y - 16) ** 2 < 90 else 0
+        r(im, 16 - half, y, half * 2, 1, "wht")
+    r(im, 15, 10, 2, 7, "soy"); r(im, 16, 16, 5, 2, "red")
+    return outline(im)
+
+def bubble(draw):
+    im = new()
+    r(im, 6, 3, 20, 18, "wht"); r(im, 5, 5, 22, 14, "wht")
+    r(im, 12, 21, 4, 2, "wht"); r(im, 12, 23, 2, 2, "wht")
+    draw(im)
+    return outline(im)
+
+def b_question(im):
+    r(im, 13, 6, 6, 2, "blu"); r(im, 18, 7, 2, 4, "blu"); r(im, 15, 11, 3, 2, "blu"); r(im, 15, 13, 2, 2, "blu"); r(im, 15, 16, 2, 2, "blu")
+
+def b_frown(im):
+    r(im, 11, 8, 2, 3, "soy"); r(im, 19, 8, 2, 3, "soy")
+    r(im, 12, 15, 8, 1, "soy"); p(im, 11, 16, "soy"); p(im, 20, 16, "soy")
+    r(im, 10, 6, 4, 1, "soy"); r(im, 18, 6, 4, 1, "soy")
+
+def b_angry(im):
+    r(im, 8, 5, 16, 15, "redl")
+    r(im, 11, 9, 3, 2, "soy"); r(im, 18, 9, 3, 2, "soy"); p(im, 10, 8, "soy"); p(im, 21, 8, "soy")
+    r(im, 12, 15, 8, 1, "soy")
+
+def b_heart(im):
+    r(im, 10, 7, 5, 4, "red"); r(im, 17, 7, 5, 4, "red"); r(im, 9, 9, 14, 3, "red")
+    for i, y in enumerate(range(12, 18)):
+        r(im, 10 + i, y, 12 - i * 2, 1, "red")
+    p(im, 11, 8, "wht")
+
+def icon_star():
+    import math
+    from PIL import ImageDraw
+    im = new()
+    pts = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        rad = 12 if i % 2 == 0 else 5
+        pts.append((16 + rad * math.cos(a), 16.5 + rad * math.sin(a)))
+    ImageDraw.Draw(im).polygon(pts, fill=C["gold"] + (255,))
+    p(im, 15, 9, "wht"); p(im, 15, 10, "wht")
+    return outline(im)
+
+# ---------- characters: front / back, with walk frames ----------
+CHARACTERS = {
+    "protagonist": dict(shirt="blu", shirt_d="blud", pants="soy", apron="red",
+                        front=lambda im: (r(im, 13, 18, 6, 2, "gold"), r(im, 14, 15, 1, 4, "wht"), r(im, 17, 15, 1, 4, "wht"))),
+    "butcher": dict(shirt="gry", shirt_d="gryd", pants="blud", apron="wht",
+                    hat=lambda im, back: (r(im, 10, 1, 12, 5, "wht"), r(im, 10, 5, 12, 1, "gry")),
+                    front=lambda im: (p(im, 14, 20, "meatd"), p(im, 17, 22, "meatd"), p(im, 15, 23, "meat"))),
+    "auntie": dict(shirt="pur", shirt_d="purd", pants="soy", hair=(70, 60, 70),
+                   hat=lambda im, back: ([p(im, x, 2, (70, 60, 70)) for x in range(10, 22, 2)], r(im, 9, 4, 1, 6, (70, 60, 70)), r(im, 22, 4, 1, 6, (70, 60, 70))),
+                   any=lambda im, back: (r(im, 23, 20, 6, 7, "red"), r(im, 24, 18, 4, 2, "red"), r(im, 24, 22, 4, 1, "yel"))),
+    "student": dict(shirt="grn", shirt_d="grnd", pants="blu",
+                    front=lambda im: (r(im, 12, 10, 3, 2, "gryd"), r(im, 17, 10, 3, 2, "gryd"), r(im, 15, 10, 2, 1, "gryd"),
+                                      p(im, 13, 11, "skin"), p(im, 18, 11, "skin"), r(im, 11, 15, 1, 10, "redd"), r(im, 20, 15, 1, 10, "redd")),
+                    back=lambda im: (r(im, 11, 16, 10, 9, "redd"), r(im, 12, 17, 8, 2, "red"), r(im, 13, 21, 6, 2, "redl"))),
+    "family": dict(shirt=(84, 146, 150), shirt_d=(56, 104, 112), pants=(120, 100, 80), hair="hair",
+                   front=lambda im: (r(im, 14, 15, 4, 2, "wht"),),
+                   any=lambda im, back: (r(im, 2, 20, 7, 6, "red"), r(im, 3, 17, 5, 1, "gryd"), r(im, 3, 17, 1, 3, "gryd"), r(im, 7, 17, 1, 3, "gryd"),
+                                         r(im, 3, 19, 2, 2, "grnl"), r(im, 5, 18, 2, 2, (240, 146, 48)))),
+    "dad": dict(shirt=(140, 104, 72), shirt_d=(104, 76, 54), pants="gryd", hair=(176, 172, 168),
+                front=lambda im: (r(im, 15, 15, 2, 10, (104, 76, 54)), p(im, 16, 18, "gold"), p(im, 16, 21, "gold"),
+                                  r(im, 12, 9, 8, 1, "skins"))),
+    "mom": dict(shirt="redl", shirt_d="red", pants="soy", apron=(246, 214, 160),
+                hat=lambda im, back: (r(im, 13, 0, 6, 4, "hair"), p(im, 15, 1, "gold")),
+                front=lambda im: (r(im, 13, 18, 6, 1, "redl"),)),
+}
+
+def person(cfg, back=False, step=0):
+    im = new()
+    hair = cfg.get("hair", "hair")
+    shirt, shirt_d, pants = cfg["shirt"], cfg["shirt_d"], cfg["pants"]
+    # legs: step 1 lifts left leg, step 2 lifts right leg
+    for i, lx in enumerate((12, 17)):
+        lifted = (step == 1 and i == 0) or (step == 2 and i == 1)
+        h = 3 if lifted else 4
+        r(im, lx, 25, 3, h, pants)
+        r(im, lx - (1 if i == 0 else 0), 25 + h, 4, 1, "soy")
+    # body
     r(im, 10, 15, 12, 11, shirt); r(im, 20, 15, 2, 11, shirt_d)
-    r(im, 8, 16, 2, 8, shirt); r(im, 22, 16, 2, 8, shirt_d)
-    r(im, 8, 24, 2, 2, "skin"); r(im, 22, 24, 2, 2, "skins")
-    if apron:
-        r(im, 12, 16, 8, 10, apron); r(im, 13, 15, 6, 1, apron)
-    # head
-    r(im, 11, 5, 10, 10, "skin"); r(im, 19, 6, 2, 9, "skins")
-    r(im, 13, 10, 1, 2, "soy"); r(im, 18, 10, 1, 2, "soy")
-    p(im, 12, 12, "redl"); p(im, 19, 12, "redl"); r(im, 15, 13, 2, 1, "skins")
-    # hair
-    r(im, 10, 3, 12, 4, hair); r(im, 10, 7, 1, 4, hair); r(im, 21, 7, 1, 4, hair)
-    if hat:
-        hat(im)
-    if extra:
-        extra(im)
+    # arms swing opposite to legs
+    la = {0: 16, 1: 17, 2: 15}[step]; ra = {0: 16, 1: 15, 2: 17}[step]
+    r(im, 8, la, 2, 8, shirt); r(im, 22, ra, 2, 8, shirt_d)
+    r(im, 8, la + 8, 2, 2, "skin"); r(im, 22, ra + 8, 2, 2, "skins")
+    apron = cfg.get("apron")
+    if back:
+        if apron:
+            r(im, 10, 20, 12, 1, apron); r(im, 15, 21, 2, 2, apron)
+        r(im, 11, 5, 10, 10, hair); r(im, 10, 3, 12, 4, hair)
+        r(im, 13, 14, 6, 1, "skins")
+        if cfg.get("back"):
+            cfg["back"](im)
+    else:
+        if apron:
+            r(im, 12, 16, 8, 10, apron); r(im, 13, 15, 6, 1, apron)
+        r(im, 11, 5, 10, 10, "skin"); r(im, 19, 6, 2, 9, "skins")
+        r(im, 13, 10, 1, 2, "soy"); r(im, 18, 10, 1, 2, "soy")
+        p(im, 12, 12, "redl"); p(im, 19, 12, "redl"); r(im, 15, 13, 2, 1, "skins")
+        r(im, 10, 3, 12, 4, hair); r(im, 10, 7, 1, 4, hair); r(im, 21, 7, 1, 4, hair)
+        if cfg.get("front"):
+            cfg["front"](im)
+    if cfg.get("hat"):
+        cfg["hat"](im, back)
+    if cfg.get("any"):
+        cfg["any"](im, back)
     return shadow(outline(im))
 
-def protagonist():
-    def hoodie(im):
-        r(im, 14, 15, 1, 4, "wht"); r(im, 17, 15, 1, 4, "wht")      # strings
-    return person("blu", "blud", "soy", apron="red", extra=lambda im: (
-        r(im, 13, 18, 6, 2, "gold"), hoodie(im)))
-
-def butcher():
-    def cap(im):
-        r(im, 10, 1, 12, 5, "wht"); r(im, 10, 5, 12, 1, "gry")
-    def stain(im):
-        p(im, 14, 20, "meatd"); p(im, 17, 22, "meatd"); p(im, 15, 23, "meat")
-    return person("gry", "gryd", "blud", hat=cap, apron="wht", extra=stain)
-
-def auntie():
-    def curls(im):
-        for x in range(10, 22, 2):
-            p(im, x, 2, "hair")
-        r(im, 9, 4, 1, 6, "hair"); r(im, 22, 4, 1, 6, "hair")
-    def bag(im):
-        r(im, 23, 20, 6, 7, "red"); r(im, 24, 18, 4, 2, "red"); r(im, 25, 19, 2, 1, (0, 0, 0, 0))
-        r(im, 24, 22, 4, 1, "yel")
-    return person("pur", "purd", "soy", hair=(70, 60, 70), hat=curls, extra=bag)
-
-def student():
-    def glasses(im):
-        r(im, 12, 10, 3, 2, "gryd"); r(im, 17, 10, 3, 2, "gryd"); r(im, 15, 10, 2, 1, "gryd")
-        p(im, 13, 11, "skin"); p(im, 18, 11, "skin")
-    def straps(im):
-        r(im, 11, 15, 1, 10, "redd"); r(im, 20, 15, 1, 10, "redd")
-    return person("grn", "grnd", "blu", extra=lambda im: (glasses(im), straps(im)))
+def character_sprites():
+    out = {}
+    for name, cfg in CHARACTERS.items():
+        out[f"char_{name}"] = (lambda c: lambda: person(c))(cfg)    # keeps M7 file names
+        for view, back in (("front", False), ("back", True)):
+            for step in (0, 1, 2):
+                out[f"char_{name}_{view}_{step}"] = (lambda c, b, s: lambda: person(c, b, s))(cfg, back, step)
+    return out
 
 SPRITES = {
+    # batch 1
     "tile_floor": floor, "tile_wall": wall, "door": door,
     "shelf_empty": lambda: shelf(False), "shelf_full": lambda: shelf(True, 0),
     "shelf_full_b": lambda: shelf(True, 5), "counter": counter, "counter_plain": lambda: counter(False),
@@ -322,48 +579,79 @@ SPRITES = {
     "product_snack": snack_bag, "product_pork_primal": pork_primal,
     "product_pork_belly": pork_belly, "product_pork_ribs": ribs,
     "product_pork_mince": minced,
-    "char_protagonist": protagonist, "char_butcher": butcher,
-    "char_auntie": auntie, "char_student": student,
+    # batch 2: fixtures + deco
+    "produce_stand_empty": lambda: produce_stand(False), "produce_stand_full": lambda: produce_stand(True, 0),
+    "produce_stand_full_b": lambda: produce_stand(True, 2), "freezer": freezer,
+    "deco_fu_poster": fu_poster, "deco_plant": plant, "deco_basket": basket, "deco_mat": mat,
+    # batch 2: products
+    "product_sesame_oil": lambda: bottle2((214, 150, 52), "red", "redd"),
+    "product_oyster_sauce": lambda: bottle2("soy", "gold", "blu", wide=True),
+    "product_vermicelli": vermicelli, "product_dumplings_frozen": dumplings_frozen,
+    "product_tofu": tofu, "product_red_dates": red_dates,
+    # batch 2: produce
+    "product_napa_cabbage": napa, "product_bok_choy": bok_choy, "product_scallion": scallion,
+    "product_ginger": ginger, "product_orange": orange, "product_lychee": lychee, "product_daikon": daikon,
+    # batch 2: UI
+    "ui_coin": icon_coin, "ui_clock": icon_clock, "ui_star": icon_star,
+    "ui_bubble_question": lambda: bubble(b_question), "ui_bubble_frown": lambda: bubble(b_frown),
+    "ui_bubble_angry": lambda: bubble(b_angry), "ui_bubble_heart": lambda: bubble(b_heart),
 }
+SPRITES.update(character_sprites())
+
+def sheet(imgs, names, cols, path, scale):
+    rows = (len(names) + cols - 1) // cols
+    sh = Image.new("RGBA", (cols * 32, rows * 32), (0, 0, 0, 0))
+    for i, n in enumerate(names):
+        sh.paste(imgs[n], ((i % cols) * 32, (i // cols) * 32), imgs[n])
+    sh.save(path)
+    if scale:
+        sh.resize((sh.width * scale, sh.height * scale), Image.NEAREST).save(
+            path.with_name(path.stem + f"_{scale}x.png"))
 
 def main():
     imgs = {name: fn() for name, fn in SPRITES.items()}
+    for f in OUT_DIR.glob("*.png"):
+        f.unlink()
     for name, im in imgs.items():
         im.save(OUT_DIR / f"{name}.png")
 
-    # sprite sheet (1x), 8 per row
-    names = list(imgs)
-    cols = 8
-    rows = (len(names) + cols - 1) // cols
-    sheet = Image.new("RGBA", (cols * 32, rows * 32), (0, 0, 0, 0))
-    for i, n in enumerate(names):
-        sheet.paste(imgs[n], ((i % cols) * 32, (i // cols) * 32), imgs[n])
-    sheet.save(ART_DIR / "spritesheet.png")
-    sheet.resize((sheet.width * 4, sheet.height * 4), Image.NEAREST).save(ART_DIR / "preview_sheet_4x.png")
+    base = ART_DIR
+    static = [n for n in imgs if not n.startswith("char_")]
+    sheet(imgs, static, 10, base / "sheet_static.png", 4)
+    # character sheet: one row per character, front 0-2 then back 0-2
+    chars = []
+    for name in CHARACTERS:
+        chars += [f"char_{name}_{v}_{s}" for v in ("front", "back") for s in (0, 1, 2)]
+    sheet(imgs, chars, 6, base / "sheet_characters.png", 4)
 
-    # mock store scene, 12 x 8 tiles
-    W, H = 12, 8
+    # mock store scene, 14 x 9 tiles
+    W, H = 14, 9
     scene = Image.new("RGBA", (W * 32, H * 32), C["fl"] + (255,))
-    def put(n, cx, cy):
+    def put(n, x, y, dx=0, dy=0):
         im = imgs[n]
-        scene.paste(im, (cx * 32, cy * 32), im)
+        scene.paste(im, (x * 32 + dx, y * 32 + dy), im)
     for x in range(W):
         put("tile_wall", x, 0)
         for y in range(1, H):
             put("tile_floor", x, y)
-    put("door", 10, 0)
-    put("deco_lantern", 2, 0); put("deco_lantern", 7, 0)
+    put("door", 12, 0); put("deco_mat", 12, 1)
+    put("deco_lantern", 2, 0); put("deco_lantern", 9, 0); put("deco_fu_poster", 5, 0, dy=-2)
     for x in range(1, 5):
         put("shelf_full" if x % 2 else "shelf_full_b", x, 2)
         put("shelf_full_b" if x % 2 else "shelf_full", x, 5)
-    put("shelf_empty", 5, 5)
-    put("meat_fridge", 7, 2); put("meat_fridge", 8, 2); put("cutting_table", 10, 2)
-    put("counter", 8, 6); put("counter_plain", 9, 6)
-    scene.paste(imgs["deco_lucky_cat"], (9 * 32 + 4, 6 * 32 - 14), imgs["deco_lucky_cat"])
-    put("char_protagonist", 3, 3); put("char_butcher", 10, 3)
-    put("char_auntie", 6, 4); put("char_student", 8, 7)
-    scene.resize((scene.width * 3, scene.height * 3), Image.NEAREST).save(ART_DIR / "preview_scene_3x.png")
-    print(f"{len(imgs)} sprites written")
+    put("produce_stand_full", 1, 7); put("produce_stand_full_b", 2, 7); put("produce_stand_full", 3, 7, )
+    put("freezer", 6, 2); put("freezer", 6, 5)
+    put("meat_fridge", 8, 2); put("meat_fridge", 9, 2); put("cutting_table", 11, 2)
+    put("counter", 9, 7); put("counter_plain", 10, 7)
+    scene.paste(imgs["deco_lucky_cat"], (10 * 32 + 4, 7 * 32 - 14), imgs["deco_lucky_cat"])
+    put("deco_plant", 13, 1); put("deco_plant", 0, 1); put("deco_basket", 11, 1, dx=-6, dy=6)
+    put("char_protagonist_front_1", 3, 3); put("char_butcher_front_0", 11, 3)
+    put("char_auntie_back_2", 5, 4); put("char_student_front_0", 9, 8)
+    put("char_family_front_1", 4, 6, dx=10); put("char_mom_front_0", 7, 4, dx=6)
+    put("ui_bubble_heart", 4, 5, dx=14, dy=6)
+    put("ui_bubble_question", 5, 3, dy=8)
+    scene.resize((scene.width * 3, scene.height * 3), Image.NEAREST).save(base / "preview_scene_3x.png")
+    print(f"{len(imgs)} sprites written ({len(static)} static, {len(chars)} character frames)")
 
 if __name__ == "__main__":
     main()
