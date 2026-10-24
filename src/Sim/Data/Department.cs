@@ -8,4 +8,5 @@ public enum Department
     Drinks,
     Meat,
     Produce,
+    Seafood,
 }

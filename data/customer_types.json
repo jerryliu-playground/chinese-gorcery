@@ -4,35 +4,50 @@
     "preferences": [
       { "department": "dry_goods", "weight": 4 }, { "department": "sauces", "weight": 3 },
       { "department": "snacks", "weight": 1 }, { "department": "drinks", "weight": 1 },
-      { "department": "meat", "weight": 4 }, { "department": "produce", "weight": 5 }
+      { "department": "meat", "weight": 4 }, { "department": "produce", "weight": 5 },
+      { "department": "seafood", "weight": 3 }
     ],
     "arrivalWeight": 4, "priceComfortRatioPermille": 900, "priceCeilingRatioPermille": 1100, "minBuyChancePermille": 100,
     "moveCellsPerMinute": 3, "browseMinutesPerItem": 2, "patienceMinutes": 23, "shoppingListSize": { "min": 2, "max": 5 }, "sprite": { "main": "char_auntie" },
     "lineKeys": ["customer.auntie.line.price", "customer.auntie.line.special", "customer.auntie.line.too_pricey", "customer.auntie.line.fresh", "customer.auntie.line.bulk"],
-    "prefersDiscount": true, "_tbd": true
+    "prefersDiscount": true,
+    "productWeights": [
+      { "productId": "live_fish", "weight": 30 }, { "productId": "clams", "weight": 30 }, { "productId": "chilled_fish", "weight": 30 },
+      { "productId": "chilled_lobster", "weight": 20 }, { "productId": "live_shrimp", "weight": 10 }, { "productId": "crab", "weight": 10 },
+      { "productId": "lobster", "weight": 1 }
+    ],
+    "_tbd": true
   },
   {
     "id": "international_student", "nameKey": "customer_type.international_student.name",
     "preferences": [
       { "department": "dry_goods", "weight": 3 }, { "department": "sauces", "weight": 1 },
       { "department": "snacks", "weight": 4 }, { "department": "drinks", "weight": 4 },
-      { "department": "meat", "weight": 1 }, { "department": "produce", "weight": 1 }
+      { "department": "meat", "weight": 1 }, { "department": "produce", "weight": 1 },
+      { "department": "seafood", "weight": 1 }
     ],
     "arrivalWeight": 3, "priceComfortRatioPermille": 1000, "priceCeilingRatioPermille": 1300, "minBuyChancePermille": 300,
     "moveCellsPerMinute": 4, "browseMinutesPerItem": 1, "patienceMinutes": 12, "shoppingListSize": { "min": 1, "max": 3 }, "sprite": { "main": "char_student" },
     "lineKeys": ["customer.student.line.noodles", "customer.student.line.latiao", "customer.student.line.home", "customer.student.line.cheaper"],
-    "produceCategories": ["fruit"], "_tbd": true
+    "produceCategories": ["fruit"],
+    "productWeights": [{ "productId": "lobster", "weight": 1 }],
+    "_tbd": true
   },
   {
     "id": "chinese_family", "nameKey": "customer_type.chinese_family.name",
     "preferences": [
       { "department": "dry_goods", "weight": 3 }, { "department": "sauces", "weight": 3 },
       { "department": "snacks", "weight": 2 }, { "department": "drinks", "weight": 2 },
-      { "department": "meat", "weight": 4 }, { "department": "produce", "weight": 3 }
+      { "department": "meat", "weight": 4 }, { "department": "produce", "weight": 3 },
+      { "department": "seafood", "weight": 4 }
     ],
     "arrivalWeight": 3, "priceComfortRatioPermille": 1000, "priceCeilingRatioPermille": 1250, "minBuyChancePermille": 250,
     "moveCellsPerMinute": 2, "browseMinutesPerItem": 2, "patienceMinutes": 15, "shoppingListSize": { "min": 3, "max": 7 }, "sprite": { "main": "char_family" },
     "lineKeys": ["customer.family.line.ribs", "customer.family.line.dumplings", "customer.family.line.kids", "customer.family.line.rice"],
+    "productWeights": [
+      { "productId": "live_fish", "weight": 40 }, { "productId": "live_shrimp", "weight": 40 }, { "productId": "crab", "weight": 20 },
+      { "productId": "clams", "weight": 20 }, { "productId": "chilled_fish", "weight": 10 }, { "productId": "lobster", "weight": 2 }
+    ],
     "_tbd": true
   }
 ]

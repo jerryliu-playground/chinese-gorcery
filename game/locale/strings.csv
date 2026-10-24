@@ -191,3 +191,21 @@ ui.display.tidiness,Tidiness,整齐度
 ui.display.pairing,Pairing,搭配
 ui.display.part,{name} {value},{name} {value}
 ui.report.produce_loss,Produce waste,果蔬损耗
+stage.3.name,Mid-size Supermarket,中型超市
+product.live_fish.name,Live fish,活鱼
+product.live_shrimp.name,Live shrimp,活虾
+product.crab.name,Crab,螃蟹
+product.lobster.name,Lobster,龙虾
+product.clams.name,Clams,蛤蜊
+product.chilled_fish.name,Chilled fish,冰鲜鱼
+product.chilled_lobster.name,Chilled lobster,冰鲜龙虾
+fixture.fish_tank.name,Fish Tank,活鱼池
+fixture.ice_table.name,Ice Table,冰台
+fixture.seafood_counter.name,Seafood Counter,海鲜柜台
+role.fishmonger.name,Fishmonger,海鲜师傅
+ui.water.quality,Water {value},水质 {value}
+ui.water.count,{count} in tank,池中 {count}
+ui.water.dead,{count} dead,死鱼 {count}
+ui.water.risk,Death risk {risk}%,死亡风险 {risk}%
+ui.report.seafood_loss,Seafood waste,海鲜损耗
+ui.report.seafood_deaths,Seafood deaths,海鲜死亡

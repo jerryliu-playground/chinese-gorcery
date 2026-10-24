@@ -24,6 +24,7 @@ public sealed record EconomyDef(
     IReadOnlyList<StockEntryDef>? StartingStock = null,
     FreshnessSettingsDef? Freshness = null,
     DisplaySettingsDef? Display = null,
+    SeafoodSettingsDef? Seafood = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 /// <summary>From <paramref name="StartMinuteOfDay"/> until the next bucket (or closing), customers arrive at this rate.</summary>

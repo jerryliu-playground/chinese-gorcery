@@ -125,7 +125,7 @@ public class FixturePlacementTests
     [Fact]
     public void Unknown_fixture_is_rejected()
     {
-        Assert.Equal(RejectReason.UnknownFixture, Rejected(new PlaceFixture("fish_tank", new GridPoint(7, 3))).Reason);
+        Assert.Equal(RejectReason.UnknownFixture, Rejected(new PlaceFixture("no_such_fixture", new GridPoint(7, 3))).Reason);
     }
 
     [Fact]

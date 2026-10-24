@@ -9,6 +9,10 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="MinBuyChancePermille">Buy chance right at the ceiling.</param>
 /// <param name="PrefersDiscount">Takes the cheapest (marked-down) batch on a stand instead of the freshest.</param>
 /// <param name="ProduceCategories">If set, the only produce categories this type buys.</param>
+/// <param name="ProductWeights">
+/// Relative pick weights of particular products within their department; products not listed weigh
+/// <see cref="DefaultProductWeight"/>.
+/// </param>
 /// <param name="LineKeys">Display only: translation keys of things this type sometimes says while shopping.</param>
 public sealed record CustomerTypeDef(
     string Id,
@@ -26,6 +30,15 @@ public sealed record CustomerTypeDef(
     IReadOnlyList<string>? LineKeys = null,
     bool PrefersDiscount = false,
     IReadOnlyList<ProduceCategory>? ProduceCategories = null,
-    [property: JsonPropertyName("_tbd")] bool Tbd = false);
+    IReadOnlyList<ProductWeight>? ProductWeights = null,
+    [property: JsonPropertyName("_tbd")] bool Tbd = false)
+{
+    public const int DefaultProductWeight = 10;
+
+    public int WeightOf(string productId) =>
+        ProductWeights?.FirstOrDefault(w => w.ProductId == productId)?.Weight ?? DefaultProductWeight;
+}
 
 public sealed record DepartmentWeight(Department Department, int Weight);
+
+public sealed record ProductWeight(string ProductId, int Weight);

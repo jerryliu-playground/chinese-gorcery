@@ -231,11 +231,11 @@ public class DataValidatorTests
         var data = WithStartingLayout(
             new LayoutEntry("entrance", new GridPoint(5, 7)),
             new LayoutEntry("meat_display", new GridPoint(1, 1)),
-            new LayoutEntry("fish_tank", new GridPoint(4, 1)));
+            new LayoutEntry("no_such_fixture", new GridPoint(4, 1)));
 
         var errors = ErrorsFor(data);
         Assert.Contains(errors, e => e.Contains("'meat_display' is not available at stage 1"));
-        Assert.Contains(errors, e => e.Contains("'fish_tank' does not exist"));
+        Assert.Contains(errors, e => e.Contains("'no_such_fixture' does not exist"));
     }
 
     [Fact]

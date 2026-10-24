@@ -6,4 +6,7 @@ public enum TaskType
     Checkout,
     CutMeat,
     Tidy,
+    KillFish,
+    CleanTank,
+    RemoveDead,
 }

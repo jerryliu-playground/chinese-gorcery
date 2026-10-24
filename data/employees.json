@@ -9,6 +9,16 @@
       "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
       "sprite": { "main": "char_butcher" },
       "_tbd": true
+    },
+    {
+      "id": "fishmonger", "nameKey": "role.fishmonger.name", "unlockStage": 3, "maxCount": 1,
+      "taskTypes": ["kill_fish", "clean_tank", "remove_dead"], "marketWageCentsPerDay": 13000,
+      "knifeSkill": { "min": 1, "max": 5 }, "speedPermille": { "min": 800, "max": 1200 },
+      "moveCellsPerMinute": 3,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
+      "sprite": { "main": "char_fishmonger" },
+      "_tbd": true
     }
   ],
   "player": { "moveCellsPerMinute": 4, "workSpeedPermille": 1000, "knifeSkill": 1, "sprite": { "main": "char_protagonist" }, "_tbd": true }

@@ -53,7 +53,7 @@ public class GameDataLoaderTests
     [Fact]
     public void Unknown_enum_value_is_rejected()
     {
-        var json = ProductJson("x").Replace("\"snacks\"", "\"seafood\"");
+        var json = ProductJson("x").Replace("\"snacks\"", "\"bakery\"");
 
         Assert.Throws<DataValidationException>(() => GameDataLoader.Deserialize<List<ProductDef>>(DataFiles.Products, json));
     }

@@ -75,8 +75,11 @@ public class StageUpgradeTests
     [Fact]
     public void Last_stage_cannot_upgrade()
     {
-        var sim = WithRevenue(Target);
-        sim.Run(new UpgradeStage());
+        var stages = SimTestKit.Data.Stages;
+        var sim = WithRevenue(stages[^1].RequiredCumulativeRevenueCents);
+        sim.Economy.Earn("rice_jasmine", 1, stages.Sum(s => s.UpgradeCostCents));
+        for (var i = 1; i < stages.Count; i++) sim.Run(new UpgradeStage());
+        Assert.Equal(stages.Count, sim.Economy.Stage);
 
         Assert.Equal(RejectReason.MaxStage, RejectionFor(sim, new UpgradeStage()));
     }

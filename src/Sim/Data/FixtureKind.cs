@@ -10,4 +10,7 @@ public enum FixtureKind
     CuttingTable,
     ColdStorage,
     ProduceStand,
+    FishTank,
+    IceTable,
+    SeafoodCounter,
 }

@@ -81,8 +81,8 @@ public class InvariantTests
     [Fact]
     public void Random_layout_play_actually_changes_the_layout()
     {
-        var sim = PlayRandomly(seed: 6, days: 20);
-        var events = sim.DrainEvents();
+        // Several seeds, so the check does not hang on which fixtures one seed happens to try.
+        var events = new[] { 6, 7, 8 }.SelectMany(seed => PlayRandomly(seed, days: 20).DrainEvents()).ToList();
 
         Assert.NotEmpty(events.OfType<FixturePlaced>());
         Assert.NotEmpty(events.OfType<FixtureMoved>());

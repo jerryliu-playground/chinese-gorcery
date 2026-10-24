@@ -25,9 +25,17 @@
       { "taskType": "checkout", "priority": 20 },
       { "taskType": "restock", "priority": 10 },
       { "taskType": "cut_meat", "priority": 5 },
-      { "taskType": "tidy", "priority": 8 }
+      { "taskType": "tidy", "priority": 8 },
+      { "taskType": "kill_fish", "priority": 18 },
+      { "taskType": "clean_tank", "priority": 9 },
+      { "taskType": "remove_dead", "priority": 12 }
     ],
-    "tidyMinutes": 2
+    "tidyMinutes": 2,
+    "killPickupMinutes": 1,
+    "killFishMinutes": 4,
+    "killSkillSpeedPermille": 150,
+    "cleanTankMinutes": 5,
+    "removeDeadMinutes": 2
   },
   "freshness": {
     "priceFactorsPermille": { "fresh": 1000, "normal": 850, "ripe": 500 },
@@ -39,6 +47,16 @@
     "buyChancePoints": [{ "score": 0, "permille": 800 }, { "score": 50, "permille": 1000 }, { "score": 100, "permille": 1250 }],
     "messPerItemTaken": 10,
     "tidyBelow": 60
+  },
+  "seafood": {
+    "waterDropBasePerHourMilli": 500,
+    "waterDropPerUnitPerHourMilli": 250,
+    "waterDropPerDeadPerHourMilli": 2000,
+    "cleanBelow": 50,
+    "deathMultiplierPoints": [
+      { "quality": 0, "permille": 15000 }, { "quality": 30, "permille": 6000 },
+      { "quality": 60, "permille": 2000 }, { "quality": 100, "permille": 1000 }
+    ]
   },
   "startingLayout": [
     { "fixtureId": "entrance", "origin": { "x": 5, "y": 7 } },

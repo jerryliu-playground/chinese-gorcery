@@ -31,13 +31,14 @@ public static partial class DataValidator
         ValidateProducts(data.Products, errors);
         ValidateFixtures(data.Fixtures, stageIds, errors);
         ValidateStorageCoverage(data.Products, data.Fixtures, errors);
-        ValidateCustomerTypes(data.CustomerTypes, errors);
+        ValidateCustomerTypes(data.CustomerTypes, products, errors);
         ValidateEmployees(data.Employees, stageIds, errors);
         ValidateMeatCuts(data.MeatCuts, products, errors);
         ValidateStages(data.Stages, errors);
         ValidateEconomy(data.Economy, errors);
         ValidateStartingLayout(data, errors);
         ValidateProduceSettings(data, errors);
+        ValidateSeafoodSettings(data, errors);
 
         return errors;
     }
@@ -58,11 +59,25 @@ public static partial class DataValidator
             if (p.UnitsPerShelfSlot <= 0) errors.Add($"{at}: unitsPerShelfSlot must be > 0");
             if (p.UnitsPerStorageSlot <= 0) errors.Add($"{at}: unitsPerStorageSlot must be > 0");
             if (p.Orderable && p.CostCents <= 0) errors.Add($"{at}: orderable products need costCents > 0");
-            if (p.Department == Department.Produce)
+            if (p.Department == Department.Produce && (p.FreshnessDays is null || p.Category is null || p.Color is null))
             {
-                if (p.FreshnessDays is not { } f || p.Category is null || p.Color is null) errors.Add($"{at}: produce needs freshnessDays, category and color");
-                else if (f.Fresh <= 0 || f.Normal <= 0 || f.Ripe <= 0) errors.Add($"{at}: freshnessDays must all be > 0");
+                errors.Add($"{at}: produce needs freshnessDays, category and color");
+            }
+
+            if (p.FreshnessDays is { } f)
+            {
+                if (f.Fresh <= 0 || f.Normal <= 0 || f.Ripe <= 0) errors.Add($"{at}: freshnessDays must all be > 0");
                 else if (f.Fresh + f.Normal + f.Ripe != p.ShelfLifeDays) errors.Add($"{at}: freshnessDays must add up to shelfLifeDays");
+            }
+
+            if ((p.Live is not null) != (p.Storage == StorageType.Live)) errors.Add($"{at}: live seafood needs storage 'live' and a 'live' block, and only it");
+            if (p.Live is { } live)
+            {
+                CheckPermille(at, "live.deathBasePermille", live.DeathBasePermille, errors);
+                if (live.DiesAs is { } dead && products.FirstOrDefault(x => x.Id == dead) is not { Storage: not StorageType.Live })
+                {
+                    errors.Add($"{at}: live.diesAs '{dead}' must be a product that is not kept alive");
+                }
             }
         }
     }
@@ -96,7 +111,7 @@ public static partial class DataValidator
             if (f.CustomerCells.Distinct().Count() != f.CustomerCells.Count) errors.Add($"{at}: customerCells has duplicates");
 
             var needsWorkerCell = f.Kind is not FixtureKind.Entrance;
-            var needsCustomerCell = f.Kind is FixtureKind.Entrance or FixtureKind.Checkout || IsDisplay(f.Kind);
+            var needsCustomerCell = f.Kind is FixtureKind.Entrance or FixtureKind.Checkout or FixtureKind.SeafoodCounter || IsDisplay(f.Kind);
             if (needsWorkerCell && f.InteractionCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one interaction cell");
             if (needsCustomerCell && f.CustomerCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one customer cell");
             if ((IsDisplay(f.Kind) || IsStorageArea(f.Kind)) && f.Capacity <= 0) errors.Add($"{at}: {f.Kind} needs capacity > 0");
@@ -113,7 +128,8 @@ public static partial class DataValidator
     }
 
     /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
-    public static bool IsDisplay(FixtureKind kind) => kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand;
+    public static bool IsDisplay(FixtureKind kind) =>
+        kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.FishTank or FixtureKind.IceTable;
 
     /// <summary>Fixture kinds that receive deliveries.</summary>
     public static bool IsStorageArea(FixtureKind kind) => kind is FixtureKind.Backroom or FixtureKind.ColdStorage;
@@ -136,7 +152,7 @@ public static partial class DataValidator
         return (insideX && besideY) || (insideY && besideX);
     }
 
-    private static void ValidateCustomerTypes(IReadOnlyList<CustomerTypeDef> types, List<string> errors)
+    private static void ValidateCustomerTypes(IReadOnlyList<CustomerTypeDef> types, Dictionary<string, ProductDef> products, List<string> errors)
     {
         const string file = DataFiles.CustomerTypes;
         CheckIds(file, types.Select(t => t.Id).ToList(), errors);
@@ -159,6 +175,13 @@ public static partial class DataValidator
             if (t.BrowseMinutesPerItem < 0) errors.Add($"{at}: browseMinutesPerItem must be >= 0");
             if (t.PatienceMinutes <= 0) errors.Add($"{at}: patienceMinutes must be > 0");
             CheckRange(at, "shoppingListSize", t.ShoppingListSize, minAllowed: 1, errors);
+            foreach (var w in t.ProductWeights ?? [])
+            {
+                if (!products.ContainsKey(w.ProductId)) errors.Add($"{at}: productWeights '{w.ProductId}' does not exist in {DataFiles.Products}");
+                if (w.Weight < 0) errors.Add($"{at}: productWeights must be >= 0");
+            }
+
+            if (t.ProductWeights is { } weights && weights.Select(w => w.ProductId).Distinct().Count() != weights.Count) errors.Add($"{at}: productWeights list a product more than once");
         }
     }
 
@@ -294,6 +317,7 @@ public static partial class DataValidator
         }
 
         CheckPermille(file, "fixtureSellRefundPermille", e.FixtureSellRefundPermille, errors);
+        if (e.Tasks.KillSkillSpeedPermille < 0) errors.Add($"{file}: tasks.killSkillSpeedPermille must be >= 0");
 
         var t = e.Tasks;
         CheckPermille(file, "tasks.restockBelowPermille", t.RestockBelowPermille, errors);
@@ -301,7 +325,9 @@ public static partial class DataValidator
                  {
                      ("restockPickupMinutes", t.RestockPickupMinutes), ("restockShelveMinutes", t.RestockShelveMinutes),
                      ("checkoutBaseMinutes", t.CheckoutBaseMinutes), ("checkoutMinutesPerItem", t.CheckoutMinutesPerItem),
-                     ("cutPickupMinutes", t.CutPickupMinutes), ("cutMeatMinutes", t.CutMeatMinutes),
+                     ("cutPickupMinutes", t.CutPickupMinutes), ("cutMeatMinutes", t.CutMeatMinutes), ("tidyMinutes", t.TidyMinutes),
+                     ("killPickupMinutes", t.KillPickupMinutes), ("killFishMinutes", t.KillFishMinutes),
+                     ("cleanTankMinutes", t.CleanTankMinutes), ("removeDeadMinutes", t.RemoveDeadMinutes),
                  })
         {
             if (minutes < 0) errors.Add($"{file}: tasks.{name} must be >= 0");
@@ -422,6 +448,26 @@ public static partial class DataValidator
         if (points.Count < 2 || points[0].Score != 0 || points[^1].Score != 100 || points.Zip(points.Skip(1)).Any(p => p.First.Score >= p.Second.Score) || points.Any(p => p.Permille < 0))
         {
             errors.Add($"{file}: display.buyChancePoints must run from score 0 to 100 in rising order");
+        }
+    }
+
+    private static void ValidateSeafoodSettings(GameData data, List<string> errors)
+    {
+        const string file = DataFiles.Economy;
+        if (!data.Products.Any(p => p.Live is not null)) return;
+
+        if (data.Economy.Seafood is not { } s)
+        {
+            errors.Add($"{file}: seafood settings are needed for live seafood");
+            return;
+        }
+
+        if (s.WaterDropBasePerHourMilli < 0 || s.WaterDropPerUnitPerHourMilli < 0 || s.WaterDropPerDeadPerHourMilli < 0) errors.Add($"{file}: seafood.waterDrop* must be >= 0");
+        if (s.CleanBelow is < 0 or > 100) errors.Add($"{file}: seafood.cleanBelow must be 0-100");
+        var points = s.DeathMultiplierPoints;
+        if (points.Count < 2 || points[0].Quality != 0 || points[^1].Quality != 100 || points.Zip(points.Skip(1)).Any(p => p.First.Quality >= p.Second.Quality) || points.Any(p => p.Permille < 0))
+        {
+            errors.Add($"{file}: seafood.deathMultiplierPoints must run from quality 0 to 100 in rising order");
         }
     }
 

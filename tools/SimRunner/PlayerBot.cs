@@ -75,10 +75,21 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         if (stage >= sim.Data.Stages.Count) return;
 
         var next = sim.Data.Stages[stage];
+        if (!IsBuiltOut(sim)) return;
         if (sim.Economy.CumulativeRevenueCents < next.RequiredCumulativeRevenueCents) return;
         if (sim.Economy.CashCents < next.UpgradeCostCents + cashReserveCents) return;
 
         if (Send(sim, new UpgradeStage()) is null) _notes.Add($"upgraded to stage {next.Id}");
+    }
+
+    /// <summary>Whether the departments this stage unlocked are set up, so the next upgrade does not starve them of cash.</summary>
+    private bool IsBuiltOut(GameSim sim)
+    {
+        bool Unlocked(FixtureKind kind) => sim.Data.Fixtures.Any(f => f.Kind == kind && f.UnlockStage <= sim.Economy.Stage);
+        int Placed(FixtureKind kind) => sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == kind);
+
+        return MeatFixtures.All(kind => !Unlocked(kind) || Placed(kind) > 0)
+               && (!Unlocked(FixtureKind.ProduceStand) || Placed(FixtureKind.ProduceStand) >= produceStands);
     }
 
     private void PlaceMissingMeatFixtures(GameSim sim)

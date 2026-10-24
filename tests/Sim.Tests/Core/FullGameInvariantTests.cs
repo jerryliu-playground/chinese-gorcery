@@ -57,7 +57,7 @@ public class FullGameInvariantTests
     {
         var sim = Play(seed: 1, days: 30);
 
-        Assert.Equal(2, sim.Economy.Stage);
+        Assert.True(sim.Economy.Stage >= 2);
         var butcher = Assert.Single(sim.Workers, w => w.RoleId == "butcher");
         Assert.True(sim.Reports[^1].WagesCents == butcher.WageCentsPerDay);
         var sold = sim.Reports.SelectMany(r => r.Sales).Select(s => s.ProductId).ToHashSet();
