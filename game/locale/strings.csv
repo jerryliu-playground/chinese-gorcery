@@ -40,7 +40,7 @@ ui.hud.prices,Prices,定价
 ui.hud.staff,Staff,员工
 ui.hud.upgrade,Upgrade,升级
 ui.hud.report,Report,报表
-ui.hud.controls,WASD/click: move  E: use,WASD/点击：移动  E：交互
+ui.hud.controls,WASD/click: move  E: use  Stand behind the register to serve,WASD/点击：移动  E：交互  站在收银台后自动结账
 ui.phase.pre_open,Before opening,开店前
 ui.phase.open,Open,营业中
 ui.phase.closed,Closed,已打烊
@@ -144,3 +144,8 @@ ui.event.save_failed,Could not save.,存档失败。
 ui.event.loaded,Save loaded.,已读档。
 ui.event.load_failed,That save could not be loaded.,这个存档读不出来。
 ui.event.no_save,No save yet.,还没有存档。
+ui.hud.restock_all,Fill shelves,一键上货
+ui.event.restocked,Shelved {units} items.,上架了 {units} 件商品。
+ui.event.returned,Put back: {product} x{qty},放回了：{product} ×{qty}
+ui.carry.restock,Carrying {qty} {product} to {fixture} slot {n} (E at storage to put back),搬着 {qty} 件{product} → {fixture}第 {n} 格（在仓库按 E 可放回）
+ui.carry.cut,Carrying {product} to the {fixture} (E at cold storage to put back),搬着{product} → {fixture}（在冷库按 E 可放回）

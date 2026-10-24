@@ -3,6 +3,7 @@ using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Staff;
+using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
 using Godot;
 
@@ -26,6 +27,7 @@ public partial class Hud : Control
     private readonly Label _stage = new();
     private readonly Label _message = new();
     private readonly Button _open = new() { Text = "ui.hud.open_store" };
+    private readonly Button _restockAll = new() { Text = "ui.hud.restock_all" };
     private readonly Button _mode = new();
     private readonly Button _language = new() { Text = "ui.hud.language" };
     private readonly List<Button> _speedButtons = [];
@@ -102,6 +104,8 @@ public partial class Hud : Control
             bar.AddChild(b);
         }
 
+        _restockAll.Pressed += () => _host.Send(new RestockAll());
+        bar.AddChild(_restockAll);
         _open.Pressed += () => _host.Send(new OpenStore());
         bar.AddChild(_open);
         _language.Pressed += () =>
@@ -234,6 +238,7 @@ public partial class Hud : Control
         _cash.Text = UiText.F("ui.hud.cash", ("cash", UiText.Money(sim.Economy.CashCents)));
         _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
         _open.Visible = sim.Clock.Phase == DayPhase.PreOpen;
+        _restockAll.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         foreach (var p in _panels) p.RefreshIfOpen();
     }
 
@@ -267,6 +272,26 @@ public partial class Hud : Control
             EmployeeHired h => UiText.F("ui.event.hired", ("role", UiText.T(_host.Data.Employees.Roles.Single(r => r.Id == h.RoleId).NameKey))),
             EmployeeLeveledUp l => UiText.F("ui.event.leveled_up", ("level", l.Level)),
             StoreOpened => UiText.T("ui.event.store_opened"),
+            ShelvesRestocked s => UiText.F("ui.event.restocked", ("units", s.Units)),
+            GoodsReturned g => UiText.F("ui.event.returned", ("product", ProductName(g.ProductId)), ("qty", g.Quantity)),
+            _ => null,
+        };
+    }
+
+    /// <summary>What the player carries and where it should go, or null when their hands are empty.</summary>
+    private string? CarryHint()
+    {
+        var sim = _host.Sim;
+        if (sim.Player.Step != WorkStep.Carrying || sim.Player.TaskId is not { } taskId || sim.Tasks.Find(taskId) is not { } task) return null;
+
+        var lot = sim.Player.Carrying[0];
+        var product = UiText.T(_host.Data.Products.Single(p => p.Id == lot.ProductId).NameKey);
+        string FixtureName(int id) => UiText.T(_host.Data.Fixtures.Single(f => f.Id == sim.Layout.Find(id)!.FixtureId).NameKey);
+        return task switch
+        {
+            RestockTask r => UiText.F("ui.carry.restock",
+                ("qty", sim.Player.Carrying.Sum(l => l.Quantity)), ("product", product), ("fixture", FixtureName(r.Target.FixtureInstanceId)), ("n", r.Target.Slot + 1)),
+            CutMeatTask c => UiText.F("ui.carry.cut", ("product", product), ("fixture", FixtureName(c.CuttingTableInstanceId))),
             _ => null,
         };
     }
@@ -283,8 +308,8 @@ public partial class Hud : Control
         }
         else if (_showingHint || _messageAge > MessageSeconds)
         {
-            // Nothing new to say: show the controls for the current mode, dimmed.
-            _message.Text = UiText.T(_ui.Mode == ToolMode.Build ? "ui.build.hint" : "ui.hud.controls");
+            // Nothing new to say: show what the player is carrying, or the controls for the current mode, dimmed.
+            _message.Text = CarryHint() ?? UiText.T(_ui.Mode == ToolMode.Build ? "ui.build.hint" : "ui.hud.controls");
             _message.Modulate = new Color(1, 1, 1, 0.6f);
             _showingHint = true;
         }

@@ -221,6 +221,7 @@ public partial class StoreView : Node2D
         foreach (var f in sim.Layout.Fixtures) DrawFixture(f);
         if (_ui.Mode == ToolMode.Build) DrawUseCells();
         DrawGhost();
+        DrawCarryTarget();
         foreach (var c in sim.Customers) DrawCustomer(c);
         foreach (var w in sim.Workers) DrawWorker(w);
     }
@@ -314,6 +315,32 @@ public partial class StoreView : Node2D
         var ok = LayoutRules.Check(sim.Layout.Size, layout, Def, candidate.InstanceId) is null;
         DrawRect(Area(cell, LayoutRules.RotatedSize(def, _ui.GhostRotation)), ok ? Palette.GhostOk : Palette.GhostBad);
         foreach (var c in LayoutRules.InteractionCells(def, cell, _ui.GhostRotation)) DrawRect(Area(c, new GridSize(1, 1), 10), Palette.WorkCell);
+    }
+
+    /// <summary>Outlines where the goods the player carries should go: the shelf slot or the cutting table.</summary>
+    private void DrawCarryTarget()
+    {
+        var sim = _host.Sim;
+        if (sim.Player.Step != WorkStep.Carrying || sim.Player.TaskId is not { } id) return;
+
+        var (instanceId, slot) = sim.Tasks.Find(id) switch
+        {
+            RestockTask r => (r.Target.FixtureInstanceId, (int?)r.Target.Slot),
+            CutMeatTask c => (c.CuttingTableInstanceId, null),
+            _ => (0, null),
+        };
+        if (sim.Layout.Find(instanceId) is not { } f) return;
+
+        var def = Def(f);
+        var rect = Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 1);
+        if (slot is { } s)
+        {
+            var slotW = (rect.Size.X - 6) / def.Capacity;
+            rect = new Rect2(rect.Position.X + 3 + s * slotW, rect.Position.Y + 2, slotW, rect.Size.Y - 4);
+        }
+
+        var pulse = 0.6f + 0.4f * Mathf.Sin((float)Time.GetTicksMsec() / 150f);
+        DrawRect(rect, Palette.Selection with { A = pulse }, filled: false, width: 2);
     }
 
     private Vector2 CenterOf(GridPoint cell) => new(cell.X * Cell + Cell / 2f, cell.Y * Cell + Cell / 2f);
