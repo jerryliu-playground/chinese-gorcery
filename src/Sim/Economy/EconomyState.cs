@@ -26,6 +26,14 @@ public sealed class EconomyState
         Today.AddExpense(category, cents);
     }
 
+    /// <summary>Pays an obligation even if it takes cash below zero (wages); while negative, nothing can be bought.</summary>
+    internal void Pay(ExpenseCategory category, long cents)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(cents);
+        CashCents -= cents;
+        Today.AddExpense(category, cents);
+    }
+
     /// <summary>Money coming back for something bought earlier (e.g. selling a fixture); reduces that category's spending.</summary>
     internal void Refund(ExpenseCategory category, long cents)
     {

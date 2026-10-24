@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
 
@@ -113,6 +114,8 @@ public sealed partial class GameSim
             MovePlayer move => HandleMovePlayer(move),
             PlayerInteract interact => HandlePlayerInteract(interact),
             UpgradeStage => HandleUpgradeStage(),
+            HireEmployee hire => HandleHireEmployee(hire),
+            SetWage wage => HandleSetWage(wage),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
@@ -158,6 +161,8 @@ public sealed partial class GameSim
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, pile.Location, loss));
             }
         }
+
+        PayWages();
 
         foreach (var worker in _workers)
         {

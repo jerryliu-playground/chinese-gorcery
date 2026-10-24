@@ -26,7 +26,11 @@ public static class SimSnapshot
         sim.PendingOrders,
         Shelves = sim.Shelves.Assigned.Select(kv => new { kv.Key, kv.Value }),
         Prices = sim.Prices.Overrides,
-        Workers = sim.Workers.Select(w => new { w.Id, w.Position, w.Path, w.TaskId, Step = w.Step.ToString(), w.WorkTicksLeft, w.Carrying }),
+        Workers = sim.Workers.Select(w => new
+        {
+            w.Id, w.RoleId, w.Position, w.Path, w.TaskId, Step = w.Step.ToString(), w.WorkTicksLeft, w.Carrying,
+            w.KnifeSkill, w.WorkSpeedPermille, w.WageCentsPerDay, w.MoralePermille, w.Level, w.Xp,
+        }),
         Tasks = sim.Tasks.Tasks.Select(t => new { Task = t.ToString(), ClaimedBy = sim.Tasks.ClaimedBy(t.Id) }),
         Customers = sim.Customers.Select(c => new
         {

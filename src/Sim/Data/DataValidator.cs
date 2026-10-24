@@ -174,6 +174,13 @@ public static partial class DataValidator
             CheckRange(at, "speedPermille", r.SpeedPermille, minAllowed: 1, errors);
             if (r.XpPerTask <= 0) errors.Add($"{at}: xpPerTask must be > 0");
             if (r.XpPerLevel <= 0) errors.Add($"{at}: xpPerLevel must be > 0");
+            if (r.MoveCellsPerTick <= 0) errors.Add($"{at}: moveCellsPerTick must be > 0");
+            CheckPermille(at, "moraleAtMarketWagePermille", r.MoraleAtMarketWagePermille, errors);
+            if (r.MoralePerWageRatioPermille < 0) errors.Add($"{at}: moralePerWageRatioPermille must be >= 0");
+            CheckPermille(at, "minMoraleSpeedPermille", r.MinMoraleSpeedPermille, errors);
+            if (r.MaxLevel < 1) errors.Add($"{at}: maxLevel must be >= 1");
+            if (r.LevelUpKnifeSkill < 0) errors.Add($"{at}: levelUpKnifeSkill must be >= 0");
+            if (r.LevelUpSpeedPermille < 0) errors.Add($"{at}: levelUpSpeedPermille must be >= 0");
         }
 
         var player = employees.Player;

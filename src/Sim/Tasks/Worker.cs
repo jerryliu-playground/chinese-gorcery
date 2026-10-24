@@ -19,6 +19,13 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
     public int MoveCellsPerTick { get; } = moveCellsPerTick;
     public int WorkSpeedPermille { get; internal set; } = workSpeedPermille;
     public int KnifeSkill { get; internal set; } = knifeSkill;
+
+    /// <summary>The staff role, or null for the player.</summary>
+    public string? RoleId { get; internal init; }
+    public long WageCentsPerDay { get; internal set; }
+    public int MoralePermille { get; internal set; }
+    public int Level { get; internal set; } = 1;
+    public int Xp { get; internal set; }
     public int? TaskId { get; internal set; }
     public WorkStep Step { get; internal set; } = WorkStep.Idle;
     public int WorkTicksLeft { get; internal set; }

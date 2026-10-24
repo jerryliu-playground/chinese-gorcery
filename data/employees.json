@@ -4,7 +4,10 @@
       "id": "butcher", "nameKey": "role.butcher.name", "unlockStage": 2, "maxCount": 1,
       "taskTypes": ["cut_meat"], "marketWageCentsPerDay": 12000,
       "knifeSkill": { "min": 1, "max": 5 }, "speedPermille": { "min": 800, "max": 1200 },
-      "xpPerTask": 10, "xpPerLevel": 100, "_tbd": true
+      "moveCellsPerTick": 8,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
+      "_tbd": true
     }
   ],
   "player": { "moveCellsPerTick": 10, "workSpeedPermille": 1000, "knifeSkill": 1, "_tbd": true }

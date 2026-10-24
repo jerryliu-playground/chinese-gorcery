@@ -33,4 +33,9 @@ public enum RejectReason
     SlotInUse,
     NotEnoughRevenue,
     MaxStage,
+    UnknownRole,
+    RoleLocked,
+    RoleFull,
+    UnknownWorker,
+    InvalidWage,
 }
