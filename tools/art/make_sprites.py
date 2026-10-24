@@ -598,6 +598,183 @@ SPRITES = {
 }
 SPRITES.update(character_sprites())
 
+# ---------- batch 3: seafood ----------
+WATER, WATERD, MURK, MURKD = (96, 170, 210), (64, 130, 180), (120, 150, 100), (88, 116, 76)
+
+def fish_shape(im, x, y, body, belly, d=1):
+    """small side-view fish, 9x5, facing right if d=1"""
+    for i in range(7):
+        h = (1, 3, 5, 5, 5, 3, 1)[i]
+        xx = x + (i if d == 1 else 8 - i)
+        r(im, xx, y + (5 - h) // 2, 1, h, body)
+    r(im, x + (2 if d == 1 else 3), y + 3, 4, 1, belly)
+    tail = x - 1 if d == 1 else x + 9
+    r(im, tail, y, 1, 5, body); r(im, tail + (-1 if d == 1 else 1), y + 1, 1, 3, body)
+    p(im, x + (5 if d == 1 else 3), y + 1, "soy")
+
+def fish_tank(state="clean"):
+    im = new()
+    water, waterd = (WATER, WATERD) if state != "murky" else (MURK, MURKD)
+    r(im, 1, 4, 30, 22, water); r(im, 1, 4, 30, 2, waterd)
+    for x in range(2, 30, 4):
+        p(im, x, 6, "wht")
+    if state != "empty":
+        fish_shape(im, 5, 10, "gry", "wht", 1); fish_shape(im, 18, 14, (110, 140, 120), "wht", -1)
+        fish_shape(im, 9, 19, "gry", "wht", 1)
+        if state == "murky":
+            fish_shape(im, 20, 22, (150, 150, 140), "fs", 1)   # sickly fish near bottom
+    for x, y in ((26, 9), (27, 12), (25, 16)):
+        p(im, x, y, "wht")
+    if state == "murky":
+        for x, y in ((6, 8), (14, 12), (22, 9), (11, 23), (27, 20)):
+            p(im, x, y, MURKD)
+    r(im, 1, 4, 1, 22, "glass"); r(im, 30, 4, 1, 22, "glass")
+    r(im, 1, 26, 30, 5, "gryd"); r(im, 1, 26, 30, 1, "gry"); r(im, 24, 28, 4, 1, "grnl")
+    r(im, 1, 2, 30, 2, "gry")
+    return outline(im)
+
+def ice_table(full=True):
+    im = new()
+    r(im, 1, 6, 30, 12, "wht")
+    for x, y in ((4, 8), (9, 11), (15, 7), (21, 12), (26, 9), (6, 15), (18, 15), (12, 14)):
+        r(im, x, y, 2, 1, "glass")
+    if full:
+        fish_shape(im, 4, 8, (170, 176, 176), "wht", 1)
+        fish_shape(im, 17, 10, (170, 176, 176), "wht", -1)
+        for x in (5, 9, 13):
+            r(im, x, 14, 3, 2, (226, 210, 170)); p(im, x, 14, "wht")
+        r(im, 21, 4, 6, 3, "wht"); p(im, 22, 5, "red")    # price card
+    r(im, 1, 18, 30, 12, "gry"); r(im, 1, 18, 30, 1, "wht"); r(im, 1, 29, 30, 1, "gryd")
+    r(im, 4, 21, 24, 1, "gryd")
+    return outline(im)
+
+def seafood_counter():
+    im = new()
+    r(im, 1, 10, 30, 6, "gry"); r(im, 1, 15, 30, 1, "gryd")
+    r(im, 1, 16, 30, 14, "blud"); r(im, 1, 29, 30, 1, "out")
+    for x in (6, 16, 26):
+        r(im, x, 18, 1, 10, "blu")
+    r(im, 1, 21, 30, 2, "blul")
+    # scale
+    r(im, 18, 6, 10, 2, "gry"); r(im, 21, 8, 4, 4, "gryd"); r(im, 21, 9, 4, 2, "grnl")
+    # chopping board + knife
+    r(im, 3, 7, 11, 5, "wl"); r(im, 5, 6, 6, 2, "gry"); r(im, 11, 6, 3, 2, "wd")
+    return outline(im)
+
+def live_fish():
+    im = new()
+    body, belly = (110, 140, 130), (220, 226, 214)
+    for i in range(18):
+        h = (2, 4, 6, 8, 10, 11, 12, 12, 12, 12, 11, 10, 9, 8, 6, 5, 4, 3)[i]
+        r(im, 7 + i, 16 - h // 2, 1, h, body)
+    r(im, 10, 17, 13, 3, belly)
+    r(im, 4, 10, 3, 12, body); r(im, 3, 8, 2, 4, body); r(im, 3, 20, 2, 4, body)    # tail
+    r(im, 12, 9, 6, 2, (80, 110, 100))                                               # fin
+    r(im, 20, 13, 2, 2, "wht"); p(im, 21, 13, "soy")
+    for x in (11, 14, 17):
+        p(im, x, 14, (150, 180, 170))
+    for x, y in ((27, 9), (28, 6), (26, 4)):
+        p(im, x, y, "glass")
+    return shadow(outline(im), rx=10)
+
+def chilled_fish():
+    im = new()
+    r(im, 3, 18, 26, 7, "wht")
+    for x in range(4, 28, 3):
+        p(im, x, 19, "glass")
+    body = (176, 182, 184)
+    for i in range(18):
+        h = (2, 3, 4, 6, 7, 8, 8, 8, 8, 8, 7, 7, 6, 5, 4, 4, 3, 2)[i]
+        r(im, 7 + i, 15 - h // 2, 1, h, body)
+    r(im, 4, 11, 3, 8, body); r(im, 10, 15, 13, 2, "wht")
+    p(im, 21, 13, "gryd")
+    return shadow(outline(im), rx=12)
+
+def shrimp():
+    im = new()
+    for cx, cy, d in ((12, 12, 1), (19, 19, -1)):
+        col, cold = (210, 170, 160), (170, 120, 112)
+        for i in range(8):
+            r(im, cx + d * i - (0 if d == 1 else 1), cy + (i // 3), 2, 4 - i // 3, col)
+        r(im, cx + d * 8, cy + 2, 2, 3, cold)              # tail
+        p(im, cx - d, cy, "soy")
+        r(im, cx - d * 4, cy - 2, 3, 1, cold); r(im, cx - d * 5, cy - 3, 2, 1, cold)   # antennae
+        for i in range(0, 7, 2):
+            p(im, cx + d * i, cy + 3, cold)
+    return shadow(outline(im), rx=10)
+
+def crab():
+    im = new()
+    shell, shelld = (84, 112, 120), (56, 80, 90)
+    r(im, 9, 12, 14, 9, shell); r(im, 11, 11, 10, 1, shell); r(im, 9, 19, 14, 2, shelld)
+    r(im, 12, 9, 1, 3, "soy"); r(im, 19, 9, 1, 3, "soy")                          # eye stalks
+    r(im, 4, 7, 5, 5, shell); r(im, 23, 7, 5, 5, shell); r(im, 4, 7, 2, 2, shelld); r(im, 26, 7, 2, 2, shelld)
+    r(im, 7, 11, 2, 3, shell); r(im, 23, 11, 2, 3, shell)
+    for i, y in enumerate((16, 19, 22)):
+        r(im, 5 + i, y, 4, 1, shelld); r(im, 23 - i, y, 4, 1, shelld)
+    r(im, 4, 7, 5, 1, "gold"); r(im, 23, 7, 5, 1, "gold")                         # straw ties
+    p(im, 13, 14, "wht")
+    return shadow(outline(im), rx=10)
+
+def lobster():
+    im = new()
+    sh, shd = (120, 56, 52), (84, 36, 40)
+    r(im, 13, 9, 6, 8, sh)                                   # head/thorax
+    for i, y in enumerate(range(17, 26)):
+        r(im, 14 - (1 if i % 3 == 0 else 0), y, 4 + (2 if i % 3 == 0 else 0), 1, sh if i % 2 else shd)
+    r(im, 11, 26, 10, 2, shd); r(im, 13, 28, 6, 1, sh)       # tail fan
+    r(im, 7, 4, 5, 6, sh); r(im, 20, 4, 5, 6, sh)            # claws
+    r(im, 10, 9, 3, 2, sh); r(im, 19, 9, 3, 2, sh)
+    r(im, 7, 6, 5, 1, "yel"); r(im, 20, 6, 5, 1, "yel")       # rubber bands
+    r(im, 14, 3, 1, 6, shd); r(im, 17, 3, 1, 6, shd); r(im, 13, 1, 1, 2, shd); r(im, 18, 1, 1, 2, shd)
+    p(im, 14, 10, "soy"); p(im, 17, 10, "soy"); p(im, 15, 12, "redl")
+    for y in (12, 14, 16):
+        p(im, 12, y, shd); p(im, 19, y, shd)
+    return shadow(outline(im), rx=8)
+
+def clams():
+    im = new()
+    for cx, cy in ((10, 18), (16, 16), (22, 18), (13, 22), (19, 22), (16, 11)):
+        shell = (214, 196, 160) if (cx + cy) % 2 else (190, 170, 140)
+        r(im, cx - 3, cy - 2, 6, 4, shell); r(im, cx - 2, cy - 3, 4, 1, shell)
+        r(im, cx - 3, cy + 1, 6, 1, (140, 120, 100)); p(im, cx - 1, cy - 2, "wht")
+        p(im, cx + 1, cy - 1, (150, 130, 110))
+    return shadow(outline(im), rx=9)
+
+def icon_water_quality(good=True):
+    im = new()
+    col = WATER if good else MURK
+    for y in range(6, 27):
+        if y < 14:
+            half = (y - 6) // 2 + 1
+        else:
+            half = int((49 - (y - 20) ** 2) ** 0.5) if (y - 20) ** 2 < 49 else 0
+        r(im, 16 - half, y, half * 2, 1, col)
+    p(im, 13, 17, "wht"); p(im, 13, 18, "wht"); p(im, 14, 16, "wht")
+    if not good:
+        p(im, 17, 20, MURKD); p(im, 15, 23, MURKD); p(im, 19, 17, MURKD)
+    return outline(im)
+
+CHARACTERS["fishmonger"] = dict(
+    shirt="wht", shirt_d="gry", pants="blud", apron=(60, 90, 130),
+    hat=lambda im, back: (r(im, 10, 2, 12, 3, "blu"), r(im, 10, 4, 12, 1, "blud")),
+    front=lambda im: (p(im, 14, 21, WATERD), p(im, 17, 19, WATERD)),
+    any=lambda im, back: (r(im, 11, 28, 4, 2, "grnd"), r(im, 17, 28, 4, 2, "grnd")),   # rubber boots
+)
+
+SPRITES.update({
+    "fish_tank": lambda: fish_tank("clean"), "fish_tank_murky": lambda: fish_tank("murky"),
+    "fish_tank_empty": lambda: fish_tank("empty"),
+    "ice_table": lambda: ice_table(True), "ice_table_empty": lambda: ice_table(False),
+    "seafood_counter": seafood_counter,
+    "product_live_fish": live_fish, "product_chilled_fish": chilled_fish,
+    "product_live_shrimp": shrimp, "product_crab": crab, "product_lobster": lobster,
+    "product_clams": clams,
+    "ui_water_good": lambda: icon_water_quality(True), "ui_water_bad": lambda: icon_water_quality(False),
+})
+SPRITES.update(character_sprites())
+
+
 def sheet(imgs, names, cols, path, scale):
     rows = (len(names) + cols - 1) // cols
     sh = Image.new("RGBA", (cols * 32, rows * 32), (0, 0, 0, 0))
@@ -615,7 +792,7 @@ def main():
     for name, im in imgs.items():
         im.save(OUT_DIR / f"{name}.png")
 
-    base = ART_DIR
+    base = OUT_DIR.parent
     static = [n for n in imgs if not n.startswith("char_")]
     sheet(imgs, static, 10, base / "sheet_static.png", 4)
     # character sheet: one row per character, front 0-2 then back 0-2
@@ -651,6 +828,24 @@ def main():
     put("ui_bubble_heart", 4, 5, dx=14, dy=6)
     put("ui_bubble_question", 5, 3, dy=8)
     scene.resize((scene.width * 3, scene.height * 3), Image.NEAREST).save(base / "preview_scene_3x.png")
+
+    # seafood corner preview, 9 x 5 tiles
+    sea = Image.new("RGBA", (9 * 32, 5 * 32), C["fl"] + (255,))
+    def sput(n, x, y, dx=0, dy=0):
+        im = imgs[n]
+        sea.paste(im, (x * 32 + dx, y * 32 + dy), im)
+    for x in range(9):
+        sput("tile_wall", x, 0)
+        for y in range(1, 5):
+            sput("tile_floor", x, y)
+    sput("deco_lantern", 4, 0)
+    sput("fish_tank", 1, 1); sput("fish_tank", 2, 1); sput("fish_tank_murky", 3, 1)
+    sput("ice_table", 5, 1); sput("ice_table", 6, 1); sput("ice_table_empty", 7, 1)
+    sput("seafood_counter", 2, 3); sput("seafood_counter", 3, 3)
+    sput("char_fishmonger_front_0", 3, 2); sput("char_auntie_back_0", 2, 4, dx=8)
+    sput("char_family_front_1", 6, 2, dx=6); sput("ui_bubble_frown", 3, 1, dx=12, dy=-6)
+    sput("ui_water_bad", 3, 1, dx=-8, dy=-14)
+    sea.resize((sea.width * 4, sea.height * 4), Image.NEAREST).save(base / "preview_seafood_4x.png")
     print(f"{len(imgs)} sprites written ({len(static)} static, {len(chars)} character frames)")
 
 if __name__ == "__main__":

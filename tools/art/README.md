@@ -30,3 +30,15 @@ python3 make_sprites.py      # 输出到 sprites/，并生成预览图
 ## 注意
 - 果蔬、冷冻商品属于后续里程碑的内容，图先备好；在 spec 把它们纳入范围之前，代码里不要使用。
 - 华人家庭顾客已有专属形象，可以取代 M7 里"阿姨换色"的临时方案。
+
+## 新增内容（v3 · 海鲜部）
+
+**设施**：`fish_tank`（活鱼池，清水）/ `fish_tank_murky`（水质差，水发绿、有病鱼）/ `fish_tank_empty`、`ice_table` / `ice_table_empty`（冰台）、`seafood_counter`（海鲜柜台，带秤和砧板）
+
+**商品**：`live_fish` 活鱼、`chilled_fish` 冰鲜鱼、`live_shrimp` 活虾、`crab` 螃蟹（绑草绳）、`lobster` 龙虾（钳子套皮筋）、`clams` 蛤蜊
+
+**角色**：`fishmonger` 海鲜师傅（蓝帽、胶皮围裙、水鞋），同样有正面、背面各 3 帧
+
+**UI 图标**：`ui_water_good` / `ui_water_bad`（鱼池水质）
+
+预览：`preview_seafood_4x.png`
