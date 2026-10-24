@@ -50,7 +50,8 @@ public sealed partial class GameSim
                 c.Exit, c.ItemsNotFound, c.ItemsTooExpensive)).ToList(),
             _nextCustomerId,
             _nextQueueNumber,
-            _queue.ToList());
+            _queue.ToList(),
+            _tidiness.Select(kv => new TidinessSave(kv.Key, kv.Value)).ToList());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -132,5 +133,6 @@ public sealed partial class GameSim
         _nextCustomerId = save.NextCustomerId;
         _nextQueueNumber = save.NextQueueNumber;
         _queue.AddRange(save.QueuedCommands);
+        foreach (var stand in save.Tidiness ?? []) _tidiness[stand.StandInstanceId] = stand.Tidiness;
     }
 }

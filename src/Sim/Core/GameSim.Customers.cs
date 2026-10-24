@@ -188,7 +188,7 @@ public sealed partial class GameSim
 
         var batch = ChooseBatch(Inventory.Get(slot), productId, type);
         var price = EffectivePrice(batch);
-        var chance = PriceAcceptance.BuyChancePermille(type, price, Prices.ReferenceOf(productId));
+        var chance = ApplyDisplay(PriceAcceptance.BuyChancePermille(type, price, Prices.ReferenceOf(productId)), slot);
         if (Rng.NextInt(0, 1000) >= chance)
         {
             customer.ItemsTooExpensive++;
@@ -198,6 +198,7 @@ public sealed partial class GameSim
         }
 
         customer.AddToBasket(new BasketItem(Inventory.Get(slot).TakeFrom(batch, 1), slot, price));
+        MessUp(slot);
 
         _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TookItem, productId));
         if (Inventory.Count(slot, productId) == 0) _events.Add(new ProductSoldOut(slot, productId));

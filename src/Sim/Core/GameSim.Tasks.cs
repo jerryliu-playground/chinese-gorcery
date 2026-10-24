@@ -19,6 +19,7 @@ public sealed partial class GameSim
         RefreshRestockTasks();
         RefreshCheckoutTasks();
         RefreshCutMeatTasks();
+        RefreshTidyTasks();
     }
 
     private void RefreshRestockTasks()
@@ -114,12 +115,13 @@ public sealed partial class GameSim
     private static bool Involves(SimTask task, int instanceId) =>
         StartFixtureOf(task) == instanceId || SecondFixtureOf(task) == instanceId;
 
-    /// <summary>Where a task begins: the storage area to take goods from, or the checkout.</summary>
+    /// <summary>Where a task begins: the storage area to take goods from, the checkout, or the stand to tidy.</summary>
     private static int StartFixtureOf(SimTask task) => task switch
     {
         RestockTask r => r.Source.FixtureInstanceId,
         CheckoutTask c => c.CheckoutInstanceId,
         CutMeatTask c => c.Source.FixtureInstanceId,
+        TidyTask t => t.StandInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -192,6 +194,10 @@ public sealed partial class GameSim
 
             case CutMeatTask:
                 BeginStep(worker, WorkStep.Picking, settings.CutPickupMinutes);
+                break;
+
+            case TidyTask:
+                BeginStep(worker, WorkStep.Tidying, settings.TidyMinutes);
                 break;
 
             case CheckoutTask c:
@@ -399,6 +405,11 @@ public sealed partial class GameSim
 
             case (WorkStep.Cutting, CutMeatTask c):
                 CutPrimal(worker, c);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Tidying, TidyTask t):
+                Tidy(worker, t);
                 FinishTask(worker, completed: true);
                 break;
 

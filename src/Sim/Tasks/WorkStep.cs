@@ -9,4 +9,5 @@ public enum WorkStep
     Shelving,
     Serving,
     Cutting,
+    Tidying,
 }

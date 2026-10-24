@@ -66,6 +66,7 @@ public sealed partial class GameSim
         Layout.Remove(sell.InstanceId);
         Inventory.Forget(sell.InstanceId);
         Shelves.Forget(sell.InstanceId);
+        _tidiness.Remove(sell.InstanceId);
         Tasks.RemoveOpen(t => Involves(t, sell.InstanceId));
         RebuildOccupancy();
         Economy.Refund(ExpenseCategory.Fixtures, refund);
