@@ -32,6 +32,9 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     public IReadOnlyDictionary<string, int> Rejections => _rejections;
     public int OrdersCutForSpace { get; private set; }
 
+    /// <summary>Called after every tick the bot runs (tests use it to check state mid-play).</summary>
+    public Action? AfterTick { get; set; }
+
     /// <summary>Returns and clears notable things the bot did (upgrades, hires, placements).</summary>
     public IReadOnlyList<string> TakeNotes()
     {
@@ -182,8 +185,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         var player = sim.Player;
         if (player.IsWorking || player.Path.Count > 0)
         {
-            sim.Tick();
-            Drain(sim);
+            Tick(sim);
             return;
         }
 
@@ -203,8 +205,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             };
         if (fixtureId is null)
         {
-            sim.Tick();
-            Drain(sim);
+            Tick(sim);
             return;
         }
 
@@ -217,8 +218,15 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private RejectReason? Send(GameSim sim, SimCommand command)
     {
         sim.Enqueue(command);
+        return Tick(sim).FirstOrDefault(r => r.Command == command)?.Reason;
+    }
+
+    private List<CommandRejected> Tick(GameSim sim)
+    {
         sim.Tick();
-        return Drain(sim).FirstOrDefault(r => r.Command == command)?.Reason;
+        var rejected = Drain(sim);
+        AfterTick?.Invoke();
+        return rejected;
     }
 
     private List<CommandRejected> Drain(GameSim sim)

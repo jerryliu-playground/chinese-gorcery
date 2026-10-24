@@ -5,9 +5,9 @@ public sealed class GameClock
 {
     internal GameClock(int openMinuteOfDay) => SecondOfDay = openMinuteOfDay * 60;
 
-    public int Day { get; private set; } = 1;
-    public DayPhase Phase { get; private set; } = DayPhase.PreOpen;
-    public int SecondOfDay { get; private set; }
+    public int Day { get; internal set; } = 1;
+    public DayPhase Phase { get; internal set; } = DayPhase.PreOpen;
+    public int SecondOfDay { get; internal set; }
     public int MinuteOfDay => SecondOfDay / 60;
 
     internal void Open() => Phase = DayPhase.Open;

@@ -15,6 +15,12 @@ public sealed class TaskBoard
 
     public int? ClaimedBy(int taskId) => _claims.TryGetValue(taskId, out var worker) ? worker : null;
 
+    /// <summary>The id the next task will get (saved so ids never repeat after loading).</summary>
+    public int NextId => _nextId;
+
+    /// <summary>Task id to worker id for every claimed task.</summary>
+    public IReadOnlyDictionary<int, int> Claims => _claims;
+
     public SimTask? Find(int taskId) => _tasks.Find(t => t.Id == taskId);
 
     internal T Add<T>(Func<int, T> create) where T : SimTask
@@ -22,6 +28,15 @@ public sealed class TaskBoard
         var task = create(_nextId++);
         _tasks.Add(task);
         return task;
+    }
+
+    internal void Restore(IEnumerable<SimTask> tasks, IEnumerable<KeyValuePair<int, int>> claims, int nextId)
+    {
+        _tasks.Clear();
+        _tasks.AddRange(tasks);
+        _claims.Clear();
+        foreach (var (task, worker) in claims) _claims[task] = worker;
+        _nextId = nextId;
     }
 
     internal bool TryClaim(int taskId, int workerId)

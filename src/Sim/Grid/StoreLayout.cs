@@ -21,6 +21,13 @@ public sealed class StoreLayout
         return placed;
     }
 
+    internal void Restore(IEnumerable<PlacedFixture> fixtures, int nextInstanceId)
+    {
+        _fixtures.Clear();
+        _fixtures.AddRange(fixtures.OrderBy(f => f.InstanceId));
+        NextInstanceId = nextInstanceId;
+    }
+
     internal void Remove(int instanceId) => _fixtures.RemoveAll(f => f.InstanceId == instanceId);
 
     internal void Move(int instanceId, GridPoint origin, Rotation rotation)

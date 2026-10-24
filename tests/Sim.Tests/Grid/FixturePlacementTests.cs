@@ -29,7 +29,7 @@ public class FixturePlacementTests
         var before = SimSnapshot.Describe(sim);
         var (_, events) = RunOn(sim, command);
         var rejected = events.Single<CommandRejected>();
-        Assert.Equal(before.Replace("\"TickCount\":0", "\"TickCount\":1"), SimSnapshot.Describe(sim));
+        Assert.Equal(before.Replace("\"tickCount\":0", "\"tickCount\":1"), SimSnapshot.Describe(sim));
         return rejected;
     }
 

@@ -7,14 +7,14 @@ public sealed class DayLedger(int day, long cashStartCents)
 
     public int Day { get; } = day;
     public long CashStartCents { get; } = cashStartCents;
-    public long RevenueCents { get; private set; }
-    public long CostOfGoodsSoldCents { get; private set; }
-    public long PurchaseCostCents { get; private set; }
-    public long WagesCents { get; private set; }
-    public long FixtureSpendCents { get; private set; }
-    public long LossCents { get; private set; }
-    public int Customers { get; private set; }
-    public int AngryLeaves { get; private set; }
+    public long RevenueCents { get; internal set; }
+    public long CostOfGoodsSoldCents { get; internal set; }
+    public long PurchaseCostCents { get; internal set; }
+    public long WagesCents { get; internal set; }
+    public long FixtureSpendCents { get; internal set; }
+    public long LossCents { get; internal set; }
+    public int Customers { get; internal set; }
+    public int AngryLeaves { get; internal set; }
 
     internal void AddExpense(ExpenseCategory category, long cents)
     {
@@ -27,8 +27,8 @@ public sealed class DayLedger(int day, long cashStartCents)
         }
     }
 
-    public int ItemsNotFound { get; private set; }
-    public int ItemsTooExpensive { get; private set; }
+    public int ItemsNotFound { get; internal set; }
+    public int ItemsTooExpensive { get; internal set; }
     public IReadOnlyList<ProductSales> Sales => _sales.Values.ToList();
 
     internal void AddLoss(long cents) => LossCents += cents;
@@ -39,6 +39,13 @@ public sealed class DayLedger(int day, long cashStartCents)
         CostOfGoodsSoldCents += costCents;
         var before = _sales.GetValueOrDefault(productId) ?? new ProductSales(productId, 0, 0);
         _sales[productId] = before with { Units = before.Units + units, RevenueCents = before.RevenueCents + revenueCents };
+    }
+
+    /// <summary>Restores per-product sales when loading a save.</summary>
+    internal void RestoreSales(IEnumerable<ProductSales> sales)
+    {
+        _sales.Clear();
+        foreach (var s in sales) _sales[s.ProductId] = s;
     }
 
     internal void CountCustomer() => Customers++;

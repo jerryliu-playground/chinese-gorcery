@@ -9,10 +9,10 @@ public sealed class EconomyState
         Today = new DayLedger(1, startingCashCents);
     }
 
-    public long CashCents { get; private set; }
-    public long CumulativeRevenueCents { get; private set; }
-    public int Stage { get; private set; } = 1;
-    public DayLedger Today { get; private set; }
+    public long CashCents { get; internal set; }
+    public long CumulativeRevenueCents { get; internal set; }
+    public int Stage { get; internal set; } = 1;
+    public DayLedger Today { get; internal set; }
 
     internal bool CanAfford(long cents) => cents <= CashCents;
 
