@@ -180,6 +180,7 @@ public class CustomerTests
         TickUntil(sim, () => sim.Clock.MinuteOfDay >= SimTestKit.Data.Economy.CloseMinuteOfDay);
 
         Assert.Equal(DayPhase.Open, sim.Clock.Phase);
+        var entered = sim.Economy.Today.Customers;
         var stillInside = sim.Customers.Count;
         Assert.True(stillInside > 0);
 
@@ -187,7 +188,7 @@ public class CustomerTests
         TickUntil(sim, () => sim.Clock.Phase == DayPhase.Closed);
 
         Assert.Empty(sim.Customers);
-        Assert.Equal(sim.Economy.Today.Customers, sim.Reports[0].Customers);
+        Assert.Equal(entered, sim.Reports[0].Customers);
     }
 
     [Fact]

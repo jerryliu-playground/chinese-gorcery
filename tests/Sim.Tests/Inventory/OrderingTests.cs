@@ -130,7 +130,7 @@ public class OrderingTests
     }
 
     [Fact]
-    public void Orders_are_only_accepted_before_opening()
+    public void Orders_are_refused_while_open()
     {
         var sim = SimTestKit.NewSim();
         sim.Run(new OpenStore());

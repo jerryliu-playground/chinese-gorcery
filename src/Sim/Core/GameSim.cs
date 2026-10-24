@@ -142,7 +142,6 @@ public sealed partial class GameSim
         if (Clock.Phase != DayPhase.Closed) return Reject(RejectReason.WrongPhase);
 
         Clock.StartNextDay(Data.Economy.OpenMinuteOfDay);
-        Economy.BeginDay(Clock.Day);
         _events.Add(new DayStarted(Clock.Day));
         DeliverOrders();
         return null;
@@ -178,6 +177,9 @@ public sealed partial class GameSim
         }
 
         var report = Economy.CloseDay();
+
+        // The day's books close now: anything spent after closing (orders for tomorrow) goes on the next day's report.
+        Economy.BeginDay(Clock.Day + 1);
         _reports.Add(report);
         _events.Add(new DailyReportReady(report));
     }

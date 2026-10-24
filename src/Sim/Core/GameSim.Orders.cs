@@ -11,7 +11,8 @@ public sealed partial class GameSim
 {
     private Rejection? HandlePlaceOrder(PlaceOrder order)
     {
-        if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
+        // Before opening or after closing; either way it is delivered before the next opening.
+        if (Clock.Phase == DayPhase.Open) return Reject(RejectReason.WrongPhase);
         if (order.Quantity <= 0) return Reject(RejectReason.InvalidQuantity);
         if (!_products.TryGetValue(order.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
         if (!product.Orderable) return Reject(RejectReason.NotOrderable);
