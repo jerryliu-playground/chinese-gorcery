@@ -26,3 +26,113 @@ customer_type.chinese_family.name,Chinese Family,华人家庭
 role.butcher.name,Butcher,切肉师傅
 stage.1.name,Corner Grocery,街角杂货店
 stage.2.name,Neighborhood Market,社区超市
+ui.panel.close,Close,关闭
+ui.error.data_invalid,Game data has errors:,游戏数据有错误：
+ui.hud.day,Day {day},第 {day} 天
+ui.hud.cash,Cash {cash},现金 {cash}
+ui.hud.pause,Pause,暂停
+ui.hud.speed,{x}x,{x}倍
+ui.hud.open_store,Open,开门
+ui.hud.build,Build,摆放
+ui.hud.play,Done,完成
+ui.hud.order,Order,进货
+ui.hud.prices,Prices,定价
+ui.hud.staff,Staff,员工
+ui.hud.upgrade,Upgrade,升级
+ui.hud.report,Report,报表
+ui.hud.controls,WASD/click: move  E: use,WASD/点击：移动  E：交互
+ui.phase.pre_open,Before opening,开店前
+ui.phase.open,Open,营业中
+ui.phase.closed,Closed,已打烊
+ui.order.title,Order from wholesaler,向批发商进货
+ui.order.hint,"Paid now, delivered before tomorrow's opening.",下单即付款，明天开店前送到。
+ui.order.have,have {stock} (+{pending}),现有 {stock}（+{pending}）
+ui.order.place,Order,下单
+ui.price.title,Prices,定价
+ui.price.hint,Can only change before opening.,只能在开店前修改。
+ui.price.reference,ref {price},参考价 {price}
+ui.price.set,Set,确定
+ui.shelf.hint,Pick what each slot holds; restocking keeps it full.,给每一格选商品，补货会自动补满。
+ui.shelf.empty_slot,(empty),（空）
+ui.shelf.slot,Slot {n},第 {n} 格
+ui.staff.title,Staff,员工
+ui.staff.none_unlocked,No staff can be hired yet.,现在还不能雇人。
+ui.staff.market_wage,market {wage}/day,市场工资 {wage}/天
+ui.staff.hire,Hire,雇用
+ui.staff.stats,{role} Lv{level}  knife {knife}  speed {speed}%  morale {morale}%,{role} {level} 级  刀工 {knife}  速度 {speed}%  士气 {morale}%
+ui.staff.wage,Wage/day,日薪
+ui.staff.set_wage,Set,确定
+ui.build.title,Build,摆放设施
+ui.build.hint,Click to place or select. R: rotate. Right-click: cancel.,点击摆放或选中，R 旋转，右键取消。
+ui.build.place,Place,摆放
+ui.build.selected,Selected: {fixture},已选中：{fixture}
+ui.build.move,Move,移动
+ui.build.rotate,Rotate,旋转
+ui.build.sell,Sell,卖掉
+ui.upgrade.title,Upgrade store,升级店面
+ui.upgrade.current,Now: {stage},当前：{stage}
+ui.upgrade.max,Already the largest store.,已经是最大的店了。
+ui.upgrade.next,Next: {stage},下一阶段：{stage}
+ui.upgrade.revenue,Lifetime revenue {have} / {need},累计营收 {have} / {need}
+ui.upgrade.cost,Cost {cost} (cash {cash}),费用 {cost}（现金 {cash}）
+ui.upgrade.confirm,Upgrade,升级
+ui.report.title,Day {day} report,第 {day} 天报表
+ui.report.revenue,Revenue,营收
+ui.report.purchases,Purchases,进货成本
+ui.report.wages,Wages,工资
+ui.report.fixtures,Fixtures,设施花费
+ui.report.profit,Profit,利润
+ui.report.loss,Waste,损耗
+ui.report.cash,Cash at close,打烊现金
+ui.report.customers,Customers,顾客数
+ui.report.angry,Left unhappy,不满意离店
+ui.report.not_found,Items not found,找不到货
+ui.report.too_expensive,Too expensive,嫌太贵
+ui.report.sales,Sales,各商品销量
+ui.report.no_sales,Nothing sold.,没有卖出商品。
+ui.report.sold_line,{units} for {revenue},{units} 件，{revenue}
+ui.report.next_day,Next day,下一天
+ui.event.customer_angry,A customer left unhappy.,有顾客不满意地走了。
+ui.event.delivered,Delivered: {product} x{qty},到货：{product} ×{qty}
+ui.event.expired,Thrown out: {product} x{qty},过期丢弃：{product} ×{qty}
+ui.event.hired,Hired: {role},雇用了：{role}
+ui.event.leveled_up,Staff reached level {level}!,员工升到了 {level} 级！
+ui.event.sold_out,Sold out: {product},卖完了：{product}
+ui.event.stage_upgraded,The store is now: {stage},店面升级为：{stage}
+ui.event.store_opened,Doors open!,开门营业！
+ui.reject.wrong_phase,Can't do that right now.,现在不能这样做。
+ui.reject.unknown_product,Unknown product.,没有这种商品。
+ui.reject.not_orderable,That can't be ordered.,这个不能进货。
+ui.reject.no_storage_for_product,No storage that can hold that.,没有能放这种货的仓库。
+ui.reject.invalid_quantity,Enter a quantity above zero.,数量要大于零。
+ui.reject.insufficient_cash,Not enough cash.,现金不够。
+ui.reject.storage_full,Storage is full.,仓库放不下了。
+ui.reject.unknown_fixture,Unknown fixture.,没有这种设施。
+ui.reject.fixture_locked,Not unlocked yet.,还没解锁。
+ui.reject.unknown_fixture_instance,That fixture is gone.,这个设施已经不在了。
+ui.reject.out_of_bounds,Doesn't fit inside the store.,超出店面了。
+ui.reject.overlap,Something is already there.,这里已经有东西了。
+ui.reject.path_blocked,That would block a path.,这样会挡住通道。
+ui.reject.missing_entrance,The store needs an entrance.,店里必须有门口。
+ui.reject.last_entrance,Can't remove the last entrance.,不能拆掉最后一个门口。
+ui.reject.fixture_not_empty,Empty it first.,先把里面的货清空。
+ui.reject.storage_needed_for_orders,Needed for goods on order.,已订的货需要放在这里。
+ui.reject.not_a_display,That isn't a shelf.,这不是货架。
+ui.reject.invalid_slot,No such slot.,没有这一格。
+ui.reject.wrong_storage_type,That shelf can't keep this product.,这个货架放不了这种商品。
+ui.reject.slot_not_empty,Clear the slot first.,先清空这一格。
+ui.reject.invalid_price,Price must be above zero.,价格要大于零。
+ui.reject.busy,Busy right now.,正忙着呢。
+ui.reject.nothing_to_do,Nothing to do here.,这里没什么可做的。
+ui.reject.not_at_fixture,Stand in front of it first.,先走到它前面。
+ui.reject.unreachable,Can't get there.,走不过去。
+ui.reject.blocks_worker,Someone is standing there.,有人站在那里。
+ui.reject.fixture_in_use,Someone is using it.,有人在用。
+ui.reject.slot_in_use,Someone is restocking that slot.,有人正在补这一格。
+ui.reject.not_enough_revenue,Not enough lifetime revenue yet.,累计营收还不够。
+ui.reject.max_stage,Already the largest store.,已经是最大的店了。
+ui.reject.unknown_role,Unknown role.,没有这个岗位。
+ui.reject.role_locked,Not unlocked yet.,还没解锁。
+ui.reject.role_full,No more of that role.,这个岗位已经满了。
+ui.reject.unknown_worker,No such employee.,没有这个员工。
+ui.reject.invalid_wage,Wage can't be negative.,工资不能是负数。
