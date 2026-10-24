@@ -49,6 +49,7 @@ $GODOT --headless --path game --build-solutions --quit       # 检查 Godot 项�
 4. 改动 Godot 场景后，跑一次 Godot 无界面构建检查。
 5. 小步提交，一个提交做一件事，提交信息用英文写清楚做了什么。
 6. 完成一个里程碑后，向 Jerry 汇报：做了什么、怎么验证、有哪些待他决定的问题。
+7. 改动了画面的任务，必须启动游戏查看并截图（保存到 /docs/screenshots/），才算完成。
 
 ## 代码风格
 - C#：开启 nullable，file-scoped namespace，数据类型优先用 `record`。
@@ -60,7 +61,7 @@ $GODOT --headless --path game --build-solutions --quit       # 检查 Godot 项�
 - 像素完美：纹理过滤用 Nearest，整数倍缩放，关闭抗锯齿。
 - 格子 32×32 像素。基础分辨率先用 640×360，整数倍放大（以后可调）。
 - 场景和资源保持文本格式（.tscn / .tres），方便阅读和修改。
-- 美术先用占位图形（色块 + 简单形状），不要生成或下载正式美术。
+- 美术使用 /game/assets/sprites/ 里的过渡素材；需要新图时在决策记录里提出，不要自己从网上下载美术或音频。
 
 ## 不要做的事
 - 不要修改 `/data` 里的平衡数值，除非 Jerry 要求。
