@@ -10,5 +10,5 @@
       "_tbd": true
     }
   ],
-  "player": { "moveCellsPerMinute": 10, "workSpeedPermille": 1000, "knifeSkill": 1, "_tbd": true }
+  "player": { "moveCellsPerMinute": 4, "workSpeedPermille": 1000, "knifeSkill": 1, "_tbd": true }
 }
