@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FeelConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/View/FeelConfig.cs" id="1_feel"]
+
+[resource]
+script = ExtResource("1_feel")
+WalkBounceHeight = 2.0
+WalkBounceSeconds = 0.25
+FloatTextSeconds = 1.0
+FloatTextRise = 18.0
+CashRollSeconds = 0.6
+ShelfBounceSeconds = 0.15
+ShelfBounceSquash = 0.12
+ShelfFlashSeconds = 0.2
+PlaceBounceSeconds = 0.25
+ChopSeconds = 0.4
+CutPopSeconds = 0.8
+BubbleSeconds = 1.2
+HeartChance = 0.3
+SpeechChancePerGameMinute = 0.01
+SpeechSeconds = 2.0
+CelebrationSeconds = 2.0
+ConfettiCount = 80
+MinorEffectsMaxSpeed = 2

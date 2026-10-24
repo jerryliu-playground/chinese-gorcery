@@ -51,6 +51,14 @@ public partial class SimHost : Node
         return true;
     }
 
+    /// <summary>Replaces the running game with one read from save text (also used by the developer screenshot tour).</summary>
+    public void LoadFromJson(string json)
+    {
+        Sim = SaveGame.Read(Data, json);
+        _pendingTicks = 0;
+        GameReplaced?.Invoke();
+    }
+
     /// <summary>Replaces the running game with the saved one. Returns false (and logs why) if it could not be loaded.</summary>
     public bool LoadFromSlot()
     {

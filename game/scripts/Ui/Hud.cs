@@ -55,6 +55,13 @@ public partial class Hud : Control
 
         _message.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
         _message.Position = new Vector2(ToolColumnWidth + 4, 342);
+
+        // On a big floor the message line sits over the bottom row, so give it a backdrop.
+        _message.AddThemeStyleboxOverride("normal", new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.08f, 0.1f, 0.75f),
+            ContentMarginLeft = 3, ContentMarginRight = 3,
+        });
         AddChild(_message);
 
         host.EventsReady += OnEvents;
@@ -205,6 +212,11 @@ public partial class Hud : Control
     {
         foreach (var p in _panels.Where(p => p != panel && p.Visible)) p.Close();
         panel.Open();
+    }
+
+    public void CloseAllPanels()
+    {
+        foreach (var p in _panels.Where(p => p.Visible)) p.Close();
     }
 
     /// <summary>Opens the slots of a clicked shelf or display.</summary>

@@ -4,6 +4,7 @@ using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Tasks;
 using Godot;
+using GridRotation = ChineseGrocery.Sim.Grid.Rotation;
 
 namespace ChineseGrocery.Game.View;
 
@@ -25,6 +26,16 @@ public partial class StoreView : Node2D
     // Where each walker stood after the previous tick and the one before, to draw them sliding between ticks.
     private Dictionary<string, GridPoint> _before = [];
     private Dictionary<string, GridPoint> _after = [];
+    private readonly HashSet<string> _facingLeft = [];
+
+    private readonly Art _art = new();
+    private FeelConfig _feel = new();
+
+    /// <summary>Developer screenshot tool only: pretend the mouse is over this cell.</summary>
+    public GridPoint? DebugHover { get; set; }
+
+    /// <summary>Height of the wall strip drawn above the top row (up to one cell), set by the layout.</summary>
+    public int WallHeight { get; set; } = Cell;
 
     /// <summary>Raised when a display fixture is clicked in play mode (to open its slots).</summary>
     public event Action<int>? DisplayClicked;
@@ -32,15 +43,23 @@ public partial class StoreView : Node2D
     /// <summary>Raised when a placed fixture is clicked in build mode.</summary>
     public event Action<int>? FixtureSelected;
 
-    public void Init(SimHost host, UiState ui)
+    public void Init(SimHost host, UiState ui, FeelConfig feel)
     {
         _host = host;
         _ui = ui;
+        _feel = feel;
+        _art.LogMissing(host.Data);
         _after = Walkers();
         host.Ticked += () =>
         {
             _before = _after;
             _after = Walkers();
+            foreach (var (key, now) in _after)
+            {
+                if (!_before.TryGetValue(key, out var was) || was.X == now.X) continue;
+                if (now.X < was.X) _facingLeft.Add(key);
+                else _facingLeft.Remove(key);
+            }
         };
         host.GameReplaced += () =>
         {
@@ -75,7 +94,7 @@ public partial class StoreView : Node2D
         if (_host?.Sim is null) return;
 
         HandleHeldMovement();
-        _hover = CellAt(GetLocalMousePosition());
+        _hover = DebugHover ?? CellAt(GetLocalMousePosition());
         QueueRedraw();
     }
 
@@ -217,57 +236,131 @@ public partial class StoreView : Node2D
         if (_host?.Sim is null) return;
 
         var sim = _host.Sim;
-        DrawFloor(sim.Layout.Size);
+        var stage = Data.Stages[sim.Economy.Stage - 1];
+        DrawFloor(sim.Layout.Size, stage);
+        DrawWall(sim.Layout.Size, stage);
         foreach (var f in sim.Layout.Fixtures) DrawFixture(f);
         if (_ui.Mode == ToolMode.Build) DrawUseCells();
         DrawGhost();
         DrawCarryTarget();
-        foreach (var c in sim.Customers) DrawCustomer(c);
+        foreach (var c in sim.Customers.OrderBy(c => c.Position.Y)) DrawCustomer(c);
         foreach (var w in sim.Workers) DrawWorker(w);
     }
 
-    private void DrawFloor(GridSize size)
+    // ---------- sprites ----------
+
+    /// <summary>Draws a 32x32 sprite into a cell-sized box, optionally turned by a fixture rotation or mirrored.</summary>
+    private void DrawSprite(Texture2D texture, Vector2 topLeft, GridRotation rotation = GridRotation.None, bool flipX = false, Color? modulate = null, Vector2? scale = null)
     {
+        var half = new Vector2(Cell, Cell) / 2;
+        var s = scale ?? Vector2.One;
+        DrawSetTransform(topLeft + half, (int)rotation * Mathf.Pi / 2, new Vector2(flipX ? -s.X : s.X, s.Y));
+        DrawTexture(texture, -half, modulate ?? Colors.White);
+        DrawSetTransform(Vector2.Zero, 0, Vector2.One);
+    }
+
+    private static Vector2 TopLeftOf(GridPoint cell) => new(cell.X * Cell, cell.Y * Cell);
+
+    private void DrawFloor(GridSize size, StageDef stage)
+    {
+        var tile = _art.Get(stage.FloorSprite);
         for (var y = 0; y < size.H; y++)
         for (var x = 0; x < size.W; x++)
         {
-            DrawRect(new Rect2(x * Cell, y * Cell, Cell, Cell), (x + y) % 2 == 0 ? Palette.FloorA : Palette.FloorB);
+            if (tile is not null) DrawTexture(tile, TopLeftOf(new GridPoint(x, y)));
+            else DrawRect(new Rect2(x * Cell, y * Cell, Cell, Cell), (x + y) % 2 == 0 ? Palette.FloorA : Palette.FloorB);
         }
 
         DrawRect(new Rect2(0, 0, size.W * Cell, size.H * Cell), Palette.Outline, filled: false, width: 2);
     }
 
+    /// <summary>The back wall above the top row, cropped to the room the screen leaves, with its decorations.</summary>
+    private void DrawWall(GridSize size, StageDef stage)
+    {
+        if (WallHeight <= 0) return;
+
+        var tile = _art.Get(stage.WallSprite);
+        var cropTop = Cell - WallHeight;
+        for (var x = 0; x < size.W; x++)
+        {
+            var dest = new Rect2(x * Cell, -WallHeight, Cell, WallHeight);
+            if (tile is not null) DrawTextureRectRegion(tile, dest, new Rect2(0, cropTop, Cell, WallHeight));
+            else DrawRect(dest, Palette.Outline.Lightened(0.3f));
+        }
+
+        foreach (var deco in stage.Decorations ?? [])
+        {
+            if (_art.Get(deco.Sprite) is not { } texture) continue;
+
+            var top = deco.Cell.Y * Cell + (deco.Cell.Y < 0 ? cropTop : 0);
+            var height = deco.Cell.Y < 0 ? WallHeight : Cell;
+            DrawTextureRectRegion(texture, new Rect2(deco.Cell.X * Cell, top, Cell, height), new Rect2(0, Cell - height, Cell, height));
+        }
+    }
+
     private static Rect2 Area(GridPoint origin, GridSize size, int inset = 0) =>
         new(origin.X * Cell + inset, origin.Y * Cell + inset, size.W * Cell - 2 * inset, size.H * Cell - 2 * inset);
+
+    /// <summary>The fixture's cells in data order (unrotated row by row), each with its place on the floor.</summary>
+    private static IEnumerable<(int Index, GridPoint Cell)> CellsOf(FixtureDef def, PlacedFixture f)
+    {
+        var i = 0;
+        for (var y = 0; y < def.Size.H; y++)
+        for (var x = 0; x < def.Size.W; x++)
+        {
+            var turned = LayoutRules.Rotate(new GridPoint(x, y), def.Size, f.Rotation);
+            yield return (i++, new GridPoint(f.Origin.X + turned.X, f.Origin.Y + turned.Y));
+        }
+    }
 
     private void DrawFixture(PlacedFixture f)
     {
         var def = Def(f);
+        if (_art.Get(def.Sprite?.Main) is null)
+        {
+            DrawFixtureBlock(f, def);
+            return;
+        }
+
+        var sprite = def.Sprite!;
+        var cells = CellsOf(def, f).ToList();
+        var slotsPerCell = (int)Math.Ceiling(def.Capacity / (double)cells.Count);
+        foreach (var (index, cell) in cells)
+        {
+            var name = sprite.Main;
+            if (DataValidator.IsDisplay(def.Kind))
+            {
+                var stocked = Enumerable.Range(index * slotsPerCell, slotsPerCell)
+                    .Any(slot => _host.Sim.Shelves.ProductAt(new StockLocation(f.InstanceId, slot)) is { } p && _host.Sim.Inventory.Count(new StockLocation(f.InstanceId, slot), p) > 0);
+                name = !stocked ? sprite.Empty ?? sprite.Main : (cell.X + cell.Y) % 2 == 1 ? sprite.Alternate ?? sprite.Main : sprite.Main;
+            }
+            else if (index > 0)
+            {
+                name = sprite.Rest ?? sprite.Main;
+            }
+
+            DrawSprite(_art.Get(name) ?? _art.Get(sprite.Main)!, TopLeftOf(cell), f.Rotation);
+        }
+
+        if (_art.Get(sprite.Decoration) is { } ornament)
+        {
+            // Sits on the last counter cell, poking up above it.
+            DrawSprite(ornament, TopLeftOf(cells[^1].Cell) + new Vector2(4, -14));
+        }
+
+        if (_ui.SelectedInstanceId == f.InstanceId && _ui.Mode == ToolMode.Build)
+        {
+            DrawRect(Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 1), Palette.Selection, filled: false, width: 1);
+        }
+    }
+
+    /// <summary>Fallback for fixtures without art: a coloured block (storage areas show how full they are).</summary>
+    private void DrawFixtureBlock(PlacedFixture f, FixtureDef def)
+    {
         var rect = Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 2);
         DrawRect(rect, Palette.Fixture(def.Kind));
         DrawRect(rect, _ui.SelectedInstanceId == f.InstanceId && _ui.Mode == ToolMode.Build ? Palette.Selection : Palette.Outline, filled: false, width: 1);
-
-        if (DataValidator.IsDisplay(def.Kind)) DrawSlots(f, def, rect);
-        else if (DataValidator.IsStorageArea(def.Kind)) DrawStorageFill(f, def, rect);
-    }
-
-    /// <summary>One small bar per slot: colour by department, length by how full it is.</summary>
-    private void DrawSlots(PlacedFixture f, FixtureDef def, Rect2 rect)
-    {
-        var slotW = (rect.Size.X - 4) / def.Capacity;
-        for (var slot = 0; slot < def.Capacity; slot++)
-        {
-            var location = new StockLocation(f.InstanceId, slot);
-            var box = new Rect2(rect.Position.X + 2 + slot * slotW + 1, rect.Position.Y + 3, slotW - 2, rect.Size.Y - 6);
-            DrawRect(box, Palette.Outline.Darkened(0.2f));
-            if (_host.Sim.Shelves.ProductAt(location) is not { } productId) continue;
-
-            var product = Data.Products.Single(p => p.Id == productId);
-            var fill = (float)_host.Sim.Inventory.Count(location, productId) / product.UnitsPerShelfSlot;
-            var color = Palette.Department(product.Department);
-            DrawRect(new Rect2(box.Position.X, box.End.Y - box.Size.Y * fill, box.Size.X, box.Size.Y * fill), color);
-            DrawRect(box, color, filled: false, width: 1);
-        }
+        if (DataValidator.IsStorageArea(def.Kind)) DrawStorageFill(f, def, rect);
     }
 
     private void DrawStorageFill(PlacedFixture f, FixtureDef def, Rect2 rect)
@@ -288,7 +381,7 @@ public partial class StoreView : Node2D
         }
     }
 
-    /// <summary>Preview of the fixture being placed or moved: green when the layout rules accept it.</summary>
+    /// <summary>Preview of the fixture being placed or moved: its sprites over a green (fits) or red (does not) footprint.</summary>
     private void DrawGhost()
     {
         if (_ui.Mode != ToolMode.Build || _hover is not { } cell) return;
@@ -313,7 +406,13 @@ public partial class StoreView : Node2D
 
         var def = Def(candidate.FixtureId);
         var ok = LayoutRules.Check(sim.Layout.Size, layout, Def, candidate.InstanceId) is null;
-        DrawRect(Area(cell, LayoutRules.RotatedSize(def, _ui.GhostRotation)), ok ? Palette.GhostOk : Palette.GhostBad);
+        var tint = ok ? Palette.GhostOk : Palette.GhostBad;
+        DrawRect(Area(cell, LayoutRules.RotatedSize(def, _ui.GhostRotation)), tint);
+        if (_art.Get(def.Sprite?.Main) is { } texture)
+        {
+            foreach (var (_, c) in CellsOf(def, candidate)) DrawSprite(texture, TopLeftOf(c), candidate.Rotation, modulate: new Color(1, 1, 1, 0.6f));
+        }
+
         foreach (var c in LayoutRules.InteractionCells(def, cell, _ui.GhostRotation)) DrawRect(Area(c, new GridSize(1, 1), 10), Palette.WorkCell);
     }
 
@@ -335,8 +434,10 @@ public partial class StoreView : Node2D
         var rect = Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 1);
         if (slot is { } s)
         {
-            var slotW = (rect.Size.X - 6) / def.Capacity;
-            rect = new Rect2(rect.Position.X + 3 + s * slotW, rect.Position.Y + 2, slotW, rect.Size.Y - 4);
+            // The cell that holds this slot.
+            var cells = CellsOf(def, f).ToList();
+            var perCell = (int)Math.Ceiling(def.Capacity / (double)cells.Count);
+            rect = Area(cells[Math.Min(cells.Count - 1, s / perCell)].Cell, new GridSize(1, 1), 1);
         }
 
         var pulse = 0.6f + 0.4f * Mathf.Sin((float)Time.GetTicksMsec() / 150f);
@@ -345,41 +446,71 @@ public partial class StoreView : Node2D
 
     private Vector2 CenterOf(GridPoint cell) => new(cell.X * Cell + Cell / 2f, cell.Y * Cell + Cell / 2f);
 
+    private bool IsWalking(string key) =>
+        _before.TryGetValue(key, out var was) && _after.TryGetValue(key, out var now) && was != now;
+
+    /// <summary>One front-facing frame: walking is a small hop, mirrored when heading left.</summary>
+    private void DrawCharacter(string key, Vector2 center, SpriteDef? sprite, Color fallback)
+    {
+        var hop = 0f;
+        if (IsWalking(key) && _feel.WalkBounceSeconds > 0)
+        {
+            var phase = (float)(Time.GetTicksMsec() / 1000.0 / _feel.WalkBounceSeconds) * Mathf.Pi;
+            hop = -Mathf.Abs(Mathf.Sin(phase)) * _feel.WalkBounceHeight;
+        }
+
+        var topLeft = center - new Vector2(Cell, Cell) / 2 + new Vector2(0, hop);
+        if (_art.Get(sprite?.Main) is { } texture)
+        {
+            DrawSprite(texture, topLeft, flipX: _facingLeft.Contains(key), modulate: Art.ParseTint(sprite!.Tint));
+        }
+        else
+        {
+            DrawCircle(center + new Vector2(0, hop), 6, fallback);
+            DrawArc(center + new Vector2(0, hop), 6, 0, Mathf.Tau, 12, Palette.Outline, 1);
+        }
+    }
+
+    private void DrawProductIcon(string productId, Vector2 center, float size)
+    {
+        var product = Data.Products.Single(p => p.Id == productId);
+        var rect = new Rect2(center - new Vector2(size, size) / 2, new Vector2(size, size));
+        if (_art.Get(product.Sprite) is { } icon) DrawTextureRect(icon, rect, false);
+        else DrawRect(rect.Grow(-size / 4), Palette.Department(product.Department));
+    }
+
     private void DrawCustomer(Sim.Customers.Customer c)
     {
-        var typeIndex = Data.CustomerTypes.ToList().FindIndex(t => t.Id == c.TypeId);
+        var types = Data.CustomerTypes.ToList();
+        var type = types.Single(t => t.Id == c.TypeId);
 
         // Spread customers who share a cell so a queue reads as a group.
-        var offset = new Vector2((c.Id % 3 - 1) * 7, (c.Id / 3 % 3 - 1) * 7);
-        var at = DrawPosition("c" + c.Id, c.Position) + offset;
-        DrawCircle(at, 5, Palette.Customer(typeIndex, c.State));
-        DrawArc(at, 5, 0, Mathf.Tau, 12, Palette.Outline, 1);
-        if (c.Basket.Count > 0) DrawRect(new Rect2(at + new Vector2(3, 1), new Vector2(4, 4)), Colors.White);
+        var offset = new Vector2((c.Id % 3 - 1) * 6, (c.Id / 3 % 3 - 1) * 3);
+        var key = "c" + c.Id;
+        var at = DrawPosition(key, c.Position) + offset;
+        DrawCharacter(key, at, type.Sprite, Palette.Customer(types.IndexOf(type), c.State));
+        if (c.Basket.Count > 0) DrawProductIcon(c.Basket[^1].Lot.ProductId, at + new Vector2(9, 6), 12);
     }
 
     private void DrawWorker(Worker w)
     {
-        var at = DrawPosition("w" + w.Id, w.Position);
-        var color = w.IsPlayer ? Palette.Player : Palette.Staff;
-        DrawRect(new Rect2(at - new Vector2(8, 8), new Vector2(16, 16)), color);
-        DrawRect(new Rect2(at - new Vector2(8, 8), new Vector2(16, 16)), Palette.Outline, filled: false, width: 1);
+        var key = "w" + w.Id;
+        var at = DrawPosition(key, w.Position);
+        var sprite = w.IsPlayer ? Data.Employees.Player.Sprite : Data.Employees.Roles.Single(r => r.Id == w.RoleId).Sprite;
+        DrawCharacter(key, at, sprite, w.IsPlayer ? Palette.Player : Palette.Staff);
 
         if (w.IsPlayer)
         {
-            // Facing marker.
-            DrawRect(new Rect2(at + new Vector2(_facing.X * 9 - 2, _facing.Y * 9 - 2), new Vector2(4, 4)), Palette.Outline);
+            // Facing marker, under the feet.
+            DrawRect(new Rect2(at + new Vector2(_facing.X * 12 - 2, 13 + _facing.Y * 2), new Vector2(4, 2)), Palette.Selection);
         }
 
-        if (w.Carrying.Count > 0)
-        {
-            var product = Data.Products.Single(p => p.Id == w.Carrying[0].ProductId);
-            DrawRect(new Rect2(at + new Vector2(-5, -14), new Vector2(10, 6)), Palette.Department(product.Department));
-        }
+        if (w.Carrying.Count > 0) DrawProductIcon(w.Carrying[0].ProductId, at + new Vector2(0, -18), 14);
 
         if (w.IsWorking && w.WorkTicksLeft > 0)
         {
-            DrawRect(new Rect2(at + new Vector2(-10, 11), new Vector2(20, 3)), Palette.Outline);
-            DrawRect(new Rect2(at + new Vector2(-10, 11), new Vector2(20f / (w.WorkTicksLeft + 1), 3)), Palette.Progress);
+            DrawRect(new Rect2(at + new Vector2(-10, 14), new Vector2(20, 3)), Palette.Outline);
+            DrawRect(new Rect2(at + new Vector2(-10, 14), new Vector2(20f / (w.WorkTicksLeft + 1), 3)), Palette.Progress);
         }
     }
 }

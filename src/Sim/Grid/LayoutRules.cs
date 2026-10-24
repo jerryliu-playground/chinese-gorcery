@@ -35,7 +35,7 @@ public static class LayoutRules
         InteractionCells(def, f.Origin, f.Rotation).Concat(CustomerCells(def, f.Origin, f.Rotation));
 
     /// <summary>Turns a cell given relative to an unrotated W x H footprint clockwise, keeping the result relative to the rotated footprint's top-left.</summary>
-    private static GridPoint Rotate(GridPoint c, GridSize size, Rotation rotation) => rotation switch
+    public static GridPoint Rotate(GridPoint c, GridSize size, Rotation rotation) => rotation switch
     {
         Rotation.None => c,
         Rotation.Cw90 => new GridPoint(size.H - 1 - c.Y, c.X),
