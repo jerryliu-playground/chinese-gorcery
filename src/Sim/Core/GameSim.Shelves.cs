@@ -10,6 +10,42 @@ namespace ChineseGrocery.Sim.Core;
 /// <summary>Assigning products to shelf and display slots.</summary>
 public sealed partial class GameSim
 {
+    /// <summary>Fills every assigned slot from storage (oldest stock first), except slots someone is already restocking.</summary>
+    private Rejection? HandleRestockAll()
+    {
+        if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
+
+        var moved = 0;
+        foreach (var (slot, productId) in Shelves.Assigned)
+        {
+            if (Tasks.Tasks.Any(t => t is RestockTask r && r.Target == slot && Tasks.ClaimedBy(r.Id) is not null)) continue;
+
+            var space = _products[productId].UnitsPerShelfSlot - Inventory.Count(slot, productId);
+            while (space > 0 && FindOldestInStorage(productId) is { } source)
+            {
+                var take = Math.Min(space, Inventory.Count(source, productId));
+                var shelf = Inventory.GetOrCreate(slot);
+                foreach (var lot in Inventory.Get(source).Take(productId, take)) shelf.Add(lot);
+                space -= take;
+                moved += take;
+            }
+        }
+
+        if (moved == 0) return Reject(RejectReason.NothingToDo);
+
+        _events.Add(new ShelvesRestocked(moved));
+        return null;
+    }
+
+    /// <summary>The storage area holding the earliest-expiring stock of a product.</summary>
+    private StockLocation? FindOldestInStorage(string productId) =>
+        Inventory.Locations
+            .Where(p => IsStorageArea(p.Location.FixtureInstanceId) && p.Count(productId) > 0)
+            .OrderBy(p => p.Lots.Where(l => l.ProductId == productId).Min(l => l.BestBeforeDay))
+            .ThenBy(p => p.Location)
+            .Select(p => (StockLocation?)p.Location)
+            .FirstOrDefault();
+
     private Rejection? HandleAssignShelfSlot(AssignShelfSlot assign)
     {
         if (Layout.Find(assign.InstanceId) is not { } placed) return Reject(RejectReason.UnknownFixtureInstance);

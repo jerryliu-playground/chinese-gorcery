@@ -39,7 +39,9 @@ public sealed partial class GameSim
     }
 
     private bool IsRestockStillUseful(RestockTask r) =>
-        Shelves.ProductAt(r.Target) == r.ProductId && Inventory.Count(r.Source, r.ProductId) > 0;
+        Shelves.ProductAt(r.Target) == r.ProductId
+        && Inventory.Count(r.Source, r.ProductId) > 0
+        && Inventory.Count(r.Target, r.ProductId) * 1000L < (long)_products[r.ProductId].UnitsPerShelfSlot * Data.Economy.Tasks.RestockBelowPermille;
 
     private StockLocation? FindRestockSource(string productId) =>
         Inventory.Locations
@@ -135,10 +137,13 @@ public sealed partial class GameSim
         if (worker.Step == WorkStep.Carrying)
         {
             var carrying = Tasks.Find(worker.TaskId!.Value)!;
-            if (SecondFixtureOf(carrying) != placed.InstanceId) return false;
+            if (SecondFixtureOf(carrying) == placed.InstanceId)
+            {
+                StartSecondStep(worker, carrying);
+                return true;
+            }
 
-            StartSecondStep(worker, carrying);
-            return true;
+            return TryPutBack(worker, placed);
         }
 
         var task = Tasks.OpenTasks.FirstOrDefault(t => StartFixtureOf(t) == placed.InstanceId && CanDo(worker, t));
@@ -146,6 +151,29 @@ public sealed partial class GameSim
 
         worker.TaskId = task.Id;
         StartFirstStep(worker, task);
+        return true;
+    }
+
+    /// <summary>
+    /// A worker changing their mind: carried goods go into this storage area if it can keep them, and the task goes back
+    /// on the board for anyone to take.
+    /// </summary>
+    private bool TryPutBack(Worker worker, PlacedFixture storage)
+    {
+        var def = _fixtures[storage.FixtureId];
+        if (!DataValidator.IsStorageArea(def.Kind) || worker.Carrying.Any(l => !def.Storage.Contains(_products[l.ProductId].Storage))) return false;
+
+        var location = StockLocation.Storage(storage.InstanceId);
+        var pile = Inventory.GetOrCreate(location);
+        foreach (var group in worker.DropAll().GroupBy(l => l.ProductId).ToList())
+        {
+            foreach (var lot in group) pile.Add(lot);
+            _events.Add(new GoodsReturned(worker.Id, group.Key, group.Sum(l => l.Quantity), location));
+        }
+
+        Tasks.Release(worker.TaskId!.Value);
+        worker.TaskId = null;
+        worker.Step = WorkStep.Idle;
         return true;
     }
 
@@ -228,13 +256,32 @@ public sealed partial class GameSim
     {
         foreach (var worker in _workers)
         {
-            if (!worker.IsPlayer) DriveStaff(worker);
+            if (worker.IsPlayer) ServeIfBehindRegister(worker);
+            else DriveStaff(worker);
 
             MoveWorker(worker);
             if (!worker.IsWorking) continue;
 
             if (worker.WorkTicksLeft > 0) worker.WorkTicksLeft--;
             if (worker.WorkTicksLeft == 0) CompleteStep(worker);
+        }
+    }
+
+    /// <summary>
+    /// The one task the player takes without pressing anything: standing idle at a checkout's work cell serves its queue,
+    /// customer after customer, with the same checkout task logic as staff.
+    /// </summary>
+    private void ServeIfBehindRegister(Worker player)
+    {
+        if (player.Step != WorkStep.Idle || player.Path.Count > 0) return;
+
+        foreach (var task in Tasks.OpenTasks.OfType<CheckoutTask>().ToList())
+        {
+            if (!IsAtFixture(player, task.CheckoutInstanceId) || !Tasks.TryClaim(task.Id, player.Id)) continue;
+
+            player.TaskId = task.Id;
+            StartFirstStep(player, task);
+            return;
         }
     }
 

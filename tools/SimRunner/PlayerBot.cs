@@ -13,7 +13,8 @@ namespace ChineseGrocery.SimRunner;
 /// Stand-in player for headless runs. It only uses real commands. Before opening it upgrades the store once it can
 /// afford to (keeping a cash reserve), places any missing meat fixtures, hires one of each unlocked role, assigns empty
 /// display slots round-robin, tops each shelved product up to a stock target, keeps a primal on hand per cutting
-/// recipe, and shelves goods. While open it works the highest-priority open task. Runner policy only, not a game rule.
+/// recipe, fills the shelves in one go, and does any work left. While open it works the highest-priority open task.
+/// Runner policy only, not a game rule.
 /// </summary>
 public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 100_000)
 {
@@ -50,6 +51,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
         PlaceOrders(sim);
+        Send(sim, new RestockAll());
         for (var i = 0; i < MaxPreOpenTicks && HasWork(sim); i++) Step(sim);
 
         Send(sim, new OpenStore());
@@ -232,7 +234,8 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private List<CommandRejected> Drain(GameSim sim)
     {
         var rejected = sim.DrainEvents().OfType<CommandRejected>().ToList();
-        foreach (var r in rejected.Where(r => r.Reason != RejectReason.StorageFull))
+        // Expected outcomes, not problems: an order halved to fit storage, or shelves already full.
+        foreach (var r in rejected.Where(r => r.Reason != RejectReason.StorageFull && r.Command is not RestockAll))
         {
             var key = $"{r.Command.GetType().Name}/{r.Reason}";
             _rejections[key] = _rejections.GetValueOrDefault(key) + 1;

@@ -116,6 +116,7 @@ public sealed partial class GameSim
             UpgradeStage => HandleUpgradeStage(),
             HireEmployee hire => HandleHireEmployee(hire),
             SetWage wage => HandleSetWage(wage),
+            RestockAll => HandleRestockAll(),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 

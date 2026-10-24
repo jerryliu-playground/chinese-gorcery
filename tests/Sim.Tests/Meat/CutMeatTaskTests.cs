@@ -81,15 +81,17 @@ public class CutMeatTaskTests
     }
 
     [Fact]
-    public void Carrying_a_primal_the_player_can_only_go_to_the_table()
+    public void Carrying_a_primal_the_player_can_only_cut_it_or_put_it_back()
     {
         var sim = Stage2();
         sim.Tick();
         WalkTo(sim, ColdStorageCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Carrying);
+        WalkTo(sim, new GridPoint(1, 2));
         sim.DrainEvents();
 
+        // The front of a shelf: neither the cutting table nor a storage area.
         sim.Run(new PlayerInteract());
 
         Assert.Equal(RejectReason.NothingToDo, sim.DrainEvents().Single<CommandRejected>().Reason);
