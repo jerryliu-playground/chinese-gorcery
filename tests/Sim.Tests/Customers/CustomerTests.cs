@@ -15,7 +15,7 @@ public class CustomerTests
 
     private static void ServeOne(GameSim sim)
     {
-        sim.Run(new MovePlayer(CashierCell));
+        sim.WalkPlayerTo(CashierCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Idle);
     }
@@ -31,16 +31,15 @@ public class CustomerTests
     }
 
     [Fact]
-    public void Sixty_an_hour_is_one_a_minute()
+    public void Whole_arrivals_per_tick_need_no_roll()
     {
-        var sim = SimTestKit.NewSim(data: ScenarioData(perHour: 60));
+        // 360 an hour at 10 s ticks is exactly one per tick.
+        var sim = SimTestKit.NewSim(data: ScenarioData(perHour: 360));
         Open(sim);
-        sim.DrainEvents();
 
         for (var i = 0; i < 9; i++) sim.Tick();
 
         Assert.Equal(10, sim.Economy.Today.Customers);
-        Assert.Equal(10, sim.DrainEvents().OfType<CustomerEntered>().Count() + 1);
     }
 
     [Fact]

@@ -28,11 +28,16 @@ public class PlayerTests
         Assert.Empty(player.Carrying);
     }
 
-    [Fact]
-    public void Player_walks_the_configured_cells_per_tick()
+    private static GameSim WithPlayerSpeed(int cellsPerMinute) => SimTestKit.NewSim(data: SimTestKit.Data with
     {
-        var data = SimTestKit.Data with { Employees = SimTestKit.Data.Employees with { Player = SimTestKit.Data.Employees.Player with { MoveCellsPerTick = 2 } } };
-        var sim = SimTestKit.NewSim(data: data);
+        Employees = SimTestKit.Data.Employees with { Player = SimTestKit.Data.Employees.Player with { MoveCellsPerMinute = cellsPerMinute } },
+    });
+
+    [Fact]
+    public void Player_walks_the_configured_cells_per_minute()
+    {
+        // 12 cells a minute at 10 s ticks = 2 cells a tick.
+        var sim = WithPlayerSpeed(12);
 
         sim.Run(new MovePlayer(new GridPoint(5, 2)));
         Assert.Equal(new GridPoint(5, 4), sim.Player.Position);
@@ -43,10 +48,37 @@ public class PlayerTests
     }
 
     [Fact]
+    public void Fractional_speeds_carry_over_between_ticks()
+    {
+        // 9 cells a minute at 10 s ticks = 1.5 cells a tick: 1, 2, 1, 2... along the open row from (5,6).
+        var sim = WithPlayerSpeed(9);
+        sim.Run(new MovePlayer(new GridPoint(11, 6)));
+        var columns = new List<int> { sim.Player.Position.X };
+        for (var i = 0; i < 3; i++)
+        {
+            sim.Tick();
+            columns.Add(sim.Player.Position.X);
+        }
+
+        Assert.Equal([6, 8, 9, 11], columns);
+    }
+
+    [Fact]
+    public void Standing_still_banks_no_extra_speed()
+    {
+        var sim = WithPlayerSpeed(3);
+
+        for (var i = 0; i < 10; i++) sim.Tick();
+        sim.Run(new MovePlayer(new GridPoint(5, 2)));
+
+        Assert.Equal(new GridPoint(5, 6), sim.Player.Position);
+    }
+
+    [Fact]
     public void Player_walks_around_fixtures_one_cell_at_a_time()
     {
-        var data = SimTestKit.Data with { Employees = SimTestKit.Data.Employees with { Player = SimTestKit.Data.Employees.Player with { MoveCellsPerTick = 1 } } };
-        var sim = SimTestKit.NewSim(data: data);
+        var sim = WithPlayerSpeed(6);
+        var data = sim.Data;
         var occupied = sim.Layout.Fixtures
             .SelectMany(f => LayoutRules.Footprint(data.Fixtures.Single(d => d.Id == f.FixtureId), f.Origin, f.Rotation))
             .ToHashSet();
@@ -81,7 +113,7 @@ public class PlayerTests
         var sim = SimTestKit.NewSim();
 
         Assert.Equal(RejectReason.NothingToDo, RejectionFor(sim, new PlayerInteract()));
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         Assert.Equal(RejectReason.NothingToDo, RejectionFor(sim, new PlayerInteract()));
     }
 
@@ -98,7 +130,7 @@ public class PlayerTests
     {
         var sim = SimTestKit.NewSim();
 
-        sim.Run(new MovePlayer(new GridPoint(7, 3)));
+        sim.WalkPlayerTo(new GridPoint(7, 3));
 
         Assert.Equal(RejectReason.BlocksWorker, RejectionFor(sim, new PlaceFixture("shelf", new GridPoint(7, 3))));
     }

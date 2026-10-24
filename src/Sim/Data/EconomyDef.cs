@@ -4,13 +4,14 @@ using ChineseGrocery.Sim.Grid;
 namespace ChineseGrocery.Sim.Data;
 
 /// <summary>Root of economy.json.</summary>
+/// <param name="SecondsPerTick">Game time per simulation tick; must divide a minute evenly.</param>
 /// <param name="OpenMinuteOfDay">Minute of the day (0-1439) the store opens.</param>
 /// <param name="CloseMinuteOfDay">Minute of the day the store closes (exclusive, max 1440).</param>
 /// <param name="SpeedMultipliers">Speed steps besides pause, ascending.</param>
 /// <param name="StartingLayout">Fixtures already in the store on day 1, free of charge.</param>
 public sealed record EconomyDef(
     long StartingCashCents,
-    int MinutesPerTick,
+    int SecondsPerTick,
     int OpenMinuteOfDay,
     int CloseMinuteOfDay,
     int RealSecondsPerOpenPhaseAt1x,

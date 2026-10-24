@@ -1,6 +1,6 @@
 {
   "startingCashCents": 200000,
-  "minutesPerTick": 1,
+  "secondsPerTick": 10,
   "openMinuteOfDay": 540,
   "closeMinuteOfDay": 1260,
   "realSecondsPerOpenPhaseAt1x": 300,

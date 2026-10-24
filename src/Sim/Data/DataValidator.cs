@@ -148,7 +148,7 @@ public static partial class DataValidator
             if (t.PriceComfortRatioPermille < 0) errors.Add($"{at}: priceComfortRatioPermille must be >= 0");
             if (t.PriceCeilingRatioPermille <= t.PriceComfortRatioPermille) errors.Add($"{at}: priceCeilingRatioPermille must be > priceComfortRatioPermille");
             CheckPermille(at, "minBuyChancePermille", t.MinBuyChancePermille, errors);
-            if (t.MoveCellsPerTick <= 0) errors.Add($"{at}: moveCellsPerTick must be > 0");
+            if (t.MoveCellsPerMinute <= 0) errors.Add($"{at}: moveCellsPerMinute must be > 0");
             if (t.BrowseMinutesPerItem < 0) errors.Add($"{at}: browseMinutesPerItem must be >= 0");
             if (t.PatienceMinutes <= 0) errors.Add($"{at}: patienceMinutes must be > 0");
             CheckRange(at, "shoppingListSize", t.ShoppingListSize, minAllowed: 1, errors);
@@ -174,7 +174,7 @@ public static partial class DataValidator
             CheckRange(at, "speedPermille", r.SpeedPermille, minAllowed: 1, errors);
             if (r.XpPerTask <= 0) errors.Add($"{at}: xpPerTask must be > 0");
             if (r.XpPerLevel <= 0) errors.Add($"{at}: xpPerLevel must be > 0");
-            if (r.MoveCellsPerTick <= 0) errors.Add($"{at}: moveCellsPerTick must be > 0");
+            if (r.MoveCellsPerMinute <= 0) errors.Add($"{at}: moveCellsPerMinute must be > 0");
             CheckPermille(at, "moraleAtMarketWagePermille", r.MoraleAtMarketWagePermille, errors);
             if (r.MoralePerWageRatioPermille < 0) errors.Add($"{at}: moralePerWageRatioPermille must be >= 0");
             CheckPermille(at, "minMoraleSpeedPermille", r.MinMoraleSpeedPermille, errors);
@@ -184,7 +184,7 @@ public static partial class DataValidator
         }
 
         var player = employees.Player;
-        if (player.MoveCellsPerTick <= 0) errors.Add($"{file}: player: moveCellsPerTick must be > 0");
+        if (player.MoveCellsPerMinute <= 0) errors.Add($"{file}: player: moveCellsPerMinute must be > 0");
         if (player.WorkSpeedPermille <= 0) errors.Add($"{file}: player: workSpeedPermille must be > 0");
         if (player.KnifeSkill < 0) errors.Add($"{file}: player: knifeSkill must be >= 0");
     }
@@ -263,7 +263,7 @@ public static partial class DataValidator
     {
         const string file = DataFiles.Economy;
         if (e.StartingCashCents < 0) errors.Add($"{file}: startingCashCents must be >= 0");
-        if (e.MinutesPerTick <= 0) errors.Add($"{file}: minutesPerTick must be > 0");
+        if (e.SecondsPerTick <= 0 || 60 % e.SecondsPerTick != 0) errors.Add($"{file}: secondsPerTick must divide 60 evenly");
         if (e.OpenMinuteOfDay < 0 || e.OpenMinuteOfDay >= e.CloseMinuteOfDay || e.CloseMinuteOfDay > MinutesPerDay)
         {
             errors.Add($"{file}: need 0 <= openMinuteOfDay < closeMinuteOfDay <= {MinutesPerDay}");

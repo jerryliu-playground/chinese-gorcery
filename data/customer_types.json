@@ -7,7 +7,7 @@
       { "department": "meat", "weight": 4 }
     ],
     "arrivalWeight": 4, "priceComfortRatioPermille": 900, "priceCeilingRatioPermille": 1100, "minBuyChancePermille": 100,
-    "moveCellsPerTick": 8, "browseMinutesPerItem": 2, "patienceMinutes": 15, "shoppingListSize": { "min": 2, "max": 5 }, "_tbd": true
+    "moveCellsPerMinute": 8, "browseMinutesPerItem": 2, "patienceMinutes": 15, "shoppingListSize": { "min": 2, "max": 5 }, "_tbd": true
   },
   {
     "id": "international_student", "nameKey": "customer_type.international_student.name",
@@ -17,7 +17,7 @@
       { "department": "meat", "weight": 1 }
     ],
     "arrivalWeight": 3, "priceComfortRatioPermille": 1000, "priceCeilingRatioPermille": 1300, "minBuyChancePermille": 300,
-    "moveCellsPerTick": 10, "browseMinutesPerItem": 1, "patienceMinutes": 8, "shoppingListSize": { "min": 1, "max": 3 }, "_tbd": true
+    "moveCellsPerMinute": 10, "browseMinutesPerItem": 1, "patienceMinutes": 8, "shoppingListSize": { "min": 1, "max": 3 }, "_tbd": true
   },
   {
     "id": "chinese_family", "nameKey": "customer_type.chinese_family.name",
@@ -27,6 +27,6 @@
       { "department": "meat", "weight": 4 }
     ],
     "arrivalWeight": 3, "priceComfortRatioPermille": 1000, "priceCeilingRatioPermille": 1250, "minBuyChancePermille": 250,
-    "moveCellsPerTick": 6, "browseMinutesPerItem": 2, "patienceMinutes": 10, "shoppingListSize": { "min": 3, "max": 7 }, "_tbd": true
+    "moveCellsPerMinute": 6, "browseMinutesPerItem": 2, "patienceMinutes": 10, "shoppingListSize": { "min": 3, "max": 7 }, "_tbd": true
   }
 ]

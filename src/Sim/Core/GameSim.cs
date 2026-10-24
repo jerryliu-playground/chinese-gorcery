@@ -40,7 +40,7 @@ public sealed partial class GameSim
 
         RebuildOccupancy();
         var player = data.Employees.Player;
-        Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerTick, player.WorkSpeedPermille, player.KnifeSkill);
+        Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerMinute, player.WorkSpeedPermille, player.KnifeSkill);
         _workers.Add(Player);
 
         _events.Add(new DayStarted(Clock.Day));
@@ -89,7 +89,7 @@ public sealed partial class GameSim
 
         if (Clock.Phase == DayPhase.Open)
         {
-            Clock.Advance(Data.Economy.MinutesPerTick);
+            Clock.Advance(Data.Economy.SecondsPerTick);
 
             // Doors shut at closing time, but the day only ends once the last customer is out.
             if (Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay && _customers.Count == 0)

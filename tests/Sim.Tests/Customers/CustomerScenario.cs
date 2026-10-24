@@ -45,7 +45,7 @@ public static class CustomerScenario
         return slot;
     }
 
-    public static void TickUntil(GameSim sim, Func<bool> done, int max = 2000)
+    public static void TickUntil(GameSim sim, Func<bool> done, int max = 20_000)
     {
         for (var i = 0; !done(); i++)
         {

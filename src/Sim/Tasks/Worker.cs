@@ -7,7 +7,7 @@ namespace ChineseGrocery.Sim.Tasks;
 /// Anyone who executes tasks: the player character or a staff member. Both run the same task logic;
 /// the player just does not claim tasks automatically.
 /// </summary>
-public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCellsPerTick, int workSpeedPermille, int knifeSkill)
+public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCellsPerMinute, int workSpeedPermille, int knifeSkill)
 {
     private readonly List<GridPoint> _path = [];
     private readonly List<StockLot> _carrying = [];
@@ -16,7 +16,10 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
     public bool IsPlayer { get; } = isPlayer;
     public GridPoint Position { get; internal set; } = position;
     public IReadOnlyList<GridPoint> Path => _path;
-    public int MoveCellsPerTick { get; } = moveCellsPerTick;
+    public int MoveCellsPerMinute { get; } = moveCellsPerMinute;
+
+    /// <summary>Walking carried over between ticks, in cell-seconds (60 = one cell).</summary>
+    public int MoveProgress { get; internal set; }
     public int WorkSpeedPermille { get; internal set; } = workSpeedPermille;
     public int KnifeSkill { get; internal set; } = knifeSkill;
 

@@ -202,8 +202,26 @@ public sealed partial class GameSim
     /// <summary>Ticks a job of <paramref name="minutes"/> takes at the given speed, rounded up.</summary>
     private int WorkTicks(int minutes, int speedPermille)
     {
-        var perTick = (long)speedPermille * Data.Economy.MinutesPerTick;
-        return (int)((minutes * 1000L + perTick - 1) / perTick);
+        var perTick = (long)speedPermille * Data.Economy.SecondsPerTick;
+        return (int)((minutes * 60_000L + perTick - 1) / perTick);
+    }
+
+    /// <summary>
+    /// How many whole cells to step this tick. Speed is cells per game minute; the remainder carries over in
+    /// cell-seconds so slow walkers still move smoothly and nothing is lost to rounding. Resting walkers bank nothing.
+    /// </summary>
+    private int StepsThisTick(ref int progress, int cellsPerMinute, bool hasPath)
+    {
+        if (!hasPath)
+        {
+            progress = 0;
+            return 0;
+        }
+
+        progress += cellsPerMinute * Data.Economy.SecondsPerTick;
+        var steps = progress / 60;
+        progress %= 60;
+        return steps;
     }
 
     private void UpdateWorkers()
@@ -268,7 +286,10 @@ public sealed partial class GameSim
 
     private void MoveWorker(Worker worker)
     {
-        for (var moved = 0; moved < worker.MoveCellsPerTick && worker.Path.Count > 0;)
+        var progress = worker.MoveProgress;
+        var steps = StepsThisTick(ref progress, worker.MoveCellsPerMinute, worker.Path.Count > 0);
+        worker.MoveProgress = progress;
+        for (var moved = 0; moved < steps && worker.Path.Count > 0;)
         {
             var next = worker.Path[0];
             if (!IsWalkable(next))

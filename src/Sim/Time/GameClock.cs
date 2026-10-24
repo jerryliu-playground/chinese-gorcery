@@ -1,17 +1,18 @@
 namespace ChineseGrocery.Sim.Time;
 
-/// <summary>Current day, phase and in-game minute. Only moves while the store is open.</summary>
+/// <summary>Current day, phase and in-game time of day (kept in seconds). Only moves while the store is open.</summary>
 public sealed class GameClock
 {
-    internal GameClock(int openMinuteOfDay) => MinuteOfDay = openMinuteOfDay;
+    internal GameClock(int openMinuteOfDay) => SecondOfDay = openMinuteOfDay * 60;
 
     public int Day { get; private set; } = 1;
     public DayPhase Phase { get; private set; } = DayPhase.PreOpen;
-    public int MinuteOfDay { get; private set; }
+    public int SecondOfDay { get; private set; }
+    public int MinuteOfDay => SecondOfDay / 60;
 
     internal void Open() => Phase = DayPhase.Open;
 
-    internal void Advance(int minutes) => MinuteOfDay += minutes;
+    internal void Advance(int seconds) => SecondOfDay += seconds;
 
     internal void Close() => Phase = DayPhase.Closed;
 
@@ -19,6 +20,6 @@ public sealed class GameClock
     {
         Day++;
         Phase = DayPhase.PreOpen;
-        MinuteOfDay = openMinuteOfDay;
+        SecondOfDay = openMinuteOfDay * 60;
     }
 }

@@ -15,7 +15,7 @@ public sealed record CustomerTypeDef(
     int PriceComfortRatioPermille,
     int PriceCeilingRatioPermille,
     int MinBuyChancePermille,
-    int MoveCellsPerTick,
+    int MoveCellsPerMinute,
     int BrowseMinutesPerItem,
     int PatienceMinutes,
     IntRange ShoppingListSize,

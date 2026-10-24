@@ -45,16 +45,37 @@ public class DayCycleTests
     }
 
     [Fact]
-    public void Each_open_tick_advances_the_configured_minutes()
+    public void Each_open_tick_advances_the_configured_seconds()
     {
         var sim = SimTestKit.NewSim();
+        var step = SimTestKit.Data.Economy.SecondsPerTick;
         sim.Run(new OpenStore());
-        var after = sim.Clock.MinuteOfDay;
+        var after = sim.Clock.SecondOfDay;
 
         sim.Tick();
 
-        Assert.Equal(Open + SimTestKit.Data.Economy.MinutesPerTick, after);
-        Assert.Equal(after + SimTestKit.Data.Economy.MinutesPerTick, sim.Clock.MinuteOfDay);
+        Assert.Equal(Open * 60 + step, after);
+        Assert.Equal(after + step, sim.Clock.SecondOfDay);
+        Assert.Equal(sim.Clock.SecondOfDay / 60, sim.Clock.MinuteOfDay);
+    }
+
+    [Fact]
+    public void A_full_open_day_takes_the_open_hours_in_ticks()
+    {
+        var sim = SimTestKit.NewSim(data: SimTestKit.Data with
+        {
+            Economy = SimTestKit.Data.Economy with { CustomerArrivals = [new(SimTestKit.Data.Economy.OpenMinuteOfDay, 0)] },
+        });
+        sim.Run(new OpenStore());
+        var ticks = 1;
+
+        while (sim.Clock.Phase == DayPhase.Open)
+        {
+            sim.Tick();
+            ticks++;
+        }
+
+        Assert.Equal((Close - Open) * 60 / SimTestKit.Data.Economy.SecondsPerTick, ticks);
     }
 
     [Fact]

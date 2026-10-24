@@ -18,7 +18,7 @@ public sealed partial class GameSim
 
         var knife = Rng.NextInt(role.KnifeSkill.Min, role.KnifeSkill.Max + 1);
         var speed = Rng.NextInt(role.SpeedPermille.Min, role.SpeedPermille.Max + 1);
-        var worker = new Worker(_workers.Max(w => w.Id) + 1, isPlayer: false, PlayerStartCell(), role.MoveCellsPerTick, speed, knife)
+        var worker = new Worker(_workers.Max(w => w.Id) + 1, isPlayer: false, PlayerStartCell(), role.MoveCellsPerMinute, speed, knife)
         {
             RoleId = role.Id,
             WageCentsPerDay = role.MarketWageCentsPerDay,

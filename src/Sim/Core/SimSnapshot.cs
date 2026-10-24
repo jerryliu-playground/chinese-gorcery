@@ -14,7 +14,7 @@ public static class SimSnapshot
         sim.TickCount,
         sim.Clock.Day,
         Phase = sim.Clock.Phase.ToString(),
-        sim.Clock.MinuteOfDay,
+        sim.Clock.SecondOfDay,
         sim.Economy.CashCents,
         sim.Economy.CumulativeRevenueCents,
         sim.Economy.Stage,
@@ -35,7 +35,7 @@ public static class SimSnapshot
         Customers = sim.Customers.Select(c => new
         {
             c.Id, c.TypeId, c.Position, c.Path, State = c.State.ToString(), c.ShoppingList, c.Basket, c.Target,
-            c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedMinutes, c.ItemsNotFound, c.ItemsTooExpensive,
+            c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedSeconds, c.MoveProgress, c.ItemsNotFound, c.ItemsTooExpensive,
         }),
         sim.Reports,
     }, Options);

@@ -27,7 +27,10 @@ public sealed class Customer(int id, string typeId, GridPoint position, IEnumera
     public int BrowseTicksLeft { get; internal set; }
     public int? CheckoutInstanceId { get; internal set; }
     public long QueueNumber { get; internal set; }
-    public int WaitedMinutes { get; internal set; }
+    public int WaitedSeconds { get; internal set; }
+
+    /// <summary>Walking carried over between ticks, in cell-seconds (60 = one cell).</summary>
+    public int MoveProgress { get; internal set; }
     public CustomerExit? Exit { get; internal set; }
     public int ItemsNotFound { get; internal set; }
     public int ItemsTooExpensive { get; internal set; }

@@ -241,7 +241,7 @@ public class DataValidatorTests
     [Fact]
     public void Throw_if_invalid_lists_all_errors()
     {
-        var data = Valid with { Economy = Valid.Economy with { StartingCashCents = -1, MinutesPerTick = 0 } };
+        var data = Valid with { Economy = Valid.Economy with { StartingCashCents = -1, SecondsPerTick = 7 } };
 
         var ex = Assert.Throws<DataValidationException>(() => DataValidator.ThrowIfInvalid(data));
         Assert.Equal(2, ex.Errors.Count);

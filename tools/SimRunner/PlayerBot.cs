@@ -17,8 +17,8 @@ namespace ChineseGrocery.SimRunner;
 /// </summary>
 public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 100_000)
 {
-    private const int MaxTicksPerDay = 3 * 24 * 60;
-    private const int MaxPreOpenTicks = 2000;
+    private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
+    private const int MaxPreOpenTicks = 12_000;
 
     private static readonly FixtureKind[] MeatFixtures = [FixtureKind.ColdStorage, FixtureKind.MeatDisplay, FixtureKind.CuttingTable];
 

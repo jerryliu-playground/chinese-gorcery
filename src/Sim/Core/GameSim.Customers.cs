@@ -10,7 +10,7 @@ namespace ChineseGrocery.Sim.Core;
 /// <summary>Customer arrivals and behaviour: shop the list, queue, get served, or give up and leave.</summary>
 public sealed partial class GameSim
 {
-    private const int MinutesPerHour = 60;
+    private const int SecondsPerHour = 3600;
 
     private readonly List<Customer> _customers = [];
     private int _nextCustomerId = 1;
@@ -22,9 +22,10 @@ public sealed partial class GameSim
     {
         if (Clock.Phase != DayPhase.Open || Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay) return;
 
-        var perHourTimesMinutes = CurrentArrivalRate() * Data.Economy.MinutesPerTick;
-        var count = perHourTimesMinutes / MinutesPerHour;
-        if (Rng.NextInt(0, MinutesPerHour) < perHourTimesMinutes % MinutesPerHour) count++;
+        // Expected arrivals this tick = rate per hour x tick length; the fractional part is a seeded roll.
+        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick;
+        var count = perHourTimesSeconds / SecondsPerHour;
+        if (Rng.NextInt(0, SecondsPerHour) < perHourTimesSeconds % SecondsPerHour) count++;
 
         for (var i = 0; i < count; i++) SpawnCustomer();
     }
@@ -86,7 +87,7 @@ public sealed partial class GameSim
         foreach (var customer in _customers.ToList())
         {
             var type = Data.CustomerTypes.Single(t => t.Id == customer.TypeId);
-            MoveCustomer(customer, type.MoveCellsPerTick);
+            MoveCustomer(customer, type.MoveCellsPerMinute);
             if (customer.Path.Count > 0) continue;
 
             switch (customer.State)
@@ -98,12 +99,12 @@ public sealed partial class GameSim
                 case CustomerState.ToCheckout:
                     customer.State = CustomerState.Queued;
                     customer.QueueNumber = _nextQueueNumber++;
-                    customer.WaitedMinutes = 0;
+                    customer.WaitedSeconds = 0;
                     break;
 
                 case CustomerState.Queued:
-                    customer.WaitedMinutes += Data.Economy.MinutesPerTick;
-                    if (customer.WaitedMinutes > type.PatienceMinutes)
+                    customer.WaitedSeconds += Data.Economy.SecondsPerTick;
+                    if (customer.WaitedSeconds > type.PatienceMinutes * 60)
                     {
                         ReturnBasket(customer);
                         Economy.Today.CountAngryLeave();
@@ -120,9 +121,12 @@ public sealed partial class GameSim
         }
     }
 
-    private void MoveCustomer(Customer customer, int cellsPerTick)
+    private void MoveCustomer(Customer customer, int cellsPerMinute)
     {
-        for (var i = 0; i < cellsPerTick && customer.Path.Count > 0; i++)
+        var progress = customer.MoveProgress;
+        var steps = StepsThisTick(ref progress, cellsPerMinute, customer.Path.Count > 0);
+        customer.MoveProgress = progress;
+        for (var i = 0; i < steps && customer.Path.Count > 0; i++)
         {
             customer.Position = customer.Path[0];
             customer.PopStep();

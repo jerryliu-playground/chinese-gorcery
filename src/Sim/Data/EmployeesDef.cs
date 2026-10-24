@@ -21,7 +21,7 @@ public sealed record RoleDef(
     long MarketWageCentsPerDay,
     IntRange KnifeSkill,
     IntRange SpeedPermille,
-    int MoveCellsPerTick,
+    int MoveCellsPerMinute,
     int MoraleAtMarketWagePermille,
     int MoralePerWageRatioPermille,
     int MinMoraleSpeedPermille,
@@ -35,7 +35,7 @@ public sealed record RoleDef(
 /// <param name="WorkSpeedPermille">1000 = baseline task speed.</param>
 /// <param name="KnifeSkill">Used when the player cuts meat.</param>
 public sealed record PlayerDef(
-    int MoveCellsPerTick,
+    int MoveCellsPerMinute,
     int WorkSpeedPermille,
     int KnifeSkill,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

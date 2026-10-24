@@ -1,6 +1,7 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
+using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Sim.Tests;
@@ -27,7 +28,7 @@ public static class SimTestKit
     public static void OpenAndRunToClose(this GameSim sim)
     {
         sim.Run(new OpenStore());
-        var guard = 24 * 60 + 1;
+        var guard = 24 * 60 * 60 + 1;
         while (sim.Clock.Phase != DayPhase.Closed)
         {
             sim.Tick();
@@ -40,6 +41,17 @@ public static class SimTestKit
     {
         sim.OpenAndRunToClose();
         sim.Run(new StartNextDay());
+    }
+
+    /// <summary>Walks the player to a cell and ticks until they arrive.</summary>
+    public static void WalkPlayerTo(this GameSim sim, GridPoint cell)
+    {
+        sim.Run(new MovePlayer(cell));
+        for (var guard = 0; sim.Player.Path.Count > 0; guard++)
+        {
+            if (guard == 1000) throw new InvalidOperationException($"Player never reached {cell}.");
+            sim.Tick();
+        }
     }
 
     /// <summary>Instance id of the first placed fixture with this definition id.</summary>

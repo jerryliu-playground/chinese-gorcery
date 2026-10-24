@@ -24,7 +24,7 @@ public class RestockTests
         return (sim, slot, StockLocation.Storage(sim.InstanceOf("backroom")));
     }
 
-    private static void TickUntil(GameSim sim, Func<bool> done, int max = 50)
+    private static void TickUntil(GameSim sim, Func<bool> done, int max = 500)
     {
         for (var i = 0; !done(); i++)
         {
@@ -35,10 +35,10 @@ public class RestockTests
 
     private static void RestockByHand(GameSim sim)
     {
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Carrying);
-        sim.Run(new MovePlayer(ShelfFront));
+        sim.WalkPlayerTo(ShelfFront);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Idle);
     }
@@ -74,7 +74,7 @@ public class RestockTests
         var (sim, slot, backroom) = Stocked();
         sim.Tick();
 
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         var taskId = sim.Player.TaskId!.Value;
         Assert.Equal(sim.Player.Id, sim.Tasks.ClaimedBy(taskId));
@@ -84,7 +84,7 @@ public class RestockTests
         Assert.Equal(PerShelfSlot, sim.Player.Carrying.Sum(l => l.Quantity));
         Assert.Equal(20 - PerShelfSlot, sim.Inventory.Count(backroom, Rice));
 
-        sim.Run(new MovePlayer(ShelfFront));
+        sim.WalkPlayerTo(ShelfFront);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Idle);
 
@@ -118,9 +118,10 @@ public class RestockTests
     }
 
     [Theory]
-    [InlineData(1000, 3)]
-    [InlineData(2000, 2)]
-    [InlineData(500, 6)]
+    [InlineData(1000, 18)]
+    [InlineData(2000, 9)]
+    [InlineData(500, 36)]
+    [InlineData(1100, 17)]
     public void Work_takes_the_configured_minutes_scaled_by_work_speed(int speedPermille, int expectedTicks)
     {
         var data = SimTestKit.Data with
@@ -132,9 +133,9 @@ public class RestockTests
         sim.Run(new PlaceOrder(Rice, 20));
         sim.RunFullDay();
         sim.Run(new AssignShelfSlot(sim.InstanceOf("shelf"), 0, Rice));
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
 
-        // The interact tick is the first tick of work; at 2000 permille 3 minutes round up to 2 ticks.
+        // 3 minutes = 18 ten-second ticks at full speed; the interact tick is the first. At 1100 permille, 16.4 rounds up to 17.
         sim.Run(new PlayerInteract());
         var ticks = 1;
         while (sim.Player.Step == WorkStep.Picking)
@@ -152,12 +153,12 @@ public class RestockTests
     {
         var (sim, _, _) = Stocked();
         sim.Tick();
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Carrying);
 
         // The second shelf's front is not the target.
-        sim.Run(new MovePlayer(new GridPoint(4, 2)));
+        sim.WalkPlayerTo(new GridPoint(4, 2));
         sim.DrainEvents();
         sim.Run(new PlayerInteract());
 
@@ -173,11 +174,11 @@ public class RestockTests
         sim.Run(new PlaceOrder(Rice, 20));
         sim.RunFullDay();
         sim.Run(new AssignShelfSlot(sim.InstanceOf("shelf"), 0, Rice));
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         sim.DrainEvents();
 
-        sim.Run(new MovePlayer(ShelfFront));
+        sim.WalkPlayerTo(ShelfFront);
 
         Assert.Equal(RejectReason.Busy, sim.DrainEvents().Single<CommandRejected>().Reason);
         Assert.Equal(BackroomCell, sim.Player.Position);
@@ -188,7 +189,7 @@ public class RestockTests
     {
         var (sim, slot, backroom) = Stocked();
         sim.Tick();
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Carrying);
         sim.DrainEvents();
@@ -221,7 +222,7 @@ public class RestockTests
         sim.Run(new PlaceOrder(Rice, 20));
         sim.RunFullDay();
         sim.Run(new AssignShelfSlot(sim.InstanceOf("shelf"), 0, Rice));
-        sim.Run(new MovePlayer(BackroomCell));
+        sim.WalkPlayerTo(BackroomCell);
         sim.Run(new PlayerInteract());
         TickUntil(sim, () => sim.Player.Step == WorkStep.Carrying);
 
