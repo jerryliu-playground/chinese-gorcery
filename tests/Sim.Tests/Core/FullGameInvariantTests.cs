@@ -67,6 +67,27 @@ public class FullGameInvariantTests
     }
 
     [Fact]
+    public void A_task_is_never_held_by_two_workers_at_any_tick()
+    {
+        var sim = SimTestKit.NewSim(2);
+        var bot = new PlayerBot(stockTarget: 40);
+        var ticksChecked = 0;
+        bot.AfterTick = () =>
+        {
+            var held = sim.Workers.Where(w => w.TaskId is not null).ToList();
+            Assert.Equal(held.Count, held.Select(w => w.TaskId).Distinct().Count());
+            Assert.All(held, w => Assert.Equal(w.Id, sim.Tasks.ClaimedBy(w.TaskId!.Value)));
+            Assert.All(sim.Tasks.Claims, c => Assert.Equal(c.Key, sim.Workers.Single(w => w.Id == c.Value).TaskId));
+            ticksChecked++;
+        };
+
+        for (var day = 0; day < 24; day++) bot.PlayDay(sim);
+
+        Assert.Contains(sim.Workers, w => w.RoleId == "butcher");
+        Assert.True(ticksChecked > 50_000);
+    }
+
+    [Fact]
     public void Same_seed_plays_out_identically_and_different_seeds_differ()
     {
         Assert.Equal(SimSnapshot.Describe(Play(11, days: 5)), SimSnapshot.Describe(Play(11, days: 5)));
