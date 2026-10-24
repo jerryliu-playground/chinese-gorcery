@@ -13,6 +13,18 @@
     { "startMinuteOfDay": 1140, "customersPerHour": 4 }
   ],
   "fixtureSellRefundPermille": 500,
+  "tasks": {
+    "restockBelowPermille": 500,
+    "restockPickupMinutes": 1,
+    "restockShelveMinutes": 2,
+    "checkoutBaseMinutes": 1,
+    "checkoutMinutesPerItem": 1,
+    "priorities": [
+      { "taskType": "checkout", "priority": 20 },
+      { "taskType": "restock", "priority": 10 },
+      { "taskType": "cut_meat", "priority": 5 }
+    ]
+  },
   "startingLayout": [
     { "fixtureId": "entrance", "origin": { "x": 5, "y": 7 } },
     { "fixtureId": "checkout", "origin": { "x": 2, "y": 5 } },

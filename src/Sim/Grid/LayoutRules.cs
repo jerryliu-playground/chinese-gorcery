@@ -5,7 +5,7 @@ namespace ChineseGrocery.Sim.Grid;
 
 /// <summary>
 /// Placement rules: fixtures stay inside the store, never overlap, there is an entrance, and every
-/// interaction cell is a free cell reachable on foot from an entrance.
+/// interaction or customer cell is a free cell reachable on foot from an entrance.
 /// </summary>
 public static class LayoutRules
 {
@@ -20,8 +20,19 @@ public static class LayoutRules
             yield return new GridPoint(origin.X + x, origin.Y + y);
     }
 
+    /// <summary>Where the player or staff stand to work the fixture, in store coordinates.</summary>
     public static IEnumerable<GridPoint> InteractionCells(FixtureDef def, GridPoint origin, Rotation rotation = Rotation.None) =>
-        def.InteractionCells.Select(c => Rotate(c, def.Size, rotation)).Select(c => new GridPoint(origin.X + c.X, origin.Y + c.Y));
+        Place(def.InteractionCells, def, origin, rotation);
+
+    /// <summary>Where customers stand to use the fixture, in store coordinates.</summary>
+    public static IEnumerable<GridPoint> CustomerCells(FixtureDef def, GridPoint origin, Rotation rotation = Rotation.None) =>
+        Place(def.CustomerCells, def, origin, rotation);
+
+    private static IEnumerable<GridPoint> Place(IEnumerable<GridPoint> cells, FixtureDef def, GridPoint origin, Rotation rotation) =>
+        cells.Select(c => Rotate(c, def.Size, rotation)).Select(c => new GridPoint(origin.X + c.X, origin.Y + c.Y));
+
+    private static IEnumerable<GridPoint> AllUseCells(FixtureDef def, PlacedFixture f) =>
+        InteractionCells(def, f.Origin, f.Rotation).Concat(CustomerCells(def, f.Origin, f.Rotation));
 
     /// <summary>Turns a cell given relative to an unrotated W x H footprint clockwise, keeping the result relative to the rotated footprint's top-left.</summary>
     private static GridPoint Rotate(GridPoint c, GridSize size, Rotation rotation) => rotation switch
@@ -55,11 +66,11 @@ public static class LayoutRules
         if (entrances.Count == 0) return new(RejectReason.MissingEntrance, 0);
 
         bool Walkable(GridPoint p) => InBounds(size, p) && !occupied.Contains(p);
-        var reachable = GridPaths.Reachable(Walkable, entrances.SelectMany(e => InteractionCells(defs(e.FixtureId), e.Origin, e.Rotation)));
+        var reachable = GridPaths.Reachable(Walkable, entrances.SelectMany(e => AllUseCells(defs(e.FixtureId), e)));
 
         foreach (var f in fixtures.OrderBy(f => f.InstanceId != focusId))
         {
-            if (InteractionCells(defs(f.FixtureId), f.Origin, f.Rotation).Any(c => !reachable.Contains(c)))
+            if (AllUseCells(defs(f.FixtureId), f).Any(c => !reachable.Contains(c)))
             {
                 return new(RejectReason.PathBlocked, f.InstanceId);
             }

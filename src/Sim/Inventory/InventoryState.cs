@@ -9,6 +9,8 @@ public sealed class InventoryState
 
     public Stockpile Get(int fixtureInstanceId) => _locations[fixtureInstanceId];
 
+    public Stockpile? TryGet(int fixtureInstanceId) => _locations.GetValueOrDefault(fixtureInstanceId);
+
     /// <summary>True if the fixture holds any goods.</summary>
     public bool Holds(int fixtureInstanceId) => _locations.TryGetValue(fixtureInstanceId, out var pile) && pile.Lots.Count > 0;
 

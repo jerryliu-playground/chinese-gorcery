@@ -2,36 +2,43 @@
   {
     "id": "shelf", "nameKey": "fixture.shelf.name", "kind": "shelf",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
+    "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "capacity": 4, "storage": ["ambient"], "priceCents": 15000, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "checkout", "nameKey": "fixture.checkout.name", "kind": "checkout",
-    "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }, { "x": 0, "y": 1 }],
+    "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
+    "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 0, "storage": [], "priceCents": 40000, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "backroom", "nameKey": "fixture.backroom.name", "kind": "backroom",
     "size": { "w": 3, "h": 2 }, "interactionCells": [{ "x": 1, "y": 2 }],
-    "capacity": 40, "storage": ["ambient"], "priceCents": 0, "unlockStage": 1, "_tbd": true
+    "customerCells": [],
+    "capacity": 12, "storage": ["ambient"], "priceCents": 0, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "entrance", "nameKey": "fixture.entrance.name", "kind": "entrance",
-    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
+    "size": { "w": 1, "h": 1 }, "interactionCells": [],
+    "customerCells": [{ "x": 0, "y": -1 }],
     "capacity": 0, "storage": [], "priceCents": 0, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "meat_display", "nameKey": "fixture.meat_display.name", "kind": "meat_display",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
+    "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "capacity": 4, "storage": ["chilled"], "priceCents": 120000, "unlockStage": 2, "_tbd": true
   },
   {
     "id": "cutting_table", "nameKey": "fixture.cutting_table.name", "kind": "cutting_table",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
+    "customerCells": [],
     "capacity": 0, "storage": [], "priceCents": 60000, "unlockStage": 2, "_tbd": true
   },
   {
     "id": "cold_storage", "nameKey": "fixture.cold_storage.name", "kind": "cold_storage",
     "size": { "w": 2, "h": 2 }, "interactionCells": [{ "x": 0, "y": 2 }],
-    "capacity": 20, "storage": ["chilled"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
+    "customerCells": [],
+    "capacity": 6, "storage": ["chilled"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
   }
 ]

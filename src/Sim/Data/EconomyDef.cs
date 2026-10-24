@@ -17,6 +17,7 @@ public sealed record EconomyDef(
     IReadOnlyList<int> SpeedMultipliers,
     IReadOnlyList<ArrivalBucket> CustomerArrivals,
     int FixtureSellRefundPermille,
+    TaskSettingsDef Tasks,
     IReadOnlyList<LayoutEntry> StartingLayout,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 

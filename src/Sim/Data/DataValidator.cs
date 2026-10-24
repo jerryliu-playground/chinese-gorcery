@@ -54,7 +54,8 @@ public static partial class DataValidator
             if (p.CostCents < 0) errors.Add($"{at}: costCents must be >= 0");
             if (p.SuggestedPriceCents <= 0) errors.Add($"{at}: suggestedPriceCents must be > 0");
             if (p.ShelfLifeDays <= 0) errors.Add($"{at}: shelfLifeDays must be > 0");
-            if (p.UnitsPerSlot <= 0) errors.Add($"{at}: unitsPerSlot must be > 0");
+            if (p.UnitsPerShelfSlot <= 0) errors.Add($"{at}: unitsPerShelfSlot must be > 0");
+            if (p.UnitsPerStorageSlot <= 0) errors.Add($"{at}: unitsPerStorageSlot must be > 0");
             if (p.Orderable && p.CostCents <= 0) errors.Add($"{at}: orderable products need costCents > 0");
         }
     }
@@ -76,15 +77,23 @@ public static partial class DataValidator
             if (f.Storage.Distinct().Count() != f.Storage.Count) errors.Add($"{at}: storage has duplicates");
             if (IsStorageArea(f.Kind) && f.Storage.Count == 0) errors.Add($"{at}: storage areas must list at least one storage type");
 
-            foreach (var cell in f.InteractionCells)
+            foreach (var cell in f.InteractionCells.Concat(f.CustomerCells))
             {
                 if (!IsOrthogonallyAdjacent(cell, f.Size))
                 {
-                    errors.Add($"{at}: interaction cell ({cell.X},{cell.Y}) must be outside the footprint and touch one of its sides");
+                    errors.Add($"{at}: cell ({cell.X},{cell.Y}) must be outside the footprint and touch one of its sides");
                 }
             }
 
             if (f.InteractionCells.Distinct().Count() != f.InteractionCells.Count) errors.Add($"{at}: interactionCells has duplicates");
+            if (f.CustomerCells.Distinct().Count() != f.CustomerCells.Count) errors.Add($"{at}: customerCells has duplicates");
+
+            var needsWorkerCell = f.Kind is not FixtureKind.Entrance;
+            var needsCustomerCell = f.Kind is FixtureKind.Entrance or FixtureKind.Checkout || IsDisplay(f.Kind);
+            if (needsWorkerCell && f.InteractionCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one interaction cell");
+            if (needsCustomerCell && f.CustomerCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one customer cell");
+            if ((IsDisplay(f.Kind) || IsStorageArea(f.Kind)) && f.Capacity <= 0) errors.Add($"{at}: {f.Kind} needs capacity > 0");
+            if (IsDisplay(f.Kind) && f.Storage.Count == 0) errors.Add($"{at}: displays must list at least one storage type");
         }
 
         foreach (var kind in new[] { FixtureKind.Shelf, FixtureKind.Checkout, FixtureKind.Backroom, FixtureKind.Entrance })
@@ -95,6 +104,9 @@ public static partial class DataValidator
             }
         }
     }
+
+    /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
+    public static bool IsDisplay(FixtureKind kind) => kind is FixtureKind.Shelf or FixtureKind.MeatDisplay;
 
     /// <summary>Fixture kinds that receive deliveries.</summary>
     public static bool IsStorageArea(FixtureKind kind) => kind is FixtureKind.Backroom or FixtureKind.ColdStorage;
@@ -122,6 +134,7 @@ public static partial class DataValidator
         const string file = DataFiles.CustomerTypes;
         CheckIds(file, types.Select(t => t.Id).ToList(), errors);
         if (types.Count == 0) errors.Add($"{file}: at least one customer type is required");
+        if (types.Sum(t => t.ArrivalWeight) <= 0) errors.Add($"{file}: arrivalWeight must sum to > 0");
 
         for (var i = 0; i < types.Count; i++)
         {
@@ -131,7 +144,12 @@ public static partial class DataValidator
             if (t.Preferences.Any(p => p.Weight < 0)) errors.Add($"{at}: preference weights must be >= 0");
             if (t.Preferences.Sum(p => p.Weight) <= 0) errors.Add($"{at}: preference weights must sum to > 0");
             if (t.Preferences.Select(p => p.Department).Distinct().Count() != t.Preferences.Count) errors.Add($"{at}: preferences list a department more than once");
-            CheckPermille(at, "priceSensitivityPermille", t.PriceSensitivityPermille, errors);
+            if (t.ArrivalWeight < 0) errors.Add($"{at}: arrivalWeight must be >= 0");
+            if (t.PriceComfortRatioPermille < 0) errors.Add($"{at}: priceComfortRatioPermille must be >= 0");
+            if (t.PriceCeilingRatioPermille <= t.PriceComfortRatioPermille) errors.Add($"{at}: priceCeilingRatioPermille must be > priceComfortRatioPermille");
+            CheckPermille(at, "minBuyChancePermille", t.MinBuyChancePermille, errors);
+            if (t.MoveCellsPerTick <= 0) errors.Add($"{at}: moveCellsPerTick must be > 0");
+            if (t.BrowseMinutesPerItem < 0) errors.Add($"{at}: browseMinutesPerItem must be >= 0");
             if (t.PatienceMinutes <= 0) errors.Add($"{at}: patienceMinutes must be > 0");
             CheckRange(at, "shoppingListSize", t.ShoppingListSize, minAllowed: 1, errors);
         }
@@ -257,6 +275,23 @@ public static partial class DataValidator
         }
 
         CheckPermille(file, "fixtureSellRefundPermille", e.FixtureSellRefundPermille, errors);
+
+        var t = e.Tasks;
+        CheckPermille(file, "tasks.restockBelowPermille", t.RestockBelowPermille, errors);
+        foreach (var (name, minutes) in new[]
+                 {
+                     ("restockPickupMinutes", t.RestockPickupMinutes), ("restockShelveMinutes", t.RestockShelveMinutes),
+                     ("checkoutBaseMinutes", t.CheckoutBaseMinutes), ("checkoutMinutesPerItem", t.CheckoutMinutesPerItem),
+                 })
+        {
+            if (minutes < 0) errors.Add($"{file}: tasks.{name} must be >= 0");
+        }
+
+        foreach (var type in Enum.GetValues<Tasks.TaskType>())
+        {
+            var count = t.Priorities.Count(p => p.TaskType == type);
+            if (count != 1) errors.Add($"{file}: tasks.priorities must list '{type}' exactly once (found {count})");
+        }
     }
 
     private static void ValidateStartingLayout(GameData data, List<string> errors)

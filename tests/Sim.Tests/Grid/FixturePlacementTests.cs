@@ -108,7 +108,7 @@ public class FixturePlacementTests
     [Fact]
     public void Fixture_cutting_off_part_of_the_store_is_rejected()
     {
-        var divider = new FixtureDef("divider", "fixture.divider.name", FixtureKind.Shelf, new GridSize(12, 1), [], 0, [], 0, 1);
+        var divider = new FixtureDef("divider", "fixture.divider.name", FixtureKind.Shelf, new GridSize(12, 1), [], [], 0, [], 0, 1);
         var data = SimTestKit.Data with { Fixtures = [.. SimTestKit.Data.Fixtures, divider] };
 
         var rejected = Rejected(new PlaceFixture("divider", new GridPoint(0, 3)), data);

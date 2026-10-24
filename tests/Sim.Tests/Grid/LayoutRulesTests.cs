@@ -7,8 +7,8 @@ namespace ChineseGrocery.Sim.Tests.Grid;
 public class LayoutRulesTests
 {
     // Test-only 1x1 blocks: a post with no interaction cell, and a box used from the cell on its left.
-    private static readonly FixtureDef Post = new("post", "fixture.post.name", FixtureKind.Shelf, new GridSize(1, 1), [], 0, [], 0, 1);
-    private static readonly FixtureDef Box = new("box", "fixture.box.name", FixtureKind.Shelf, new GridSize(1, 1), [new GridPoint(-1, 0)], 0, [], 0, 1);
+    private static readonly FixtureDef Post = new("post", "fixture.post.name", FixtureKind.Shelf, new GridSize(1, 1), [], [], 0, [], 0, 1);
+    private static readonly FixtureDef Box = new("box", "fixture.box.name", FixtureKind.Shelf, new GridSize(1, 1), [new GridPoint(-1, 0)], [], 0, [], 0, 1);
 
     private static FixtureDef Def(string id) =>
         id == Post.Id ? Post : id == Box.Id ? Box : SimTestKit.Data.Fixtures.Single(f => f.Id == id);

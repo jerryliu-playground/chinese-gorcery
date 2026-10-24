@@ -124,15 +124,27 @@ public sealed class GameSim
         if (order.Quantity <= 0) return Reject(RejectReason.InvalidQuantity);
         if (!_products.TryGetValue(order.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
         if (!product.Orderable) return Reject(RejectReason.NotOrderable);
-        if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is null) return Reject(RejectReason.NoStorageForProduct);
+        if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is not { } destination) return Reject(RejectReason.NoStorageForProduct);
 
         var cost = checked(order.Quantity * product.CostCents);
         if (!Economy.CanAfford(cost)) return Reject(RejectReason.InsufficientCash);
+        if (!FitsInStorage(destination, product, order.Quantity)) return Reject(RejectReason.StorageFull);
 
         Economy.Spend(ExpenseCategory.Purchases, cost);
         _orders.Add(new PendingOrder(product.Id, order.Quantity, product.CostCents, Clock.Day));
         _events.Add(new OrderPlaced(Clock.Day, product.Id, order.Quantity, cost));
         return null;
+    }
+
+    /// <summary>Whether the destination can hold what it has, what is already on order for it, and this order.</summary>
+    private bool FitsInStorage(PlacedFixture destination, ProductDef product, int quantity)
+    {
+        var held = Inventory.TryGet(destination.InstanceId)?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
+        var pending = _orders.Pending
+            .Where(o => StorageRouting.FindDestination(Data, Layout.Fixtures, _products[o.ProductId])?.InstanceId == destination.InstanceId)
+            .Select(o => (_products[o.ProductId], o.Quantity));
+        var slots = StorageCapacity.SlotsNeeded(held.Concat(pending).Append((product, quantity)));
+        return slots <= _fixtures[destination.FixtureId].Capacity;
     }
 
     private Rejection? HandlePlaceFixture(PlaceFixture place)

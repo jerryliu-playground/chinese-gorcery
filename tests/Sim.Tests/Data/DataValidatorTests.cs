@@ -86,7 +86,7 @@ public class DataValidatorTests
     {
         var data = Valid with { Fixtures = Replace(Valid.Fixtures, 0, f => f with { InteractionCells = [new GridPoint(0, 0)] }) };
 
-        Assert.Contains(ErrorsFor(data), e => e.Contains("interaction cell (0,0)"));
+        Assert.Contains(ErrorsFor(data), e => e.Contains("cell (0,0) must be outside the footprint"));
     }
 
     [Fact]
@@ -135,11 +135,29 @@ public class DataValidatorTests
     }
 
     [Fact]
-    public void Customer_price_sensitivity_out_of_range_is_reported()
+    public void Customer_price_ceiling_must_be_above_comfort()
     {
-        var data = Valid with { CustomerTypes = Replace(Valid.CustomerTypes, 0, t => t with { PriceSensitivityPermille = 1500 }) };
+        var data = Valid with { CustomerTypes = Replace(Valid.CustomerTypes, 0, t => t with { PriceCeilingRatioPermille = t.PriceComfortRatioPermille }) };
 
-        Assert.Contains(ErrorsFor(data), e => e.Contains("priceSensitivityPermille"));
+        Assert.Contains(ErrorsFor(data), e => e.Contains("priceCeilingRatioPermille must be > priceComfortRatioPermille"));
+    }
+
+    [Fact]
+    public void Checkout_needs_a_customer_cell()
+    {
+        var i = Valid.Fixtures.ToList().FindIndex(f => f.Kind == FixtureKind.Checkout);
+        var data = Valid with { Fixtures = Replace(Valid.Fixtures, i, f => f with { CustomerCells = [] }) };
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("Checkout needs at least one customer cell"));
+    }
+
+    [Fact]
+    public void Every_task_type_needs_a_priority()
+    {
+        var tasks = Valid.Economy.Tasks with { Priorities = Valid.Economy.Tasks.Priorities.Skip(1).ToList() };
+        var data = Valid with { Economy = Valid.Economy with { Tasks = tasks } };
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("tasks.priorities must list"));
     }
 
     [Fact]

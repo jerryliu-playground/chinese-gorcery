@@ -78,6 +78,57 @@ public class OrderingTests
         Assert.Empty(sim.PendingOrders);
     }
 
+    private static int SlotsOf(string productId) =>
+        SimTestKit.Data.Products.Single(p => p.Id == productId).UnitsPerStorageSlot;
+
+    private static int BackroomSlots => SimTestKit.Data.Fixtures.Single(f => f.Id == "backroom").Capacity;
+
+    private static GameSim RichSim() => SimTestKit.NewSim(data: SimTestKit.Data with
+    {
+        Economy = SimTestKit.Data.Economy with { StartingCashCents = 100_000_000 },
+    });
+
+    [Fact]
+    public void Backroom_takes_orders_up_to_its_slot_capacity()
+    {
+        var sim = RichSim();
+        sim.DrainEvents();
+
+        sim.Run(new PlaceOrder(Rice, BackroomSlots * SlotsOf(Rice)));
+        Assert.Single(sim.PendingOrders);
+
+        sim.Run(new PlaceOrder(Rice, 1));
+        Assert.Equal(RejectReason.StorageFull, sim.DrainEvents().Single<CommandRejected>().Reason);
+    }
+
+    [Fact]
+    public void Each_product_rounds_up_to_whole_slots()
+    {
+        var sim = RichSim();
+        sim.Run(new PlaceOrder(Rice, (BackroomSlots - 1) * SlotsOf(Rice) + 1));
+        sim.DrainEvents();
+
+        // Rice now fills every slot (the last one partly), so even one pack of noodles does not fit.
+        sim.Run(new PlaceOrder("noodles_instant", 1));
+
+        Assert.Equal(RejectReason.StorageFull, sim.DrainEvents().Single<CommandRejected>().Reason);
+    }
+
+    [Fact]
+    public void Delivered_stock_and_pending_orders_both_count_against_capacity()
+    {
+        var sim = RichSim();
+        sim.Run(new PlaceOrder(Rice, (BackroomSlots - 1) * SlotsOf(Rice)));
+        sim.RunFullDay();
+        sim.DrainEvents();
+
+        sim.Run(new PlaceOrder("noodles_instant", SlotsOf("noodles_instant")));
+        sim.Run(new PlaceOrder("soy_milk", 1));
+
+        Assert.Single(sim.PendingOrders);
+        Assert.Equal(RejectReason.StorageFull, sim.DrainEvents().Single<CommandRejected>().Reason);
+    }
+
     [Fact]
     public void Orders_are_only_accepted_before_opening()
     {
