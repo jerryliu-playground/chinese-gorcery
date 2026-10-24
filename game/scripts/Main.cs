@@ -30,15 +30,16 @@ public partial class Main : Node2D
 
         GetNode<Label>("Error").Visible = false;
         var ui = new UiState();
+        var feel = FeelConfig.Load();
         _store = new StoreView { Name = "Store" };
-        _store.Init(_host, ui, FeelConfig.Load());
+        _store.Init(_host, ui, feel);
         AddChild(_store);
 
         var layer = new CanvasLayer { Name = "UiLayer" };
         AddChild(layer);
         var hud = new Hud { Name = "Hud" };
         layer.AddChild(hud);
-        hud.Init(_host, ui);
+        hud.Init(_host, ui, feel);
         _store.DisplayClicked += hud.ShowShelf;
         _store.FixtureSelected += _ => ui.Notify();
 

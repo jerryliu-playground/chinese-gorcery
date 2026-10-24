@@ -4,6 +4,7 @@ using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
+using ChineseGrocery.Game.View;
 using ChineseGrocery.Sim.Time;
 using Godot;
 
@@ -38,14 +39,18 @@ public partial class Hud : Control
 
     private SimHost _host = null!;
     private UiState _ui = null!;
+    private FeelConfig _feel = null!;
+    private readonly Celebration _celebration = new();
+    private double _shownCash = double.NaN;
     private BuildPanel _build = null!;
     private ShelfPanel _shelf = null!;
     private ReportPanel _report = null!;
 
-    public void Init(SimHost host, UiState ui)
+    public void Init(SimHost host, UiState ui, FeelConfig feel)
     {
         _host = host;
         _ui = ui;
+        _feel = feel;
         Theme = UiTheme.Create();
         SetAnchorsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
@@ -64,6 +69,7 @@ public partial class Hud : Control
         });
         AddChild(_message);
 
+        AddChild(_celebration);
         host.EventsReady += OnEvents;
         host.Ticked += OnTicked;
         host.GameReplaced += OnGameReplaced;
@@ -142,6 +148,7 @@ public partial class Hud : Control
 
     private void OnGameReplaced()
     {
+        _shownCash = double.NaN;
         foreach (var p in _panels.Where(p => p.Visible)) p.Close();
         _ui.Mode = ToolMode.Play;
         _ui.ClearTool();
@@ -247,7 +254,7 @@ public partial class Hud : Control
         var sim = _host.Sim;
         _day.Text = UiText.F("ui.hud.day", ("day", sim.Clock.Day)) + "  " + UiText.T("ui.phase." + UiText.Snake(sim.Clock.Phase));
         _clock.Text = UiText.ClockTime(sim.Clock.MinuteOfDay);
-        _cash.Text = UiText.F("ui.hud.cash", ("cash", UiText.Money(sim.Economy.CashCents)));
+        UpdateCashLabel(0);
         _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
         _open.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         _restockAll.Visible = sim.Clock.Phase == DayPhase.PreOpen;
@@ -267,6 +274,11 @@ public partial class Hud : Control
             }
 
             if (e is StageUpgraded or EmployeeHired && _build.Visible) _build.Open();
+            if (e is StageUpgraded up)
+            {
+                var stage = UiText.T(_host.Data.Stages[up.Stage - 1].NameKey);
+                _celebration.Play(UiText.F("ui.celebrate.upgraded", ("stage", stage)), _feel.CelebrationSeconds, _feel.ConfettiCount);
+            }
         }
     }
 
@@ -308,8 +320,21 @@ public partial class Hud : Control
         };
     }
 
+    /// <summary>The cash figure counts toward the real amount over a moment instead of jumping.</summary>
+    private void UpdateCashLabel(double delta)
+    {
+        var target = (double)_host.Sim.Economy.CashCents;
+        if (double.IsNaN(_shownCash) || delta <= 0 && Math.Abs(target - _shownCash) > 1e6) _shownCash = target;
+
+        var rate = _feel.CashRollSeconds <= 0 ? 1 : 1 - Math.Exp(-delta * 5 / _feel.CashRollSeconds);
+        _shownCash += (target - _shownCash) * rate;
+        if (Math.Abs(target - _shownCash) < 1) _shownCash = target;
+        _cash.Text = UiText.F("ui.hud.cash", ("cash", UiText.Money((long)Math.Round(_shownCash))));
+    }
+
     public override void _Process(double delta)
     {
+        UpdateCashLabel(delta);
         _messageAge += delta;
         if (_messages.Count > 0 && (_showingHint || _messageAge > 1))
         {

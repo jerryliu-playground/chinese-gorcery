@@ -30,6 +30,7 @@ public partial class StoreView : Node2D
 
     private readonly Art _art = new();
     private FeelConfig _feel = new();
+    private readonly Effects _effects = new() { Name = "Effects" };
 
     /// <summary>Developer screenshot tool only: pretend the mouse is over this cell.</summary>
     public GridPoint? DebugHover { get; set; }
@@ -49,6 +50,8 @@ public partial class StoreView : Node2D
         _ui = ui;
         _feel = feel;
         _art.LogMissing(host.Data);
+        AddChild(_effects);
+        _effects.Init(host, feel, this);
         _after = Walkers();
         host.Ticked += () =>
         {
@@ -339,8 +342,12 @@ public partial class StoreView : Node2D
                 name = sprite.Rest ?? sprite.Main;
             }
 
-            DrawSprite(_art.Get(name) ?? _art.Get(sprite.Main)!, TopLeftOf(cell), f.Rotation);
+            var (scale, lift, flash) = _effects.FixtureFeel(f.InstanceId);
+            var glow = 1 + flash * 0.8f;
+            DrawSprite(_art.Get(name) ?? _art.Get(sprite.Main)!, TopLeftOf(cell) + new Vector2(0, lift), f.Rotation, modulate: new Color(glow, glow, glow), scale: scale);
         }
+
+        if (def.Kind == FixtureKind.CuttingTable) DrawChopping(f, cells[0].Cell);
 
         if (_art.Get(sprite.Decoration) is { } ornament)
         {
@@ -352,6 +359,46 @@ public partial class StoreView : Node2D
         {
             DrawRect(Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 1), Palette.Selection, filled: false, width: 1);
         }
+    }
+
+    /// <summary>While someone cuts at this table: a cleaver rising and falling, then a short pause.</summary>
+    private void DrawChopping(PlacedFixture table, GridPoint cell)
+    {
+        var cutting = _host.Sim.Workers.Any(w => w.Step == WorkStep.Cutting && w.TaskId is { } id && _host.Sim.Tasks.Find(id) is CutMeatTask c && c.CuttingTableInstanceId == table.InstanceId);
+        if (!cutting) return;
+
+        var period = Mathf.Max(0.05f, _feel.ChopSeconds);
+        var t = _effects.Clock % period / period;
+        var swing = t < 0.6f ? Mathf.Sin(t / 0.6f * Mathf.Pi) : 0;
+        var at = TopLeftOf(cell) + new Vector2(18, 4 - swing * 8);
+        DrawRect(new Rect2(at, new Vector2(8, 6)), new Color(0.78f, 0.8f, 0.84f));
+        DrawRect(new Rect2(at, new Vector2(8, 6)), Palette.Outline, filled: false, width: 1);
+        DrawRect(new Rect2(at + new Vector2(8, 2), new Vector2(5, 2)), new Color(0.35f, 0.22f, 0.15f));
+    }
+
+    /// <summary>Where pop-ups over a fixture start: centre of its top edge.</summary>
+    public Vector2 FixtureTop(int instanceId)
+    {
+        if (_host.Sim.Layout.Find(instanceId) is not { } f) return Vector2.Zero;
+
+        var size = LayoutRules.RotatedSize(Def(f), f.Rotation);
+        return new Vector2((f.Origin.X + size.W / 2f) * Cell, f.Origin.Y * Cell - 2);
+    }
+
+    /// <summary>Just above a customer's head, where they are drawn now; null once they have left.</summary>
+    public Vector2? CustomerHead(int customerId) =>
+        _host.Sim.Customers.FirstOrDefault(c => c.Id == customerId) is { } c ? CustomerDrawPosition(c) + new Vector2(0, -16) : null;
+
+    private Vector2 CustomerDrawPosition(Sim.Customers.Customer c) =>
+        DrawPosition("c" + c.Id, c.Position) + new Vector2((c.Id % 3 - 1) * 6, (c.Id / 3 % 3 - 1) * 3);
+
+    /// <summary>Draws a product's icon (or a colour chip if it has none) on another canvas item, e.g. the effects layer.</summary>
+    public void DrawIconAt(CanvasItem canvas, string productId, Vector2 center, float size, float alpha)
+    {
+        var product = Data.Products.Single(p => p.Id == productId);
+        var rect = new Rect2(center - new Vector2(size, size) / 2, new Vector2(size, size));
+        if (_art.Get(product.Sprite) is { } icon) canvas.DrawTextureRect(icon, rect, false, new Color(1, 1, 1, alpha));
+        else canvas.DrawRect(rect.Grow(-size / 4), Palette.Department(product.Department) with { A = alpha });
     }
 
     /// <summary>Fallback for fixtures without art: a coloured block (storage areas show how full they are).</summary>
@@ -484,10 +531,9 @@ public partial class StoreView : Node2D
         var types = Data.CustomerTypes.ToList();
         var type = types.Single(t => t.Id == c.TypeId);
 
-        // Spread customers who share a cell so a queue reads as a group.
-        var offset = new Vector2((c.Id % 3 - 1) * 6, (c.Id / 3 % 3 - 1) * 3);
+        // Customers who share a cell are spread a little so a queue reads as a group.
         var key = "c" + c.Id;
-        var at = DrawPosition(key, c.Position) + offset;
+        var at = CustomerDrawPosition(c);
         DrawCharacter(key, at, type.Sprite, Palette.Customer(types.IndexOf(type), c.State));
         if (c.Basket.Count > 0) DrawProductIcon(c.Basket[^1].Lot.ProductId, at + new Vector2(9, 6), 12);
     }

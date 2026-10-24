@@ -1,6 +1,8 @@
 using ChineseGrocery.Game.Ui;
 using ChineseGrocery.Game.View;
 using ChineseGrocery.Sim.Core;
+using ChineseGrocery.Sim.Customers;
+using ChineseGrocery.Sim.Meat;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
@@ -15,14 +17,20 @@ namespace ChineseGrocery.Game.Dev;
 /// <summary>
 /// Developer tool, not part of play: launched with <c>--screenshot-tour=DIR</c>, it walks through scripted scenes using
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
-/// Needs a rendering run (not --headless).
+/// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
+/// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
-    private readonly Queue<(string Name, Action Setup, int Frames)> _steps = new();
+    private const int MaxWaitFrames = 1800;
+
+    private readonly Queue<(string Name, Action Setup, Func<bool>? Until, int Frames)> _steps = new();
+    private readonly List<SimEvent> _seen = [];
     private string _dir = "";
     private int _wait;
+    private int _waitedFor;
     private string? _pending;
+    private Func<bool>? _until;
 
     public SimHost Host { get; set; } = null!;
     public UiState Ui { get; set; } = null!;
@@ -37,31 +45,58 @@ public partial class ScreenshotTour : Node
         _dir = RequestedDir()!;
         DirAccess.MakeDirRecursiveAbsolute(_dir);
         TranslationServer.SetLocale("zh");
+        Host.EventsReady += events => _seen.AddRange(events);
         Plan();
     }
 
-    private void Step(string name, Action setup, int frames = 6) => _steps.Enqueue((name, setup, frames));
+    /// <summary>Sets the scene up (skipping ahead freely), then shoots a still a few frames later.</summary>
+    private void Step(string name, Action setup, int frames = 6) => _steps.Enqueue((name, setup, null, frames));
+
+    /// <summary>Sets the scene up, lets the game play normally until <paramref name="until"/>, then shoots after a few frames.</summary>
+    private void Live(string name, Action setup, Func<bool> until, int frames = 2) => _steps.Enqueue((name, setup, until, frames));
+
+    private bool Seen<T>(Func<T, bool>? match = null) where T : SimEvent => _seen.OfType<T>().Any(e => match?.Invoke(e) ?? true);
 
     private GameSim Sim => Host.Sim;
 
     private void Plan()
     {
+        // Art
         Step("01-day1-empty-store", () => { });
         Step("02-day2-backroom-full", PrepareDayTwo);
-        Step("03-one-click-shelving", () => Send(new RestockAll()));
-        Step("04-open-with-customers", () =>
+        Step("03-build-ghost-fits", () => Ghost("shelf", new GridPoint(7, 3)));
+        Step("04-build-ghost-blocked", () => Ghost("shelf", new GridPoint(2, 1)));
+
+        // Feedback (10.2)
+        Live("05-place-landing-bounce", () => Host.Send(new PlaceFixture("shelf", new GridPoint(7, 3))), () => Seen<Sim.Grid.FixturePlaced>(), frames: 3);
+        Live("06-shelf-bounce-and-flash", () =>
+        {
+            // Snacks priced far above what anyone pays, so someone frowns later.
+            Send(new SetPrice("shrimp_chips", 9999));
+            Host.Send(new RestockAll());
+        }, () => Seen<ItemsShelved>(), frames: 3);
+        Live("07-checkout-money-pops-up", () =>
         {
             WalkTo(new GridPoint(2, 4));
-            Send(new OpenStore());
-            Ticks(500);
-        }, frames: 12);
-        Step("05-build-ghost-fits", () => Ghost("shelf", new GridPoint(7, 3)));
-        Step("06-build-ghost-blocked", () => Ghost("shelf", new GridPoint(2, 1)));
-        Step("07-stage-two-meat", PrepareStageTwo, frames: 12);
+            Host.Send(new OpenStore());
+        }, () => Seen<CheckoutCompleted>(), frames: 3);
+        Live("08-bubble-too-expensive", () => { }, () => Seen<CustomerReaction>(r => r.Kind == CustomerReactionKind.TooExpensive), frames: 3);
+        Live("09-bubble-gave-up-angry", () => WalkTo(new GridPoint(7, 6)), () => Seen<CustomerReaction>(r => r.Kind == CustomerReactionKind.GaveUp), frames: 3);
+        Live("10-bubble-not-found", EmptyTheShelves, () => Seen<CustomerReaction>(r => r.Kind == CustomerReactionKind.NotFound), frames: 3);
+        Live("11-upgrade-celebration", PrepareUpgrade, () => Seen<StageUpgraded>(), frames: 4);
+        Live("12-chopping", PrepareMeatCorner, () => Sim.Workers.Any(w => w.Step == WorkStep.Cutting), frames: 4);
+        Live("13-cut-meat-pops-up", () => { }, () => Seen<MeatCut>(), frames: 3);
     }
 
     public override void _Process(double delta)
     {
+        if (_pending is not null && _until is { } condition)
+        {
+            if (!condition() && ++_waitedFor < MaxWaitFrames) return;
+            if (_waitedFor >= MaxWaitFrames) GD.PushWarning($"Screenshot {_pending}: waited {MaxWaitFrames} frames, shooting anyway.");
+            _until = null;
+        }
+
         if (_pending is { } name && --_wait <= 0)
         {
             GetViewport().GetTexture().GetImage().SavePng(_dir.PathJoin(name + ".png"));
@@ -76,18 +111,22 @@ public partial class ScreenshotTour : Node
             return;
         }
 
-        var (next, setup, frames) = _steps.Dequeue();
+        var (next, setup, until, frames) = _steps.Dequeue();
         Ui.ClearTool();
         Ui.Mode = ToolMode.Play;
+        Store.DebugHover = null;
+        _seen.Clear();
         setup();
         Ui.Notify();
 
-        // The tour skips ahead by ticking the Sim directly; drop the backlog of events (e.g. day-closed reports)
-        // so pop-ups from skipped days do not cover the shot.
+        // Set-up skips ahead by ticking the Sim directly; drop that backlog of events (e.g. day-closed reports)
+        // so pop-ups from skipped time do not cover the shot. Live steps then play on normally.
         Sim.DrainEvents();
         Hud.CloseAllPanels();
         _pending = next;
         _wait = frames;
+        _until = until;
+        _waitedFor = 0;
     }
 
     private void Send(SimCommand command)
@@ -99,6 +138,16 @@ public partial class ScreenshotTour : Node
     private void Ticks(int count)
     {
         for (var i = 0; i < count; i++) Sim.Tick();
+    }
+
+    /// <summary>Next morning, prices back to normal and no restocking: serve until nothing is left on display.</summary>
+    private void EmptyTheShelves()
+    {
+        RunToNextDay();
+        Send(new SetPrice("shrimp_chips", Sim.Data.Products.Single(p => p.Id == "shrimp_chips").SuggestedPriceCents));
+        WalkTo(new GridPoint(2, 4));
+        Send(new OpenStore());
+        for (var i = 0; i < 20_000 && Sim.Clock.Phase == DayPhase.Open && Sim.Shelves.Assigned.Any(a => Sim.Inventory.Count(a.Key, a.Value) > 0); i++) Sim.Tick();
     }
 
     private void WalkTo(GridPoint cell)
@@ -133,16 +182,20 @@ public partial class ScreenshotTour : Node
         Store.DebugHover = cell;
     }
 
-    /// <summary>Skips ahead to stage 2 by editing a save (revenue and cash), then sets up the meat corner.</summary>
-    private void PrepareStageTwo()
+    /// <summary>Skips to the next morning with the stage 2 target met by editing a save (revenue and cash), then upgrades live.</summary>
+    private void PrepareUpgrade()
     {
-        Store.DebugHover = null;
         RunToNextDay();
         var json = SaveGame.Write(Sim)
             .Replace($"\"cumulativeRevenueCents\":{Sim.Economy.CumulativeRevenueCents}", "\"cumulativeRevenueCents\":1000000")
             .Replace($"\"cashCents\":{Sim.Economy.CashCents},", "\"cashCents\":1000000,");
         Host.LoadFromJson(json);
-        Send(new UpgradeStage());
+        Host.Send(new UpgradeStage());
+    }
+
+    /// <summary>Builds the meat corner, hires the butcher and gets a primal delivered and waiting to be cut.</summary>
+    private void PrepareMeatCorner()
+    {
         Send(new PlaceFixture("cold_storage", new GridPoint(16, 0)));
         Send(new PlaceFixture("meat_display", new GridPoint(13, 4)));
         Send(new PlaceFixture("cutting_table", new GridPoint(16, 7)));
@@ -153,7 +206,5 @@ public partial class ScreenshotTour : Node
         Send(new PlaceOrder("pork_primal", 2));
         RunToNextDay();
         Send(new RestockAll());
-        for (var i = 0; i < 2000 && !Sim.Workers.Any(w => w.Step == WorkStep.Cutting); i++) Sim.Tick();
-        Ticks(60);
     }
 }

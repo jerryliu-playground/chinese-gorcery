@@ -10,13 +10,16 @@ public static class UiTheme
 
     private const string FontPath = "res://fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.ttf.woff2";
 
-    public static Theme Create()
+    public static Theme Create() => new() { DefaultFont = Font(), DefaultFontSize = FontSize };
+
+    /// <summary>The UI font with pixel-crisp settings, for drawing text outside controls (pop-ups, bubbles).</summary>
+    public static FontFile Font()
     {
         var font = GD.Load<FontFile>(FontPath);
         font.Antialiasing = TextServer.FontAntialiasing.None;
         font.Hinting = TextServer.Hinting.None;
         font.SubpixelPositioning = TextServer.SubpixelPositioning.Disabled;
         font.GenerateMipmaps = false;
-        return new Theme { DefaultFont = font, DefaultFontSize = FontSize };
+        return font;
     }
 }

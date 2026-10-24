@@ -149,3 +149,4 @@ ui.event.restocked,Shelved {units} items.,上架了 {units} 件商品。
 ui.event.returned,Put back: {product} x{qty},放回了：{product} ×{qty}
 ui.carry.restock,Carrying {qty} {product} to {fixture} slot {n} (E at storage to put back),搬着 {qty} 件{product} → {fixture}第 {n} 格（在仓库按 E 可放回）
 ui.carry.cut,Carrying {product} to the {fixture} (E at cold storage to put back),搬着{product} → {fixture}（在冷库按 E 可放回）
+ui.celebrate.upgraded,Upgraded: {stage}!,升级啦：{stage}！
