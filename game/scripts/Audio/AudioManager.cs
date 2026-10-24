@@ -160,8 +160,8 @@ public partial class AudioManager : Node
             Play("footstep", 0.12);
         }
 
-        // Chopping in time with the cleaver drawn at the table.
-        if (sim.Workers.Any(w => w.Step == WorkStep.Cutting) && _host.SpeedMultiplier > 0 && _now >= _nextChop)
+        // Chopping in time with the cleaver drawn at the cutting table or seafood counter.
+        if (sim.Workers.Any(w => w.Step is WorkStep.Cutting or WorkStep.Killing) && _host.SpeedMultiplier > 0 && _now >= _nextChop)
         {
             Play("chop", 0.05);
             _nextChop = _now + Mathf.Max(0.05f, _feel.ChopSeconds) / _host.SpeedMultiplier;

@@ -3,6 +3,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Produce;
+using ChineseGrocery.Sim.Seafood;
 using ChineseGrocery.Sim.Tasks;
 using Godot;
 using GridRotation = ChineseGrocery.Sim.Grid.Rotation;
@@ -271,6 +272,7 @@ public partial class StoreView : Node2D
                 return ((string?)product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}{FreshnessNote(slot, product)}");
             })
             .ToList();
+        if (def.Kind == FixtureKind.FishTank) rows.AddRange(TankLines(f).Select(line => ((string?)null, line)));
         if (def.Kind == FixtureKind.ProduceStand)
         {
             var score = _host.Sim.DisplayScoreOf(f.InstanceId);
@@ -289,8 +291,8 @@ public partial class StoreView : Node2D
         var width = rows.Max(r => font.GetStringSize(r.Text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X) + 22;
         var height = rows.Count * lineHeight + 4;
         var floor = new Vector2(_host.Sim.Layout.Size.W * Cell, _host.Sim.Layout.Size.H * Cell);
-        // Above the sale card a produce stand may be wearing.
-        var lift = def.Kind == FixtureKind.ProduceStand ? 12 : 0;
+        // Above the sale card or bad-water icon these may be wearing.
+        var lift = def.Kind is FixtureKind.ProduceStand or FixtureKind.IceTable or FixtureKind.FishTank ? 14 : 0;
         var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2 - lift);
         at = new Vector2(Mathf.Clamp(at.X, 0, floor.X - width), at.Y < 0 ? (cell.Y + 1) * Cell + 2 : at.Y);
 
@@ -303,6 +305,24 @@ public partial class StoreView : Node2D
             if (rows[i].Item1 is { } productId) DrawIconAt(this, productId, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
             DrawString(font, new Vector2(at.X + 18, y + 11), rows[i].Text, HorizontalAlignment.Left, -1, UiTheme.FontSize, new Color(0.25f, 0.12f, 0.1f));
         }
+    }
+
+    /// <summary>Water quality, how many are in the tank (and dead), and the death risk tonight of its most fragile animal.</summary>
+    private IEnumerable<string> TankLines(PlacedFixture tank)
+    {
+        var sim = _host.Sim;
+        var quality = sim.WaterQualityOf(tank.InstanceId);
+        var live = sim.Inventory.Locations.Where(p => p.Location.FixtureInstanceId == tank.InstanceId).SelectMany(p => p.Lots).ToList();
+        var dead = sim.DeadIn(tank.InstanceId).Sum(l => l.Quantity);
+        var line = $"{UiText.F("ui.water.quality", ("value", quality))}  {UiText.F("ui.water.count", ("count", live.Sum(l => l.Quantity)))}";
+        if (dead > 0) line += "  " + UiText.F("ui.water.dead", ("count", dead));
+        yield return line;
+
+        if (Data.Economy.Seafood is not { } settings || live.Count == 0) yield break;
+
+        var risk = live.Select(l => Data.Products.Single(p => p.Id == l.ProductId)).Where(p => p.Live is not null)
+            .Max(p => Mortality.ChancePermille(settings, p, quality));
+        yield return UiText.F("ui.water.risk", ("risk", (risk / 10.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)));
     }
 
     /// <summary>For produce: the freshest batch's tier, plus the sale price if a batch is marked down to clear.</summary>
@@ -410,6 +430,11 @@ public partial class StoreView : Node2D
                 // The crates are filled below with the actual produce.
                 name = sprite.Empty ?? sprite.Main;
             }
+            else if (def.Kind == FixtureKind.FishTank)
+            {
+                var stocked = _host.Sim.Inventory.Holds(f.InstanceId) || _host.Sim.DeadIn(f.InstanceId).Count > 0;
+                name = !stocked ? sprite.Empty ?? sprite.Main : IsWaterBad(f.InstanceId) ? sprite.Dirty ?? sprite.Main : sprite.Main;
+            }
             else if (DataValidator.IsDisplay(def.Kind))
             {
                 var stocked = Enumerable.Range(index * slotsPerCell, slotsPerCell)
@@ -427,6 +452,9 @@ public partial class StoreView : Node2D
         }
 
         if (def.Kind == FixtureKind.CuttingTable) DrawChopping(f, cells[0].Cell);
+        if (def.Kind == FixtureKind.SeafoodCounter) DrawChopping(f, cells[0].Cell);
+        if (def.Kind == FixtureKind.FishTank) DrawTankExtras(f, TopLeftOf(cells[0].Cell));
+        if (def.Kind == FixtureKind.IceTable && HasMarkdown(f, def)) DrawSaleCard(TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.ProduceStand) DrawProduce(f, def, TopLeftOf(cells[0].Cell) + new Vector2(0, _effects.FixtureFeel(f.InstanceId).Lift));
 
         if (_art.Get(sprite.Decoration) is { } ornament)
@@ -547,10 +575,41 @@ public partial class StoreView : Node2D
         DrawRect(new Rect2(at - Vector2.One, new Vector2(2, 2)), Colors.White);
     }
 
+    private bool IsWaterBad(int tankInstanceId) =>
+        _host.Sim.WaterQualityOf(tankInstanceId) < (Data.Economy.Seafood?.CleanBelow ?? 0);
+
+    /// <summary>Dead animals floating belly-up at the surface (up to three), and the bad-water icon above a dirty tank.</summary>
+    private void DrawTankExtras(PlacedFixture tank, Vector2 topLeft)
+    {
+        var dead = Math.Min(3, _host.Sim.DeadIn(tank.InstanceId).Sum(l => l.Quantity));
+        for (var i = 0; i < dead; i++)
+        {
+            var at = topLeft + new Vector2(5 + i * 8, 7);
+            DrawRect(new Rect2(at, new Vector2(6, 2)), new Color(0.82f, 0.82f, 0.78f));
+            DrawRect(new Rect2(at + new Vector2(6, 0), new Vector2(1, 2)), new Color(0.6f, 0.6f, 0.58f));
+        }
+
+        if (IsWaterBad(tank.InstanceId) && _art.Get("ui_water_bad") is { } icon)
+        {
+            DrawTextureRect(icon, new Rect2(topLeft + new Vector2(8, -16), new Vector2(16, 16)), false);
+        }
+    }
+
+    /// <summary>Whether a display holds a batch marked down to clear (ripe), which earns it a sale card.</summary>
+    private bool HasMarkdown(PlacedFixture f, FixtureDef def) =>
+        Enumerable.Range(0, def.Capacity).Any(slot => _host.Sim.Inventory.TryGet(new StockLocation(f.InstanceId, slot)) is { } pile
+            && pile.Lots.Any(l => Data.Products.Single(p => p.Id == l.ProductId) is { FreshnessDays: not null } product
+                                  && Freshness.TierOf(product, l, _host.Sim.Clock.Day) >= FreshnessTier.Ripe));
+
     /// <summary>While someone cuts at this table: a cleaver rising and falling, then a short pause.</summary>
     private void DrawChopping(PlacedFixture table, GridPoint cell)
     {
-        var cutting = _host.Sim.Workers.Any(w => w.Step == WorkStep.Cutting && w.TaskId is { } id && _host.Sim.Tasks.Find(id) is CutMeatTask c && c.CuttingTableInstanceId == table.InstanceId);
+        var cutting = _host.Sim.Workers.Any(w => w.TaskId is { } id && _host.Sim.Tasks.Find(id) switch
+        {
+            CutMeatTask c => w.Step == WorkStep.Cutting && c.CuttingTableInstanceId == table.InstanceId,
+            KillFishTask k => w.Step == WorkStep.Killing && k.CounterInstanceId == table.InstanceId,
+            _ => false,
+        });
         if (!cutting) return;
 
         var period = Mathf.Max(0.05f, _feel.ChopSeconds);

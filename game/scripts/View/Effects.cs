@@ -76,7 +76,7 @@ public partial class Effects : Node2D
 
         var sim = _host.Sim;
         var chance = _feel.SpeechChancePerGameMinute * sim.Data.Economy.SecondsPerTick / 60f;
-        foreach (var c in sim.Customers.Where(c => c.State is CustomerState.Shopping or CustomerState.Queued))
+        foreach (var c in sim.Customers.Where(c => c.State is CustomerState.Shopping or CustomerState.Queued or CustomerState.AtCounter))
         {
             if (_pops.OfType<Bubble>().Any(b => b.CustomerId == c.Id) || GD.Randf() >= chance) continue;
 
@@ -104,6 +104,16 @@ public partial class Effects : Node2D
                     break;
                 case Sim.Grid.FixturePlaced p:
                     _fixtures[p.InstanceId] = (0, _feel.PlaceBounceSeconds, true, false);
+                    break;
+                case Sim.Seafood.FishKilled k:
+                    _pops.Add(new CutIcons(_store.FixtureTop(k.CounterInstanceId), [k.ProductId], _feel.CutPopSeconds));
+                    break;
+                case Sim.Seafood.TankCleaned t:
+                    _fixtures[t.TankInstanceId] = (0, _feel.ShelfBounceSeconds, false, MinorEffectsOn);
+                    break;
+                case Sim.Seafood.DeadRemoved d:
+                    _fixtures[d.TankInstanceId] = (0, _feel.ShelfBounceSeconds, false, false);
+                    if (d.Kept.Count > 0) _pops.Add(new CutIcons(_store.FixtureTop(d.TankInstanceId), d.Kept.Select(l => l.ProductId).ToList(), _feel.CutPopSeconds));
                     break;
                 case MeatCut m:
                     _pops.Add(new CutIcons(_store.FixtureTop(m.CuttingTableInstanceId), m.Outputs.Select(o => o.ProductId).ToList(), _feel.CutPopSeconds));

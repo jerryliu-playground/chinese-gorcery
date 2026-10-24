@@ -9,6 +9,7 @@ using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Produce;
 using ChineseGrocery.Sim.Save;
+using ChineseGrocery.Sim.Seafood;
 using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
@@ -20,8 +21,8 @@ namespace ChineseGrocery.Game.Dev;
 /// Developer tool, not part of play: launched with <c>--screenshot-tour=DIR</c>, it walks through scripted scenes using
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
 /// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
-/// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> for the
-/// produce department scenes instead of the M7 ones.
+/// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> or
+/// <c>--tour=m9</c> for the produce or seafood department scenes instead of the M7 ones.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
@@ -70,6 +71,12 @@ public partial class ScreenshotTour : Node
         if (OS.GetCmdlineUserArgs().Contains("--tour=m8"))
         {
             PlanProduce();
+            return;
+        }
+
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m9"))
+        {
+            PlanSeafood();
             return;
         }
 
@@ -242,13 +249,170 @@ public partial class ScreenshotTour : Node
             && pile.Lots.Any(l => Freshness.TierOf(Sim.Data.Products.Single(p => p.Id == l.ProductId), l, Sim.Clock.Day) >= FreshnessTier.Ripe));
 
     /// <summary>Upgrades to stage 2 straight away, by editing a save so the revenue target and the cost are covered.</summary>
-    private void ReachStageTwo()
+    private void ReachStageTwo() => ReachStage(2);
+
+    private void ReachStage(int stage)
     {
         var json = SaveGame.Write(Sim)
-            .Replace($"\"cumulativeRevenueCents\":{Sim.Economy.CumulativeRevenueCents}", "\"cumulativeRevenueCents\":1000000")
+            .Replace($"\"cumulativeRevenueCents\":{Sim.Economy.CumulativeRevenueCents}", "\"cumulativeRevenueCents\":10000000")
             .Replace($"\"cashCents\":{Sim.Economy.CashCents},", "\"cashCents\":1000000,");
         Host.LoadFromJson(json);
-        Send(new UpgradeStage());
+        while (Sim.Economy.Stage < stage) Send(new UpgradeStage());
+    }
+
+    // ---------- M9: seafood ----------
+
+    private static readonly GridPoint[] TankCells = [new(12, 6), new(13, 6)];
+    private static readonly GridPoint CounterCell = new(11, 6);
+    private static readonly GridPoint IceCell = new(15, 6);
+    private static readonly GridPoint CounterWorkCell = new(11, 5);
+    private static readonly GridPoint CashierCell = new(2, 4);
+    private static readonly string[][] TankProducts = [["live_fish", "live_shrimp"], ["crab", "lobster"]];
+
+    private int FirstOf(string fixtureId) => Sim.Layout.Fixtures.First(f => f.FixtureId == fixtureId).InstanceId;
+
+    private List<int> FishTanks() => Sim.Layout.Fixtures.Where(f => f.FixtureId == "fish_tank").Select(f => f.InstanceId).ToList();
+
+    private GridPoint Below(int instanceId)
+    {
+        var f = Sim.Layout.Find(instanceId)!;
+        return new GridPoint(f.Origin.X, f.Origin.Y + 1);
+    }
+
+    /// <summary>Spec 12.10 item 4: stage 3, the seafood corner, stocking, dirty water and deaths, chilled fish, cleaning, killing to order, the fishmonger.</summary>
+    private void PlanSeafood()
+    {
+        Step("01-stage3-place-fish-tank", () =>
+        {
+            ReachStage(3);
+            Ghost("fish_tank", TankCells[0]);
+        });
+        Step("02-seafood-corner-placed", () =>
+        {
+            // Cold storage for chilled goods and a second backroom so live deliveries fit next to the opening stock.
+            Send(new PlaceFixture("cold_storage", new GridPoint(16, 0)));
+            Send(new PlaceFixture("backroom", new GridPoint(12, 0)));
+            for (var i = 0; i < TankCells.Length; i++)
+            {
+                Send(new PlaceFixture("fish_tank", TankCells[i]));
+                var tank = Sim.Layout.Fixtures[^1].InstanceId;
+                for (var slot = 0; slot < 2; slot++) Send(new AssignShelfSlot(tank, slot, TankProducts[i][slot]));
+            }
+
+            Send(new PlaceFixture("seafood_counter", CounterCell));
+            Send(new PlaceFixture("ice_table", IceCell));
+            var ice = Sim.Layout.Fixtures[^1].InstanceId;
+            Send(new AssignShelfSlot(ice, 0, "clams"));
+            Send(new AssignShelfSlot(ice, 1, "chilled_fish"));
+            Ui.Mode = ToolMode.Build;
+        });
+        Step("03-order-seafood", () =>
+        {
+            OrderSeafood();
+            Hud.ShowPanel<OrderPanel>();
+        });
+        Step("04-tanks-stocked-hover-water", () =>
+        {
+            RunToNextDay();
+            Send(new RestockAll());
+            Store.DebugHover = TankCells[0];
+        });
+        Live("05-water-getting-murky", () =>
+        {
+            // Nobody at the till, so nothing sells and the tanks stay full; and nobody cleans.
+            Sim.TankCleaningDisabled = true;
+            Send(new OpenStore());
+            var cleanBelow = Sim.Data.Economy.Seafood!.CleanBelow;
+            for (var i = 0; i < 20_000 && Sim.Clock.Phase == DayPhase.Open && Sim.WaterQualityOf(FishTanks()[0]) > cleanBelow; i++) Sim.Tick();
+            Store.DebugHover = TankCells[0];
+        }, () => Sim.WaterQualityOf(FishTanks()[0]) < Sim.Data.Economy.Seafood!.CleanBelow, frames: 3);
+        Step("06-dead-in-the-tank", () =>
+        {
+            // Dirty nights until a fish or lobster dies (those go on as chilled goods), restocking each morning so the
+            // tanks stay full.
+            for (var day = 0; day < 10 && !FishTanks().Any(HasDeadThatKeeps); day++)
+            {
+                RunToNextDay();
+                Send(new RestockAll());
+            }
+
+            Store.DebugHover = Sim.Layout.Find(FishTanks().FirstOrDefault(HasDeadThatKeeps, FishTanks()[0]))!.Origin;
+        });
+        Live("07-taking-out-the-dead", () =>
+        {
+            var tank = FishTanks().FirstOrDefault(HasDeadThatKeeps, FishTanks().First(t => Sim.DeadIn(t).Count > 0));
+            WalkTo(Below(tank));
+            Host.Send(new PlayerInteract(tank));
+        }, () => Sim.Player.Step == WorkStep.RemovingDead, frames: 4);
+        Live("08-dead-fish-on-ice-as-chilled", () => Store.DebugHover = IceCell, () => Seen<DeadRemoved>(), frames: 3);
+        Live("09-cleaning-the-tank", () =>
+        {
+            Sim.TankCleaningDisabled = false;
+            Ticks(1);
+            var tank = Sim.Tasks.Tasks.OfType<CleanTankTask>().First().TankInstanceId;
+            Store.DebugHover = Sim.Layout.Find(tank)!.Origin;
+            WalkTo(Below(tank));
+            Host.Send(new PlayerInteract(tank));
+        }, () => Sim.Player.Step == WorkStep.Cleaning, frames: 4);
+        Live("10-clean-water-again", () => { }, () => Seen<TankCleaned>(), frames: 3);
+        Live("11-customer-waits-at-counter", () =>
+        {
+            Store.DebugHover = null;
+            foreach (var tank in FishTanks().Where(t => Sim.WaterQualityOf(t) < 100)) CleanTank(tank);
+            Host.Send(new OpenStore());
+        }, () => Sim.Tasks.Tasks.OfType<KillFishTask>().Any(), frames: 3);
+        Live("12-player-kills-a-fish", () =>
+        {
+            var task = Sim.Tasks.Tasks.OfType<KillFishTask>().First();
+            WalkTo(Below(task.Source.FixtureInstanceId));
+            Send(new PlayerInteract(task.Source.FixtureInstanceId));
+            for (var i = 0; i < 500 && Sim.Player.Step != WorkStep.Carrying; i++) Sim.Tick();
+            WalkTo(CounterWorkCell);
+            Host.Send(new PlayerInteract(FirstOf("seafood_counter")));
+        }, () => Sim.Player.Step == WorkStep.Killing, frames: 6);
+        Live("13-fish-handed-over", () => { }, () => Seen<FishKilled>(), frames: 3);
+        Live("14-fishmonger-at-work", () =>
+        {
+            RunToNextDay();
+            Send(new HireEmployee("fishmonger"));
+            OrderSeafood();
+            Send(new RestockAll());
+            WalkTo(CashierCell);
+            Host.Send(new OpenStore());
+        }, () => Sim.Workers.Any(w => w.RoleId == "fishmonger" && w.Step is WorkStep.Killing or WorkStep.Carrying), frames: 6);
+        Step("15-report-with-seafood", () =>
+        {
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowReport(Sim.Reports[^1]);
+        });
+        Step("16-hover-water-en", () =>
+        {
+            TranslationServer.SetLocale("en");
+            Hud.Retranslate();
+            Store.DebugHover = TankCells[0];
+        });
+    }
+
+    private bool HasDeadThatKeeps(int tank) =>
+        Sim.DeadIn(tank).Any(l => Sim.Data.Products.Single(p => p.Id == l.ProductId).Live?.DiesAs is not null);
+
+    private void OrderSeafood()
+    {
+        foreach (var product in TankProducts.SelectMany(p => p).Append("clams"))
+        {
+            Send(new PlaceOrder(product, Sim.Data.Products.Single(p => p.Id == product).UnitsPerShelfSlot));
+        }
+    }
+
+    /// <summary>The player cleans one tank, start to finish.</summary>
+    private void CleanTank(int tank)
+    {
+        Ticks(1);
+        if (!Sim.Tasks.Tasks.OfType<CleanTankTask>().Any(t => t.TankInstanceId == tank)) return;
+
+        WalkTo(Below(tank));
+        Send(new PlayerInteract(tank));
+        for (var i = 0; i < 500 && Sim.Player.Step != WorkStep.Idle; i++) Sim.Tick();
     }
 
     public override void _Process(double delta)
