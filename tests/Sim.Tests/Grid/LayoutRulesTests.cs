@@ -50,4 +50,32 @@ public class LayoutRulesTests
 
         Assert.Equal(new Rejection(RejectReason.PathBlocked, 2), problem);
     }
+
+    public static TheoryData<Rotation, GridPoint[], GridPoint[]> ShelfRotations => new()
+    {
+        // 2x1 shelf used from the two cells below it, turned clockwise (y grows downward).
+        { Rotation.None, [new(0, 0), new(1, 0)], [new(0, 1), new(1, 1)] },
+        { Rotation.Cw90, [new(0, 0), new(0, 1)], [new(-1, 0), new(-1, 1)] },
+        { Rotation.Cw180, [new(0, 0), new(1, 0)], [new(1, -1), new(0, -1)] },
+        { Rotation.Cw270, [new(0, 0), new(0, 1)], [new(1, 1), new(1, 0)] },
+    };
+
+    [Theory]
+    [MemberData(nameof(ShelfRotations))]
+    public void Rotation_turns_footprint_and_interaction_cells_clockwise(Rotation rotation, GridPoint[] footprint, GridPoint[] cells)
+    {
+        var shelf = Def("shelf");
+
+        Assert.Equal(footprint, LayoutRules.Footprint(shelf, new GridPoint(0, 0), rotation));
+        Assert.Equal(cells, LayoutRules.InteractionCells(shelf, new GridPoint(0, 0), rotation));
+    }
+
+    [Fact]
+    public void Four_quarter_turns_cover_a_non_square_footprint_both_ways()
+    {
+        var backroom = Def("backroom");
+
+        Assert.Equal(new GridSize(3, 2), LayoutRules.RotatedSize(backroom, Rotation.Cw180));
+        Assert.Equal(new GridSize(2, 3), LayoutRules.RotatedSize(backroom, Rotation.Cw270));
+    }
 }

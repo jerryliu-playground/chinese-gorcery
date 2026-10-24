@@ -30,7 +30,7 @@ public sealed class GameSim
         Layout = new StoreLayout(data.Stages[0].StoreSize);
         foreach (var entry in data.Economy.StartingLayout)
         {
-            Layout.Add(entry.FixtureId, entry.Origin, paidCents: 0);
+            Layout.Add(entry.FixtureId, entry.Origin, entry.Rotation, paidCents: 0);
         }
 
         _events.Add(new DayStarted(Clock.Day));
@@ -141,13 +141,13 @@ public sealed class GameSim
         if (!_fixtures.TryGetValue(place.FixtureId, out var def)) return Reject(RejectReason.UnknownFixture);
         if (def.UnlockStage > Economy.Stage) return Reject(RejectReason.FixtureLocked);
 
-        var candidate = new PlacedFixture(Layout.NextInstanceId, def.Id, place.Origin, def.PriceCents);
+        var candidate = new PlacedFixture(Layout.NextInstanceId, def.Id, place.Origin, def.PriceCents, place.Rotation);
         if (CheckLayout([.. Layout.Fixtures, candidate], candidate.InstanceId) is { } problem) return problem;
         if (!Economy.CanAfford(def.PriceCents)) return Reject(RejectReason.InsufficientCash);
 
         Economy.Spend(ExpenseCategory.Fixtures, def.PriceCents);
-        var placed = Layout.Add(def.Id, place.Origin, def.PriceCents);
-        _events.Add(new FixturePlaced(placed.InstanceId, def.Id, placed.Origin, def.PriceCents));
+        var placed = Layout.Add(def.Id, place.Origin, place.Rotation, def.PriceCents);
+        _events.Add(new FixturePlaced(placed.InstanceId, def.Id, placed.Origin, placed.Rotation, def.PriceCents));
         return null;
     }
 
@@ -156,11 +156,11 @@ public sealed class GameSim
         if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
         if (Layout.Find(move.InstanceId) is not { } current) return Reject(RejectReason.UnknownFixtureInstance);
 
-        var moved = Layout.Fixtures.Select(f => f.InstanceId == move.InstanceId ? f with { Origin = move.Origin } : f).ToList();
+        var moved = Layout.Fixtures.Select(f => f.InstanceId == move.InstanceId ? f with { Origin = move.Origin, Rotation = move.Rotation } : f).ToList();
         if (CheckLayout(moved, move.InstanceId) is { } problem) return problem;
 
-        Layout.Move(move.InstanceId, move.Origin);
-        _events.Add(new FixtureMoved(move.InstanceId, current.Origin, move.Origin));
+        Layout.Move(move.InstanceId, move.Origin, move.Rotation);
+        _events.Add(new FixtureMoved(move.InstanceId, current.Origin, move.Origin, move.Rotation));
         return null;
     }
 

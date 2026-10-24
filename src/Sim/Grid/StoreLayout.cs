@@ -13,18 +13,18 @@ public sealed class StoreLayout
 
     public PlacedFixture? Find(int instanceId) => _fixtures.Find(f => f.InstanceId == instanceId);
 
-    internal PlacedFixture Add(string fixtureId, GridPoint origin, long paidCents)
+    internal PlacedFixture Add(string fixtureId, GridPoint origin, Rotation rotation, long paidCents)
     {
-        var placed = new PlacedFixture(NextInstanceId++, fixtureId, origin, paidCents);
+        var placed = new PlacedFixture(NextInstanceId++, fixtureId, origin, paidCents, rotation);
         _fixtures.Add(placed);
         return placed;
     }
 
     internal void Remove(int instanceId) => _fixtures.RemoveAll(f => f.InstanceId == instanceId);
 
-    internal void Move(int instanceId, GridPoint origin)
+    internal void Move(int instanceId, GridPoint origin, Rotation rotation)
     {
         var i = _fixtures.FindIndex(f => f.InstanceId == instanceId);
-        _fixtures[i] = _fixtures[i] with { Origin = origin };
+        _fixtures[i] = _fixtures[i] with { Origin = origin, Rotation = rotation };
     }
 }

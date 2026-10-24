@@ -40,7 +40,7 @@ public class FixturePlacementTests
         var expected = SimTestKit.Data.Economy.StartingLayout;
 
         Assert.Equal(expected.Count, sim.Layout.Fixtures.Count);
-        Assert.Equal(expected.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0)), sim.Layout.Fixtures);
+        Assert.Equal(expected.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0, e.Rotation)), sim.Layout.Fixtures);
         Assert.Equal(SimTestKit.Data.Stages[0].StoreSize, sim.Layout.Size);
         Assert.Equal(SimTestKit.Data.Economy.StartingCashCents, sim.Economy.CashCents);
     }
@@ -143,7 +143,7 @@ public class FixturePlacementTests
         sim.Run(new OpenStore());
         var shelf = sim.InstanceOf("shelf");
 
-        foreach (SimCommand c in new SimCommand[] { new PlaceFixture("shelf", new GridPoint(7, 3)), new MoveFixture(shelf, new GridPoint(7, 3)), new SellFixture(shelf) })
+        foreach (SimCommand c in new SimCommand[] { new PlaceFixture("shelf", new GridPoint(7, 3)), new MoveFixture(shelf, new GridPoint(7, 3), Rotation.None), new SellFixture(shelf) })
         {
             var (_, events) = RunOn(sim, c);
             Assert.Equal(RejectReason.WrongPhase, events.Single<CommandRejected>().Reason);
@@ -156,9 +156,9 @@ public class FixturePlacementTests
         var sim = SimTestKit.NewSim();
         var shelf = sim.InstanceOf("shelf");
 
-        var (_, events) = RunOn(sim, new MoveFixture(shelf, new GridPoint(7, 3)));
+        var (_, events) = RunOn(sim, new MoveFixture(shelf, new GridPoint(7, 3), Rotation.None));
 
-        Assert.Equal(new FixtureMoved(shelf, new GridPoint(1, 1), new GridPoint(7, 3)), events.Single<FixtureMoved>());
+        Assert.Equal(new FixtureMoved(shelf, new GridPoint(1, 1), new GridPoint(7, 3), Rotation.None), events.Single<FixtureMoved>());
         Assert.Equal(new GridPoint(7, 3), sim.Layout.Find(shelf)!.Origin);
         Assert.Equal(SimTestKit.Data.Economy.StartingCashCents, sim.Economy.CashCents);
     }
@@ -169,7 +169,7 @@ public class FixturePlacementTests
         var sim = SimTestKit.NewSim();
         var shelf = sim.InstanceOf("shelf");
 
-        sim.Run(new MoveFixture(shelf, new GridPoint(0, 1)));
+        sim.Run(new MoveFixture(shelf, new GridPoint(0, 1), Rotation.None));
 
         Assert.Equal(new GridPoint(0, 1), sim.Layout.Find(shelf)!.Origin);
     }
@@ -180,7 +180,7 @@ public class FixturePlacementTests
         var sim = SimTestKit.NewSim();
         var shelf = sim.InstanceOf("shelf");
 
-        var rejected = Rejected(new MoveFixture(shelf, new GridPoint(4, 1)));
+        var rejected = Rejected(new MoveFixture(shelf, new GridPoint(4, 1), Rotation.None));
 
         Assert.Equal(RejectReason.Overlap, rejected.Reason);
         Assert.Equal(shelf, rejected.FixtureInstanceId);
@@ -189,7 +189,7 @@ public class FixturePlacementTests
     [Fact]
     public void Unknown_instance_is_rejected()
     {
-        Assert.Equal(RejectReason.UnknownFixtureInstance, Rejected(new MoveFixture(999, new GridPoint(7, 3))).Reason);
+        Assert.Equal(RejectReason.UnknownFixtureInstance, Rejected(new MoveFixture(999, new GridPoint(7, 3), Rotation.None)).Reason);
         Assert.Equal(RejectReason.UnknownFixtureInstance, Rejected(new SellFixture(999)).Reason);
     }
 
@@ -282,9 +282,49 @@ public class FixturePlacementTests
         sim.RunFullDay();
         var backroom = sim.InstanceOf("backroom");
 
-        sim.Run(new MoveFixture(backroom, new GridPoint(7, 3)));
+        sim.Run(new MoveFixture(backroom, new GridPoint(7, 3), Rotation.None));
 
         Assert.Equal(new GridPoint(7, 3), sim.Layout.Find(backroom)!.Origin);
         Assert.Equal(4, sim.Inventory.Get(backroom).Count("rice_jasmine"));
+    }
+
+    [Fact]
+    public void Rotated_shelf_can_stand_on_the_bottom_row_facing_up()
+    {
+        var (sim, events) = RunOn(SimTestKit.NewSim(), new PlaceFixture("shelf", new GridPoint(7, 7), Rotation.Cw180));
+
+        var placed = events.Single<FixturePlaced>();
+        Assert.Equal(new FixturePlaced(placed.InstanceId, "shelf", new GridPoint(7, 7), Rotation.Cw180, ShelfPrice), placed);
+        Assert.Equal(Rotation.Cw180, sim.Layout.Find(placed.InstanceId)!.Rotation);
+    }
+
+    [Fact]
+    public void Rotation_changes_the_footprint()
+    {
+        // Turned a quarter, the 2x1 shelf is 1 wide and 2 tall: (11,3)-(11,4), used from (10,3) and (10,4).
+        var (sim, events) = RunOn(SimTestKit.NewSim(), new PlaceFixture("shelf", new GridPoint(11, 3), Rotation.Cw90));
+
+        Assert.NotNull(sim.Layout.Find(events.Single<FixturePlaced>().InstanceId));
+        Assert.Equal(RejectReason.OutOfBounds, Rejected(new PlaceFixture("shelf", new GridPoint(11, 3), Rotation.None)).Reason);
+    }
+
+    [Fact]
+    public void Shelf_facing_the_wall_is_rejected()
+    {
+        Assert.Equal(RejectReason.PathBlocked, Rejected(new PlaceFixture("shelf", new GridPoint(0, 3), Rotation.Cw90)).Reason);
+    }
+
+    [Fact]
+    public void Move_can_rotate_in_place()
+    {
+        var sim = SimTestKit.NewSim();
+        sim.Run(new PlaceFixture("shelf", new GridPoint(7, 3)));
+        var shelf = sim.Layout.Fixtures[^1].InstanceId;
+        sim.DrainEvents();
+
+        sim.Run(new MoveFixture(shelf, new GridPoint(7, 3), Rotation.Cw180));
+
+        Assert.Equal(new FixtureMoved(shelf, new GridPoint(7, 3), new GridPoint(7, 3), Rotation.Cw180), sim.DrainEvents().Single<FixtureMoved>());
+        Assert.Equal(Rotation.Cw180, sim.Layout.Find(shelf)!.Rotation);
     }
 }

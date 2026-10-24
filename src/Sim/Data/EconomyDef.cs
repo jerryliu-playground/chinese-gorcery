@@ -23,5 +23,5 @@ public sealed record EconomyDef(
 /// <summary>From <paramref name="StartMinuteOfDay"/> until the next bucket (or closing), customers arrive at this rate.</summary>
 public sealed record ArrivalBucket(int StartMinuteOfDay, int CustomersPerHour);
 
-/// <summary>A fixture at a grid position (top-left of its footprint).</summary>
-public sealed record LayoutEntry(string FixtureId, GridPoint Origin);
+/// <summary>A fixture at a grid position (top-left of its rotated footprint).</summary>
+public sealed record LayoutEntry(string FixtureId, GridPoint Origin, Rotation Rotation = Rotation.None);

@@ -42,8 +42,8 @@ public class InvariantTests
         var spot = new GridPoint(driver.Next(-1, sim.Layout.Size.W), driver.Next(-1, sim.Layout.Size.H));
         return driver.Next(3) switch
         {
-            0 => new PlaceFixture(fixtures[driver.Next(fixtures.Count)], spot),
-            1 => new MoveFixture(placed[driver.Next(placed.Count)].InstanceId, spot),
+            0 => new PlaceFixture(fixtures[driver.Next(fixtures.Count)], spot, (Rotation)driver.Next(4)),
+            1 => new MoveFixture(placed[driver.Next(placed.Count)].InstanceId, spot, (Rotation)driver.Next(4)),
             _ => new SellFixture(placed[driver.Next(placed.Count)].InstanceId),
         };
     }

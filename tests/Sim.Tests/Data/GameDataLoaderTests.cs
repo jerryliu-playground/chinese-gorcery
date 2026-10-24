@@ -1,4 +1,5 @@
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Grid;
 
 namespace ChineseGrocery.Sim.Tests.Data;
 
@@ -73,6 +74,16 @@ public class GameDataLoaderTests
 
         Assert.True(withTbd.Single().Tbd);
         Assert.False(withoutTbd.Single().Tbd);
+    }
+
+    [Fact]
+    public void Layout_rotation_is_optional_and_written_in_snake_case()
+    {
+        const string json = """[{ "fixtureId": "shelf", "origin": { "x": 1, "y": 2 }, "rotation": "cw180" }, { "fixtureId": "shelf", "origin": { "x": 0, "y": 0 } }]""";
+
+        var entries = GameDataLoader.Deserialize<List<LayoutEntry>>(DataFiles.Economy, json);
+
+        Assert.Equal([Rotation.Cw180, Rotation.None], entries.Select(e => e.Rotation));
     }
 
     [Fact]

@@ -281,7 +281,7 @@ public static partial class DataValidator
 
         if (bad || data.Stages.Count == 0) return;
 
-        var placed = layout.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0)).ToList();
+        var placed = layout.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0, e.Rotation)).ToList();
         if (LayoutRules.Check(data.Stages[0].StoreSize, placed, id => fixtures[id]) is { } problem)
         {
             var which = problem.InstanceId == 0 ? "" : $" at entry [{problem.InstanceId - 1}] '{placed[problem.InstanceId - 1].FixtureId}'";

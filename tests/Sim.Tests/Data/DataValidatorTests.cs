@@ -197,6 +197,17 @@ public class DataValidatorTests
     }
 
     [Fact]
+    public void Starting_layout_respects_rotation()
+    {
+        // Facing up from the bottom row is fine; facing down there would put its interaction cells outside.
+        var up = WithStartingLayout(new LayoutEntry("entrance", new GridPoint(5, 7)), new LayoutEntry("shelf", new GridPoint(7, 7), Rotation.Cw180));
+        var down = WithStartingLayout(new LayoutEntry("entrance", new GridPoint(5, 7)), new LayoutEntry("shelf", new GridPoint(7, 7)));
+
+        Assert.Empty(ErrorsFor(up));
+        Assert.Contains(ErrorsFor(down), e => e.Contains("PathBlocked"));
+    }
+
+    [Fact]
     public void Starting_layout_only_uses_stage_one_fixtures_that_exist()
     {
         var data = WithStartingLayout(
