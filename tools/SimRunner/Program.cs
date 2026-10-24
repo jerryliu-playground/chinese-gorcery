@@ -55,6 +55,7 @@ public static class Program
             bot.PlayDay(sim);
             var report = sim.Reports[^1];
             ReportPrinter.PrintRow(report);
+            foreach (var note in bot.TakeNotes()) Console.WriteLine("      * " + note);
             anomalies.AddRange(AnomalyCheck.Check(sim, report));
         }
 
@@ -63,7 +64,9 @@ public static class Program
         Console.WriteLine($"Totals: revenue={ReportPrinter.Money(reports.Sum(r => r.RevenueCents))} profit={ReportPrinter.Money(reports.Sum(r => r.ProfitCents))} " +
                           $"customers={reports.Sum(r => r.Customers)} angry={reports.Sum(r => r.AngryLeaves)} " +
                           $"notFound={reports.Sum(r => r.ItemsNotFound)} tooExpensive={reports.Sum(r => r.ItemsTooExpensive)}");
-        Console.WriteLine($"Rejected commands: {bot.RejectedCommands} (orders cut for storage space: {bot.OrdersCutForSpace})");
+        Console.WriteLine($"Stage: {sim.Economy.Stage}  staff: {string.Join(", ", sim.Workers.Where(w => w.RoleId is not null).Select(w => $"{w.RoleId} L{w.Level} knife {w.KnifeSkill}"))}");
+        Console.WriteLine($"Rejected commands: {bot.RejectedCommands} {string.Join(", ", bot.Rejections.Select(kv => $"{kv.Key} x{kv.Value}"))}" +
+                          $" (orders cut for storage space: {bot.OrdersCutForSpace})");
         Console.WriteLine($"State hash: {SimSnapshot.Hash(sim)}");
 
         if (anomalies.Count > 0)

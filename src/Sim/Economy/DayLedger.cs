@@ -8,6 +8,7 @@ public sealed class DayLedger(int day, long cashStartCents)
     public int Day { get; } = day;
     public long CashStartCents { get; } = cashStartCents;
     public long RevenueCents { get; private set; }
+    public long CostOfGoodsSoldCents { get; private set; }
     public long PurchaseCostCents { get; private set; }
     public long WagesCents { get; private set; }
     public long FixtureSpendCents { get; private set; }
@@ -32,9 +33,10 @@ public sealed class DayLedger(int day, long cashStartCents)
 
     internal void AddLoss(long cents) => LossCents += cents;
 
-    internal void AddSale(string productId, int units, long revenueCents)
+    internal void AddSale(string productId, int units, long revenueCents, long costCents)
     {
         RevenueCents += revenueCents;
+        CostOfGoodsSoldCents += costCents;
         var before = _sales.GetValueOrDefault(productId) ?? new ProductSales(productId, 0, 0);
         _sales[productId] = before with { Units = before.Units + units, RevenueCents = before.RevenueCents + revenueCents };
     }
@@ -49,6 +51,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         CashStartCents,
         cashEndCents,
         RevenueCents,
+        CostOfGoodsSoldCents,
         PurchaseCostCents,
         WagesCents,
         FixtureSpendCents,

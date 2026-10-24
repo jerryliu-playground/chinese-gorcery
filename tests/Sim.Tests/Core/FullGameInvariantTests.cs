@@ -38,18 +38,32 @@ public class FullGameInvariantTests
     [Fact]
     public void Every_unit_paid_for_is_pending_on_hand_carried_sold_or_written_off()
     {
-        var sim = Play(seed: 3, days: 8);
+        var sim = Play(seed: 3, days: 30);
+        Assert.Contains(sim.Reports.SelectMany(r => r.Sales), s => s.ProductId == "ground_pork");
 
-        // Valued at purchase cost (fixed per product in data), so units of different products can be summed.
-        long CostOf(string productId) => sim.Data.Products.Single(p => p.Id == productId).CostCents;
+        // Valued at purchase cost, so units of different products (and primals cut into boxes) can be summed.
         var paid = sim.Reports.Sum(r => r.PurchaseCostCents);
         var pending = sim.PendingOrders.Sum(o => o.Quantity * o.UnitCostCents);
         var onHand = sim.Inventory.Locations.SelectMany(l => l.Lots).Sum(l => l.Quantity * l.UnitCostCents);
         var carried = sim.Workers.SelectMany(w => w.Carrying).Sum(l => l.Quantity * l.UnitCostCents);
-        var sold = sim.Reports.SelectMany(r => r.Sales).Sum(s => s.Units * CostOf(s.ProductId));
+        var sold = sim.Reports.Sum(r => r.CostOfGoodsSoldCents);
         var writtenOff = sim.Reports.Sum(r => r.LossCents);
 
         Assert.Equal(paid, pending + onHand + carried + sold + writtenOff);
+    }
+
+    [Fact]
+    public void Bot_upgrades_hires_a_butcher_and_sells_cut_meat()
+    {
+        var sim = Play(seed: 1, days: 30);
+
+        Assert.Equal(2, sim.Economy.Stage);
+        var butcher = Assert.Single(sim.Workers, w => w.RoleId == "butcher");
+        Assert.True(sim.Reports[^1].WagesCents == butcher.WageCentsPerDay);
+        var sold = sim.Reports.SelectMany(r => r.Sales).Select(s => s.ProductId).ToHashSet();
+        Assert.Superset(new HashSet<string> { "pork_belly", "pork_ribs", "pork_loin", "ground_pork" }, sold);
+        Assert.DoesNotContain("pork_primal", sold);
+        Assert.True(sim.Reports.Sum(r => r.LossCents) > 0, "cutting leaves trimmings as loss");
     }
 
     [Fact]

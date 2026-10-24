@@ -287,7 +287,7 @@ public sealed partial class GameSim
         {
             var units = group.Sum(i => i.Lot.Quantity);
             var revenue = checked(units * Prices.PriceOf(group.Key));
-            Economy.Earn(group.Key, units, revenue);
+            Economy.Earn(group.Key, units, revenue, group.Sum(i => i.Lot.Quantity * i.Lot.UnitCostCents));
             total += revenue;
         }
 
