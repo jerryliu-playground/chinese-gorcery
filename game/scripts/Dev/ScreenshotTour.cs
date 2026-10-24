@@ -89,6 +89,20 @@ public partial class ScreenshotTour : Node
 
         // Sound (10.3)
         Step("14-settings-volume-sliders", () => Hud.ShowPanel<SettingsPanel>());
+
+        // Atmosphere (10.4): price tags and chatter, in Chinese and then English.
+        Live("15-price-tag-and-chatter-zh", OpenWithChatter, () => _chatty.Any(), frames: 30);
+        Live("16-price-tag-and-chatter-en", () =>
+        {
+            TranslationServer.SetLocale("en");
+            Hud.Retranslate();
+            Store.DebugHover = ShelfCell();
+        }, () => true, frames: 20);
+        Live("17-all-customer-types", () =>
+        {
+            TranslationServer.SetLocale("zh");
+            Hud.Retranslate();
+        }, () => Sim.Data.CustomerTypes.All(t => Sim.Customers.Any(c => c.TypeId == t.Id)), frames: 3);
     }
 
     public override void _Process(double delta)
@@ -141,6 +155,23 @@ public partial class ScreenshotTour : Node
     private void Ticks(int count)
     {
         for (var i = 0; i < count; i++) Sim.Tick();
+    }
+
+    private readonly List<int> _chatty = [];
+
+    private GridPoint ShelfCell() => Sim.Layout.Fixtures.First(f => f.FixtureId == "shelf").Origin;
+
+    /// <summary>Next morning: shelves filled, doors open, a tag shown on the first shelf, and everyone chattier than usual.</summary>
+    private void OpenWithChatter()
+    {
+        RunToNextDay();
+        Send(new RestockAll());
+        WalkTo(new GridPoint(2, 4));
+        Send(new OpenStore());
+        Ticks(300);
+        FeelConfig.Load().SpeechChancePerGameMinute = 1;
+        Host.Ticked += () => _chatty.AddRange(Sim.Customers.Select(c => c.Id));
+        Store.DebugHover = ShelfCell();
     }
 
     /// <summary>Next morning, prices back to normal and no restocking: serve until nothing is left on display.</summary>

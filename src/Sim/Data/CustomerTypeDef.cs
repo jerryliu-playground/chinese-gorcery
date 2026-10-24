@@ -7,6 +7,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="PriceComfortRatioPermille">At or below this price / reference ratio the customer always buys.</param>
 /// <param name="PriceCeilingRatioPermille">Above this ratio the customer never buys; in between, the buy chance falls linearly.</param>
 /// <param name="MinBuyChancePermille">Buy chance right at the ceiling.</param>
+/// <param name="LineKeys">Display only: translation keys of things this type sometimes says while shopping.</param>
 public sealed record CustomerTypeDef(
     string Id,
     string NameKey,
@@ -20,6 +21,7 @@ public sealed record CustomerTypeDef(
     int PatienceMinutes,
     IntRange ShoppingListSize,
     SpriteDef? Sprite = null,
+    IReadOnlyList<string>? LineKeys = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 public sealed record DepartmentWeight(Department Department, int Weight);

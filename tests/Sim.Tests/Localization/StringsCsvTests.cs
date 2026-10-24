@@ -34,11 +34,22 @@ public class StringsCsvTests
             .Concat(data.Fixtures.Select(f => f.NameKey))
             .Concat(data.CustomerTypes.Select(t => t.NameKey))
             .Concat(data.Employees.Roles.Select(r => r.NameKey))
-            .Concat(data.Stages.Select(s => s.NameKey));
+            .Concat(data.Stages.Select(s => s.NameKey))
+            .Concat(data.CustomerTypes.SelectMany(t => t.LineKeys ?? []));
 
         var missing = nameKeys.Where(k => !keys.Contains(k)).ToList();
 
         Assert.Empty(missing);
+    }
+
+    [Fact]
+    public void Every_customer_type_has_three_to_five_lines()
+    {
+        Assert.All(GameDataLoader.LoadFromDirectory(RepoPaths.Data).CustomerTypes, t =>
+        {
+            Assert.InRange(t.LineKeys?.Count ?? 0, 3, 5);
+            Assert.All(t.LineKeys!, k => Assert.Matches("^customer\\.[a-z_]+\\.line\\.[a-z_]+$", k));
+        });
     }
 
     /// <summary>Minimal RFC 4180 reader: quoted fields, doubled quotes, commas and newlines inside quotes.</summary>

@@ -43,7 +43,8 @@ public partial class Effects : Node2D
 
     private sealed record FloatingText(Vector2 Start, string Text, Color Color, float Life) : Pop(Life);
 
-    private sealed record Bubble(int CustomerId, BubbleKind Kind, string? Text, float Life) : Pop(Life);
+    /// <param name="TextKey">Speech bubbles: translation key of the line, translated when drawn so it follows the UI language.</param>
+    private sealed record Bubble(int CustomerId, BubbleKind Kind, string? TextKey, float Life) : Pop(Life);
 
     private sealed record CutIcons(Vector2 Start, IReadOnlyList<string> ProductIds, float Life) : Pop(Life);
 
@@ -55,6 +56,7 @@ public partial class Effects : Node2D
         _font = UiTheme.Font();
         ZIndex = 10;
         host.EventsReady += OnEvents;
+        host.Ticked += MaybeChat;
         host.GameReplaced += () =>
         {
             _pops.Clear();
@@ -67,9 +69,23 @@ public partial class Effects : Node2D
     /// <summary>Hearts, chatter and shelf flashes are left out at high speed.</summary>
     public bool MinorEffectsOn => Speed <= _feel.MinorEffectsMaxSpeed;
 
-    public void Say(int customerId, string text) => _pops.Add(new Bubble(customerId, BubbleKind.Speech, text, _feel.SpeechSeconds));
+    /// <summary>Now and then a shopper says one of their type's lines (chance per game minute in feel.tres).</summary>
+    private void MaybeChat()
+    {
+        if (!MinorEffectsOn) return;
 
-    public bool IsSpeaking(int customerId) => _pops.OfType<Bubble>().Any(b => b.CustomerId == customerId);
+        var sim = _host.Sim;
+        var chance = _feel.SpeechChancePerGameMinute * sim.Data.Economy.SecondsPerTick / 60f;
+        foreach (var c in sim.Customers.Where(c => c.State is CustomerState.Shopping or CustomerState.Queued))
+        {
+            if (_pops.OfType<Bubble>().Any(b => b.CustomerId == c.Id) || GD.Randf() >= chance) continue;
+
+            var lines = sim.Data.CustomerTypes.Single(t => t.Id == c.TypeId).LineKeys;
+            if (lines is not { Count: > 0 }) continue;
+
+            _pops.Add(new Bubble(c.Id, BubbleKind.Speech, lines[(int)(GD.Randi() % lines.Count)], _feel.SpeechSeconds));
+        }
+    }
 
     private void OnEvents(IReadOnlyList<SimEvent> events)
     {
@@ -185,7 +201,8 @@ public partial class Effects : Node2D
     {
         var paper = new Color(1, 0.98f, 0.92f, alpha);
         var ink = new Color(0.2f, 0.14f, 0.12f, alpha);
-        var width = b.Kind == BubbleKind.Speech && b.Text is { } text
+        var text = b.TextKey is { } key ? UiText.T(key) : null;
+        var width = b.Kind == BubbleKind.Speech && text is not null
             ? _font.GetStringSize(text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X + 8
             : 16f;
         var box = new Rect2(head + new Vector2(-width / 2, -16), new Vector2(width, 14));
@@ -215,7 +232,7 @@ public partial class Effects : Node2D
                 DrawColoredPolygon([c + new Vector2(-4.5f, 0), c + new Vector2(4.5f, 0), c + new Vector2(0, 4.5f)], red);
                 break;
             case BubbleKind.Speech:
-                DrawString(_font, new Vector2(box.Position.X + 4, c.Y + 5), b.Text ?? "", HorizontalAlignment.Left, -1, UiTheme.FontSize, ink);
+                DrawString(_font, new Vector2(box.Position.X + 4, c.Y + 5), text ?? "", HorizontalAlignment.Left, -1, UiTheme.FontSize, ink);
                 break;
         }
     }

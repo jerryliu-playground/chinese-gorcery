@@ -248,6 +248,47 @@ public partial class StoreView : Node2D
         DrawCarryTarget();
         foreach (var c in sim.Customers.OrderBy(c => c.Position.Y)) DrawCustomer(c);
         foreach (var w in sim.Workers) DrawWorker(w);
+        if (_ui.Mode == ToolMode.Play) DrawPriceTag();
+    }
+
+    /// <summary>Hovering a shelf cell shows its slots' products, prices and stock (names in the UI language).</summary>
+    private void DrawPriceTag()
+    {
+        if (_hover is not { } cell || FixtureAt(cell) is not { } f || !DataValidator.IsDisplay(Def(f).Kind)) return;
+
+        var def = Def(f);
+        var cells = CellsOf(def, f).ToList();
+        var perCell = (int)Math.Ceiling(def.Capacity / (double)cells.Count);
+        var index = cells.First(c => c.Cell == cell).Index;
+        var rows = Enumerable.Range(index * perCell, perCell)
+            .Select(slot => new StockLocation(f.InstanceId, slot))
+            .Where(slot => _host.Sim.Shelves.ProductAt(slot) is not null)
+            .Select(slot =>
+            {
+                var product = Data.Products.Single(p => p.Id == _host.Sim.Shelves.ProductAt(slot));
+                var stock = UiText.F("ui.tag.stock", ("have", _host.Sim.Inventory.Count(slot, product.Id)), ("max", product.UnitsPerShelfSlot));
+                return (product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}");
+            })
+            .ToList();
+        if (rows.Count == 0) return;
+
+        var font = UiTheme.Font();
+        const int lineHeight = 14;
+        var width = rows.Max(r => font.GetStringSize(r.Text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X) + 22;
+        var height = rows.Count * lineHeight + 4;
+        var floor = new Vector2(_host.Sim.Layout.Size.W * Cell, _host.Sim.Layout.Size.H * Cell);
+        var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2);
+        at = new Vector2(Mathf.Clamp(at.X, 0, floor.X - width), at.Y < 0 ? (cell.Y + 1) * Cell + 2 : at.Y);
+
+        var box = new Rect2(at, new Vector2(width, height));
+        DrawRect(box, new Color(1, 0.97f, 0.88f, 0.95f));
+        DrawRect(box, new Color(0.75f, 0.2f, 0.16f), filled: false, width: 1);
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var y = at.Y + 2 + i * lineHeight;
+            DrawIconAt(this, rows[i].Id, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
+            DrawString(font, new Vector2(at.X + 18, y + 11), rows[i].Text, HorizontalAlignment.Left, -1, UiTheme.FontSize, new Color(0.25f, 0.12f, 0.1f));
+        }
     }
 
     // ---------- sprites ----------
@@ -507,9 +548,9 @@ public partial class StoreView : Node2D
         }
 
         var topLeft = center - new Vector2(Cell, Cell) / 2 + new Vector2(0, hop);
-        if (_art.Get(sprite?.Main) is { } texture)
+        if (_art.Get(sprite?.Main, sprite?.Recolor) is { } texture)
         {
-            DrawSprite(texture, topLeft, flipX: _facingLeft.Contains(key), modulate: Art.ParseTint(sprite!.Tint));
+            DrawSprite(texture, topLeft, flipX: _facingLeft.Contains(key));
         }
         else
         {

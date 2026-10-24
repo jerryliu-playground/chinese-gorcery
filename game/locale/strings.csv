@@ -156,3 +156,17 @@ ui.settings.master,Master,总音量
 ui.settings.music,Music,音乐
 ui.settings.sfx,Effects,音效
 ui.settings.no_music,No background music yet.,暂无背景音乐。
+customer.auntie.line.price,How much is this?,这个多少钱？
+customer.auntie.line.special,Any specials today?,今天有没有特价？
+customer.auntie.line.too_pricey,That's too pricey!,太贵了吧！
+customer.auntie.line.fresh,Is this fresh?,这个新鲜吗？
+customer.auntie.line.bulk,Cheaper if I buy more?,多买能便宜点吗？
+customer.student.line.noodles,Where are the instant noodles?,泡面在哪？
+customer.student.line.latiao,Got any spicy strips?,有没有辣条？
+customer.student.line.home,Tastes like home.,好想家里的味道。
+customer.student.line.cheaper,Anything cheaper?,有便宜点的吗？
+customer.family.line.ribs,Any ribs today?,今天有排骨吗？
+customer.family.line.dumplings,Let's make dumplings tonight.,买点回去包饺子。
+customer.family.line.kids,"Kids, stay close!",小朋友别乱跑！
+customer.family.line.rice,We're almost out of rice.,米快吃完了。
+ui.tag.stock,{have}/{max},{have}/{max}

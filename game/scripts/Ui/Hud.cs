@@ -131,7 +131,7 @@ public partial class Hud : Control
     }
 
     /// <summary>Text set from translated strings does not follow a locale change by itself, so redo it.</summary>
-    private void Retranslate()
+    public void Retranslate()
     {
         for (var step = 0; step < _speedButtons.Count; step++)
         {

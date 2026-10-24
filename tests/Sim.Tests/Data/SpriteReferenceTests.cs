@@ -32,10 +32,11 @@ public class SpriteReferenceTests
     }
 
     [Fact]
-    public void Tints_are_hex_colours()
+    public void Recolours_are_hex_colours()
     {
-        var tints = SimTestKit.Data.CustomerTypes.Select(t => t.Sprite?.Tint).OfType<string>();
+        var swaps = SimTestKit.Data.CustomerTypes.SelectMany(t => t.Sprite?.Recolor ?? []).ToList();
 
-        Assert.All(tints, t => Assert.Matches("^#[0-9a-fA-F]{6}$", t));
+        Assert.NotEmpty(swaps);
+        Assert.All(swaps.SelectMany(s => new[] { s.From, s.To }), c => Assert.Matches("^#[0-9a-fA-F]{6}$", c));
     }
 }

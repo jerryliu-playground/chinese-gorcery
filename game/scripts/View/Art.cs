@@ -45,5 +45,37 @@ public sealed class Art
             : $"Art: {missing.Count} entries drawn as colour blocks:\n  " + string.Join("\n  ", missing));
     }
 
-    public static Color? ParseTint(string? hex) => hex is null ? null : Color.FromHtml(hex);
+    /// <summary>The sprite with exact colours swapped (a palette swap, done once and cached).</summary>
+    public Texture2D? Get(string? name, IReadOnlyList<ColorSwapDef>? recolor)
+    {
+        if (recolor is not { Count: > 0 }) return Get(name);
+
+        var key = name + "|" + string.Join(",", recolor.Select(s => s.From + ">" + s.To));
+        if (_cache.TryGetValue(key, out var cached)) return cached;
+        if (Get(name) is not { } source) return null;
+
+        var image = source.GetImage();
+        image.Decompress();
+        var swaps = recolor.Select(s => (From: Color.FromHtml(s.From), To: Color.FromHtml(s.To))).ToList();
+        for (var y = 0; y < image.GetHeight(); y++)
+        for (var x = 0; x < image.GetWidth(); x++)
+        {
+            var pixel = image.GetPixel(x, y);
+            foreach (var (from, to) in swaps)
+            {
+                if (pixel.A > 0 && SameColour(pixel, from))
+                {
+                    image.SetPixel(x, y, to with { A = pixel.A });
+                    break;
+                }
+            }
+        }
+
+        var texture = ImageTexture.CreateFromImage(image);
+        _cache[key] = texture;
+        return texture;
+    }
+
+    private static bool SameColour(Color a, Color b) =>
+        Mathf.Abs(a.R8 - b.R8) <= 1 && Mathf.Abs(a.G8 - b.G8) <= 1 && Mathf.Abs(a.B8 - b.B8) <= 1;
 }
