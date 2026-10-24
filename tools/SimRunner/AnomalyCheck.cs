@@ -18,6 +18,7 @@ public static class AnomalyCheck
                      ("revenue", r.RevenueCents), ("cogs", r.CostOfGoodsSoldCents), ("purchases", r.PurchaseCostCents), ("wages", r.WagesCents),
                      ("loss", r.LossCents), ("customers", r.Customers), ("angry", r.AngryLeaves),
                      ("notFound", r.ItemsNotFound), ("tooExpensive", r.ItemsTooExpensive),
+                     ("produceLoss", r.ProduceLossCents), ("seafoodLoss", r.SeafoodLossCents), ("seafoodDeaths", r.SeafoodDeaths),
                  })
         {
             if (value < 0) yield return $"{day}: {name} is negative ({value})";

@@ -11,18 +11,30 @@ namespace ChineseGrocery.SimRunner;
 
 /// <summary>
 /// Stand-in player for headless runs. It only uses real commands. Before opening it upgrades the store once it can
-/// afford to (keeping a cash reserve), places any missing meat fixtures and a row of produce stands, hires one of each
-/// unlocked role, assigns empty display slots round-robin (produce only on produce stands), tops each shelved product up
-/// to a stock target (produce first, and only to two fills of its slots since it spoils), keeps a primal on hand per cutting recipe,
-/// fills the shelves in one go, and does any work left. While open it works the highest-priority open task.
+/// afford to (keeping a cash reserve, and only once the current stage's departments are set up), places any missing
+/// meat and seafood fixtures and a row of produce stands, hires each unlocked role once it has somewhere to work,
+/// assigns empty display slots round-robin (produce only on produce stands, seafood only on tanks and ice tables), tops
+/// each shelved product up to a stock target (fresh goods first: produce and clams to two fills of their slots, live
+/// seafood to one since it dies in storage), keeps a primal on hand per cutting recipe, fills the shelves in one go, and
+/// does any work left. While open it works the highest-priority open task.
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 100_000, int produceStands = 4)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
 
     private static readonly FixtureKind[] MeatFixtures = [FixtureKind.ColdStorage, FixtureKind.MeatDisplay, FixtureKind.CuttingTable];
+
+    /// <summary>The seafood corner, in the order the bot buys it.</summary>
+    private static readonly FixtureKind[] SeafoodFixtures = [FixtureKind.SeafoodCounter, FixtureKind.FishTank, FixtureKind.FishTank, FixtureKind.IceTable];
+
+    /// <summary>Which fixtures a role needs before the bot hires it.</summary>
+    private static readonly Dictionary<string, FixtureKind[]> RoleNeeds = new()
+    {
+        ["butcher"] = MeatFixtures,
+        ["fishmonger"] = [FixtureKind.FishTank, FixtureKind.SeafoodCounter],
+    };
 
     private readonly List<string> _notes = [];
 
@@ -37,6 +49,9 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     /// <summary>Called after every tick the bot runs (tests use it to check state mid-play).</summary>
     public Action? AfterTick { get; set; }
 
+    /// <summary>Receives the events of every tick the bot runs (the bot drains them).</summary>
+    public Action<IReadOnlyList<SimEvent>>? EventsSeen { get; set; }
+
     /// <summary>Returns and clears notable things the bot did (upgrades, hires, placements).</summary>
     public IReadOnlyList<string> TakeNotes()
     {
@@ -49,6 +64,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     {
         TryUpgrade(sim);
         PlaceMissingMeatFixtures(sim);
+        PlaceSeafoodCorner(sim);
         PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
@@ -82,15 +98,10 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         if (Send(sim, new UpgradeStage()) is null) _notes.Add($"upgraded to stage {next.Id}");
     }
 
-    /// <summary>Whether the departments this stage unlocked are set up, so the next upgrade does not starve them of cash.</summary>
-    private bool IsBuiltOut(GameSim sim)
-    {
-        bool Unlocked(FixtureKind kind) => sim.Data.Fixtures.Any(f => f.Kind == kind && f.UnlockStage <= sim.Economy.Stage);
-        int Placed(FixtureKind kind) => sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == kind);
-
-        return MeatFixtures.All(kind => !Unlocked(kind) || Placed(kind) > 0)
-               && (!Unlocked(FixtureKind.ProduceStand) || Placed(FixtureKind.ProduceStand) >= produceStands);
-    }
+    /// <summary>Whether the meat corner is set up (once unlocked), so the next upgrade does not starve it of cash.</summary>
+    private bool IsBuiltOut(GameSim sim) =>
+        MeatFixtures.All(kind => !sim.Data.Fixtures.Any(f => f.Kind == kind && f.UnlockStage <= sim.Economy.Stage)
+                                 || sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind));
 
     private void PlaceMissingMeatFixtures(GameSim sim)
     {
@@ -105,14 +116,42 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         }
     }
 
-    /// <summary>One produce stand a day, once the meat corner is done, until there is a row of them.</summary>
+    /// <summary>One produce stand a day, once the meat corner (and any unlocked seafood corner) is done, until there is a row of them.</summary>
     private void PlaceProduceStands(GameSim sim)
     {
         if (!MeatFixtures.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) return;
+        if (SeafoodFixtures.GroupBy(k => k).Any(g => sim.Data.Fixtures.Any(f => f.Kind == g.Key && f.UnlockStage <= sim.Economy.Stage)
+                                                     && sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == g.Key) < g.Count())) return;
         if (sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == FixtureKind.ProduceStand) >= produceStands) return;
         if (sim.Data.Fixtures.FirstOrDefault(f => f.Kind == FixtureKind.ProduceStand && f.UnlockStage <= sim.Economy.Stage) is not { } def) return;
         if (sim.Economy.CashCents < def.PriceCents + cashReserveCents) return;
         if (FindSpot(sim, def, besideKind: FixtureKind.ProduceStand) is not { } spot) return;
+
+        if (Send(sim, new PlaceFixture(def.Id, spot.Origin, spot.Rotation)) is null) _notes.Add($"placed {def.Id} at {spot.Origin.X},{spot.Origin.Y}");
+    }
+
+    /// <summary>
+    /// The seafood corner one fixture a day, tanks next to each other. A second backroom comes first (it is free), so
+    /// live deliveries are not crowded out by dry goods.
+    /// </summary>
+    private void PlaceSeafoodCorner(GameSim sim)
+    {
+        if (!sim.Data.Fixtures.Any(f => f.Kind == FixtureKind.FishTank && f.UnlockStage <= sim.Economy.Stage)) return;
+        if (sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == FixtureKind.Backroom) < 2
+            && sim.Data.Fixtures.First(f => f.Kind == FixtureKind.Backroom) is var backroom
+            && FindSpot(sim, backroom) is { } room)
+        {
+            if (Send(sim, new PlaceFixture(backroom.Id, room.Origin, room.Rotation)) is null) _notes.Add($"placed {backroom.Id} at {room.Origin.X},{room.Origin.Y}");
+        }
+
+        var missing = SeafoodFixtures
+            .Where((kind, i) => sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == kind) < SeafoodFixtures.Take(i + 1).Count(k => k == kind))
+            .Select(kind => (FixtureKind?)kind)
+            .FirstOrDefault();
+        if (missing is not { } next) return;
+        if (sim.Data.Fixtures.FirstOrDefault(f => f.Kind == next && f.UnlockStage <= sim.Economy.Stage) is not { } def) return;
+        if (sim.Economy.CashCents < def.PriceCents + cashReserveCents) return;
+        if (FindSpot(sim, def, besideKind: FixtureKind.FishTank) is not { } spot) return;
 
         if (Send(sim, new PlaceFixture(def.Id, spot.Origin, spot.Rotation)) is null) _notes.Add($"placed {def.Id} at {spot.Origin.X},{spot.Origin.Y}");
     }
@@ -150,12 +189,13 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
 
     private void HireUnlockedRoles(GameSim sim)
     {
-        // Only hire once there is somewhere to work: every meat fixture placed.
-        if (!MeatFixtures.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) return;
-
         foreach (var role in sim.Data.Employees.Roles.Where(r => r.UnlockStage <= sim.Economy.Stage))
         {
             if (sim.Workers.Any(w => w.RoleId == role.Id)) continue;
+
+            // Only hire once there is somewhere to work.
+            var needs = RoleNeeds.GetValueOrDefault(role.Id, []);
+            if (!needs.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) continue;
             if (Send(sim, new HireEmployee(role.Id)) is null) _notes.Add($"hired {role.Id}");
         }
     }
@@ -175,6 +215,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             var candidates = data.Products
                 .Where(p => def.Storage.Contains(p.Storage) && !primals.Contains(p.Id) && (p.Orderable || producible.Contains(p.Id)))
                 .Where(p => (p.Department == Department.Produce) == (def.Kind == FixtureKind.ProduceStand))
+                .Where(p => (p.Department == Department.Seafood) == (def.Kind is FixtureKind.FishTank or FixtureKind.IceTable))
                 .ToList();
             for (var slot = 0; slot < def.Capacity && candidates.Count > 0; slot++)
             {
@@ -191,16 +232,16 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private void PlaceOrders(GameSim sim)
     {
         var orderable = sim.Data.Products.Where(p => p.Orderable).Select(p => p.Id).ToHashSet();
-        // Produce first, so dry goods do not crowd it out of the backroom; it spoils, so only two fills of its slots.
+        // Fresh goods first, so dry goods do not crowd them out of the backroom. Produce and clams spoil, so only two
+        // fills of their slots; live seafood dies if left in storage, so just what its tank slots hold.
         var products = sim.Shelves.Assigned.Values.Distinct().Where(orderable.Contains)
             .Select(id => sim.Data.Products.Single(p => p.Id == id))
-            .OrderBy(p => p.Department != Department.Produce)
+            .OrderBy(p => p.Department is not (Department.Produce or Department.Seafood))
             .ThenBy(p => p.Id, StringComparer.Ordinal);
         foreach (var product in products)
         {
-            var target = product.Department == Department.Produce
-                ? 2 * sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot
-                : stockTarget;
+            var fills = sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot;
+            var target = product.Live is not null ? fills : product.FreshnessDays is not null ? 2 * fills : stockTarget;
             TopUp(sim, product.Id, target);
         }
 
@@ -241,6 +282,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             {
                 RestockTask r => r.Target.FixtureInstanceId,
                 CutMeatTask c => c.CuttingTableInstanceId,
+                KillFishTask k => k.CounterInstanceId,
                 _ => null,
             }
             : sim.Tasks.OpenTasks.FirstOrDefault() switch
@@ -249,6 +291,9 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 RestockTask r => r.Source.FixtureInstanceId,
                 CutMeatTask c => c.Source.FixtureInstanceId,
                 TidyTask t => t.StandInstanceId,
+                CleanTankTask c => c.TankInstanceId,
+                RemoveDeadTask r => r.TankInstanceId,
+                KillFishTask k => k.Source.FixtureInstanceId,
                 _ => null,
             };
         if (fixtureId is null)
@@ -279,7 +324,9 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
 
     private List<CommandRejected> Drain(GameSim sim)
     {
-        var rejected = sim.DrainEvents().OfType<CommandRejected>().ToList();
+        var events = sim.DrainEvents();
+        EventsSeen?.Invoke(events);
+        var rejected = events.OfType<CommandRejected>().ToList();
         // Expected outcomes, not problems: an order halved to fit storage, or shelves already full.
         foreach (var r in rejected.Where(r => r.Reason != RejectReason.StorageFull && r.Command is not RestockAll))
         {

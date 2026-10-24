@@ -59,7 +59,7 @@ public class FullGameInvariantTests
 
         Assert.True(sim.Economy.Stage >= 2);
         var butcher = Assert.Single(sim.Workers, w => w.RoleId == "butcher");
-        Assert.True(sim.Reports[^1].WagesCents == butcher.WageCentsPerDay);
+        Assert.Equal(sim.Workers.Where(w => w.RoleId is not null).Sum(w => w.WageCentsPerDay), sim.Reports[^1].WagesCents);
         var sold = sim.Reports.SelectMany(r => r.Sales).Select(s => s.ProductId).ToHashSet();
         Assert.Superset(new HashSet<string> { "pork_belly", "pork_ribs", "pork_loin", "ground_pork" }, sold);
         Assert.DoesNotContain("pork_primal", sold);

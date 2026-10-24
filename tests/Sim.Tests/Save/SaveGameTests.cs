@@ -37,13 +37,14 @@ public class SaveGameTests
             checks++;
         };
 
-        for (var day = 0; day < 24; day++) bot.PlayDay(sim);
+        for (var day = 0; day < 30; day++) bot.PlayDay(sim);
 
-        // Long enough to save through stage 2, meat and staff.
+        // Long enough to save through stage 3, meat, seafood and staff.
         Assert.True(checks > 50);
         Assert.Contains(sim.Reports.SelectMany(r => r.Sales), s => s.ProductId == "pork_belly");
-        Assert.Equal(2, sim.Economy.Stage);
-        Assert.Contains(sim.Workers, w => w.RoleId is not null);
+        Assert.Contains(sim.Reports.SelectMany(r => r.Sales), s => s.ProductId == "live_fish");
+        Assert.Equal(3, sim.Economy.Stage);
+        Assert.Contains(sim.Workers, w => w.RoleId == "fishmonger");
     }
 
     [Fact]
@@ -68,11 +69,11 @@ public class SaveGameTests
     {
         var straight = SimTestKit.NewSim(2);
         var bot = new PlayerBot(stockTarget: 40);
-        for (var day = 0; day < 28; day++) bot.PlayDay(straight);
+        for (var day = 0; day < 32; day++) bot.PlayDay(straight);
 
         var first = SimTestKit.NewSim(2);
         var firstBot = new PlayerBot(stockTarget: 40);
-        for (var day = 0; day < 25; day++) firstBot.PlayDay(first);
+        for (var day = 0; day < 29; day++) firstBot.PlayDay(first);
 
         // Produce in several batches and a stand that is not perfectly tidy, so both have to survive the save.
         var stands = first.Layout.Fixtures.Where(f => f.FixtureId == "produce_stand").Select(f => f.InstanceId).ToList();
@@ -82,7 +83,7 @@ public class SaveGameTests
         var resumed = Reload(first);
         Assert.All(stands, s => Assert.Equal(first.TidinessOf(s), resumed.TidinessOf(s)));
         var secondBot = new PlayerBot(stockTarget: 40);
-        for (var day = 25; day < 28; day++) secondBot.PlayDay(resumed);
+        for (var day = 29; day < 32; day++) secondBot.PlayDay(resumed);
 
         Assert.Equal(SaveGame.Write(straight), SaveGame.Write(resumed));
     }

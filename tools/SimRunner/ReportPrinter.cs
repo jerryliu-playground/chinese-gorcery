@@ -14,7 +14,7 @@ public static class ReportPrinter
             "Day", "CashStart", "Revenue", "Purchases", "Wages", "Fixtures", "Loss", "Profit", "CashEnd", "Cust", "Angry", "NotFound", "TooExp"));
     }
 
-    public static void PrintRow(DailyReport r, ISet<string> produce)
+    public static void PrintRow(DailyReport r, ISet<string> produce, ISet<string> seafood)
     {
         Console.WriteLine(string.Format(CultureInfo.InvariantCulture, Format,
             r.Day, Money(r.CashStartCents), Money(r.RevenueCents), Money(r.PurchaseCostCents), Money(r.WagesCents),
@@ -30,6 +30,13 @@ public static class ReportPrinter
         if (produceSales.Count > 0 || r.ProduceLossCents > 0)
         {
             Console.WriteLine($"      produce: units {produceSales.Sum(s => s.Units)}, revenue {Money(produceSales.Sum(s => s.RevenueCents))}, loss {Money(r.ProduceLossCents)}");
+        }
+
+        var seafoodSales = r.Sales.Where(s => seafood.Contains(s.ProductId)).ToList();
+        if (seafoodSales.Count > 0 || r.SeafoodDeaths > 0 || r.SeafoodLossCents > 0)
+        {
+            Console.WriteLine($"      seafood: units {seafoodSales.Sum(s => s.Units)}, revenue {Money(seafoodSales.Sum(s => s.RevenueCents))}, " +
+                              $"deaths {r.SeafoodDeaths}, loss {Money(r.SeafoodLossCents)}");
         }
     }
 
