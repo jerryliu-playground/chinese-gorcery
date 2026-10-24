@@ -1,0 +1,17 @@
+{
+  "startingCashCents": 200000,
+  "minutesPerTick": 1,
+  "openMinuteOfDay": 540,
+  "closeMinuteOfDay": 1260,
+  "realSecondsPerOpenPhaseAt1x": 300,
+  "speedMultipliers": [1, 2, 4],
+  "customerArrivals": [
+    { "startMinuteOfDay": 540, "customersPerHour": 4 },
+    { "startMinuteOfDay": 660, "customersPerHour": 8 },
+    { "startMinuteOfDay": 780, "customersPerHour": 5 },
+    { "startMinuteOfDay": 1020, "customersPerHour": 10 },
+    { "startMinuteOfDay": 1140, "customersPerHour": 4 }
+  ],
+  "fixtureSellRefundPermille": 500,
+  "_tbd": true
+}

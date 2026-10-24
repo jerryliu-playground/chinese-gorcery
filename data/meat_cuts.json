@@ -1,0 +1,12 @@
+[
+  {
+    "primalId": "pork_primal",
+    "cuts": [
+      { "productId": "pork_belly", "permille": 250 },
+      { "productId": "pork_ribs", "permille": 200 },
+      { "productId": "pork_loin", "permille": 200 }
+    ],
+    "groundProductId": "ground_pork", "groundPermille": 250,
+    "knifeSkillCutBonusPermillePerPoint": 10, "_tbd": true
+  }
+]

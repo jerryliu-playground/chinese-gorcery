@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1, "nameKey": "stage.1.name", "storeSize": { "w": 12, "h": 8 },
+    "requiredCumulativeRevenueCents": 0, "upgradeCostCents": 0, "_tbd": true
+  },
+  {
+    "id": 2, "nameKey": "stage.2.name", "storeSize": { "w": 18, "h": 10 },
+    "requiredCumulativeRevenueCents": 500000, "upgradeCostCents": 300000, "_tbd": true
+  }
+]

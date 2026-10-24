@@ -1,0 +1,27 @@
+keys,en,zh
+ui.main.title,Chinese Grocery,华人超市
+product.rice_jasmine.name,Jasmine Rice,香米
+product.noodles_instant.name,Instant Noodles,方便面
+product.soy_sauce_light.name,Light Soy Sauce,生抽
+product.chili_crisp.name,Chili Crisp,香脆辣椒油
+product.shrimp_chips.name,Shrimp Chips,虾片
+product.milk_candy.name,Milk Candy,奶糖
+product.soy_milk.name,Soy Milk,豆奶
+product.jasmine_tea.name,Jasmine Tea,茉莉花茶
+product.pork_primal.name,Pork Primal,整块猪肉
+product.pork_belly.name,Pork Belly,五花肉
+product.pork_ribs.name,Pork Ribs,排骨
+product.pork_loin.name,Pork Loin,里脊
+product.ground_pork.name,Ground Pork,肉馅
+fixture.shelf.name,Shelf,货架
+fixture.checkout.name,Checkout Counter,收银台
+fixture.backroom.name,Backroom,后仓
+fixture.entrance.name,Entrance,门口
+fixture.meat_display.name,Meat Display Case,肉类展示冷柜
+fixture.cutting_table.name,Cutting Table,切肉台
+customer_type.bargain_hunter.name,Bargain-Hunting Aunties & Uncles,精打细算的阿姨叔叔
+customer_type.international_student.name,International Student,留学生
+customer_type.chinese_family.name,Chinese Family,华人家庭
+role.butcher.name,Butcher,切肉师傅
+stage.1.name,Corner Grocery,街角杂货店
+stage.2.name,Neighborhood Market,社区超市

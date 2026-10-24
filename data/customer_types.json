@@ -1,0 +1,29 @@
+[
+  {
+    "id": "bargain_hunter", "nameKey": "customer_type.bargain_hunter.name",
+    "preferences": [
+      { "department": "dry_goods", "weight": 4 }, { "department": "sauces", "weight": 3 },
+      { "department": "snacks", "weight": 1 }, { "department": "drinks", "weight": 1 },
+      { "department": "meat", "weight": 4 }
+    ],
+    "priceSensitivityPermille": 900, "patienceMinutes": 15, "shoppingListSize": { "min": 2, "max": 5 }, "_tbd": true
+  },
+  {
+    "id": "international_student", "nameKey": "customer_type.international_student.name",
+    "preferences": [
+      { "department": "dry_goods", "weight": 3 }, { "department": "sauces", "weight": 1 },
+      { "department": "snacks", "weight": 4 }, { "department": "drinks", "weight": 4 },
+      { "department": "meat", "weight": 1 }
+    ],
+    "priceSensitivityPermille": 600, "patienceMinutes": 8, "shoppingListSize": { "min": 1, "max": 3 }, "_tbd": true
+  },
+  {
+    "id": "chinese_family", "nameKey": "customer_type.chinese_family.name",
+    "preferences": [
+      { "department": "dry_goods", "weight": 3 }, { "department": "sauces", "weight": 3 },
+      { "department": "snacks", "weight": 2 }, { "department": "drinks", "weight": 2 },
+      { "department": "meat", "weight": 4 }
+    ],
+    "priceSensitivityPermille": 400, "patienceMinutes": 10, "shoppingListSize": { "min": 3, "max": 7 }, "_tbd": true
+  }
+]
