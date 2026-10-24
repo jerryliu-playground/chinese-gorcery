@@ -5,4 +5,8 @@
     <RootNamespace>ChineseGrocery.Sim</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChineseGrocery.Sim.Tests" />
+  </ItemGroup>
+
 </Project>
