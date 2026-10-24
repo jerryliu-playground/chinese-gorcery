@@ -329,11 +329,62 @@ public static partial class DataValidator
 
         if (bad || data.Stages.Count == 0) return;
 
+        foreach (var (entry, index) in layout.Select((e, i) => (e, i)))
+        {
+            if (entry.Slots is not { } slots) continue;
+
+            var def = fixtures[entry.FixtureId];
+            var where = $"{at}[{index}] '{entry.FixtureId}'";
+            if (!IsDisplay(def.Kind)) errors.Add($"{where}: only shelves and displays take slots");
+            if (slots.Count > def.Capacity) errors.Add($"{where}: {slots.Count} slots listed but it has {def.Capacity}");
+            foreach (var productId in slots.OfType<string>())
+            {
+                var product = data.Products.FirstOrDefault(p => p.Id == productId);
+                if (product is null) errors.Add($"{where}: slot product '{productId}' does not exist");
+                else if (!def.Storage.Contains(product.Storage)) errors.Add($"{where}: '{productId}' cannot be kept on a {entry.FixtureId}");
+            }
+        }
+
+        ValidateStartingStock(data, fixtures, layout, errors);
+
         var placed = layout.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0, e.Rotation)).ToList();
         if (LayoutRules.Check(data.Stages[0].StoreSize, placed, id => fixtures[id]) is { } problem)
         {
             var which = problem.InstanceId == 0 ? "" : $" at entry [{problem.InstanceId - 1}] '{placed[problem.InstanceId - 1].FixtureId}'";
             errors.Add($"{at}: invalid layout ({problem.Reason}){which}");
+        }
+    }
+
+    /// <summary>Opening stock must be real products that the starting storage areas can hold, within their slot capacity.</summary>
+    private static void ValidateStartingStock(GameData data, Dictionary<string, FixtureDef> fixtures, IReadOnlyList<LayoutEntry> layout, List<string> errors)
+    {
+        const string at = DataFiles.Economy + ": startingStock";
+        var storages = layout.Select(e => fixtures[e.FixtureId]).Where(f => IsStorageArea(f.Kind)).ToList();
+        var byStorage = new Dictionary<FixtureDef, List<(ProductDef, int)>>();
+        foreach (var entry in data.Economy.StartingStock ?? [])
+        {
+            var product = data.Products.FirstOrDefault(p => p.Id == entry.ProductId);
+            if (product is null)
+            {
+                errors.Add($"{at}: '{entry.ProductId}' does not exist in {DataFiles.Products}");
+                continue;
+            }
+
+            if (entry.Quantity <= 0) errors.Add($"{at}: '{entry.ProductId}' quantity must be > 0");
+            if (storages.FirstOrDefault(s => s.Storage.Contains(product.Storage)) is not { } storage)
+            {
+                errors.Add($"{at}: no starting storage area can keep '{entry.ProductId}'");
+                continue;
+            }
+
+            if (!byStorage.TryGetValue(storage, out var list)) byStorage[storage] = list = [];
+            list.Add((product, entry.Quantity));
+        }
+
+        foreach (var (storage, holdings) in byStorage)
+        {
+            var slots = Inventory.StorageCapacity.SlotsNeeded(holdings);
+            if (slots > storage.Capacity) errors.Add($"{at}: needs {slots} slots in '{storage.Id}' but it has {storage.Capacity}");
         }
     }
 

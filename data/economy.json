@@ -31,8 +31,14 @@
     { "fixtureId": "entrance", "origin": { "x": 5, "y": 7 } },
     { "fixtureId": "checkout", "origin": { "x": 2, "y": 5 } },
     { "fixtureId": "backroom", "origin": { "x": 9, "y": 0 } },
-    { "fixtureId": "shelf", "origin": { "x": 1, "y": 1 } },
-    { "fixtureId": "shelf", "origin": { "x": 4, "y": 1 } }
+    { "fixtureId": "shelf", "origin": { "x": 1, "y": 1 }, "slots": ["rice_jasmine", "noodles_instant", "soy_sauce_light", "chili_crisp"] },
+    { "fixtureId": "shelf", "origin": { "x": 4, "y": 1 }, "slots": ["shrimp_chips", "milk_candy", "soy_milk", "jasmine_tea"] }
+  ],
+  "startingStock": [
+    { "productId": "rice_jasmine", "quantity": 20 }, { "productId": "noodles_instant", "quantity": 40 },
+    { "productId": "soy_sauce_light", "quantity": 24 }, { "productId": "chili_crisp", "quantity": 24 },
+    { "productId": "shrimp_chips", "quantity": 32 }, { "productId": "milk_candy", "quantity": 32 },
+    { "productId": "soy_milk", "quantity": 40 }, { "productId": "jasmine_tea", "quantity": 40 }
   ],
   "_tbd": true
 }

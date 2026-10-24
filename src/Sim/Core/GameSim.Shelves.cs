@@ -15,6 +15,16 @@ public sealed partial class GameSim
     {
         if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
 
+        var moved = FillShelvesFromStorage(announce: true);
+        if (moved == 0) return Reject(RejectReason.NothingToDo);
+
+        _events.Add(new ShelvesRestocked(moved));
+        return null;
+    }
+
+    /// <summary>Moves storage stock onto assigned slots until full; returns the units moved.</summary>
+    private int FillShelvesFromStorage(bool announce)
+    {
         var moved = 0;
         foreach (var (slot, productId) in Shelves.Assigned)
         {
@@ -33,13 +43,10 @@ public sealed partial class GameSim
             }
 
             moved += movedHere;
-            if (movedHere > 0) _events.Add(new ItemsShelved(slot, productId, movedHere, wasEmpty));
+            if (announce && movedHere > 0) _events.Add(new ItemsShelved(slot, productId, movedHere, wasEmpty));
         }
 
-        if (moved == 0) return Reject(RejectReason.NothingToDo);
-
-        _events.Add(new ShelvesRestocked(moved));
-        return null;
+        return moved;
     }
 
     /// <summary>The storage area holding the earliest-expiring stock of a product.</summary>

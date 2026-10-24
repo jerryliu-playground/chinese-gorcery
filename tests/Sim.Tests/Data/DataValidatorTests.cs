@@ -193,7 +193,7 @@ public class DataValidatorTests
     }
 
     private static GameData WithStartingLayout(params LayoutEntry[] layout) =>
-        Valid with { Economy = Valid.Economy with { StartingLayout = layout } };
+        Valid with { Economy = Valid.Economy with { StartingLayout = layout, StartingStock = [] } };
 
     [Fact]
     public void Starting_layout_needs_an_entrance()

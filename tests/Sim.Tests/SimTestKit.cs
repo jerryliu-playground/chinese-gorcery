@@ -9,7 +9,21 @@ namespace ChineseGrocery.Sim.Tests;
 /// <summary>Shared setup and drivers for simulation tests.</summary>
 public static class SimTestKit
 {
-    public static GameData Data { get; } = GameDataLoader.LoadFromDirectory(RepoPaths.Data);
+    /// <summary>The real data tables as shipped (including the opening stock).</summary>
+    public static GameData RealData { get; } = GameDataLoader.LoadFromDirectory(RepoPaths.Data);
+
+    /// <summary>
+    /// The real data minus the opening stock and pre-assigned shelf slots, so mechanics tests start from an empty
+    /// store and control exactly what is in it.
+    /// </summary>
+    public static GameData Data { get; } = RealData with
+    {
+        Economy = RealData.Economy with
+        {
+            StartingStock = [],
+            StartingLayout = RealData.Economy.StartingLayout.Select(e => e with { Slots = null }).ToList(),
+        },
+    };
 
     public static GameSim NewSim(ulong seed = 1, GameData? data = null) => new(data ?? Data, seed);
 

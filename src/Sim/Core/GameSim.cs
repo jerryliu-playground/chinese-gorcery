@@ -39,6 +39,7 @@ public sealed partial class GameSim
         }
 
         RebuildOccupancy();
+        StockTheOldStore();
         var player = data.Employees.Player;
         Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerMinute, player.WorkSpeedPermille, player.KnifeSkill);
         _workers.Add(Player);
@@ -182,6 +183,30 @@ public sealed partial class GameSim
         Economy.BeginDay(Clock.Day + 1);
         _reports.Add(report);
         _events.Add(new DailyReportReady(report));
+    }
+
+    /// <summary>New game only: the parents' shelves start assigned and full, with the rest of the opening stock in storage.</summary>
+    private void StockTheOldStore()
+    {
+        var entries = Data.Economy.StartingLayout;
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var slots = entries[i].Slots ?? [];
+            for (var slot = 0; slot < slots.Count; slot++)
+            {
+                if (slots[slot] is { } productId) Shelves.Set(new StockLocation(Layout.Fixtures[i].InstanceId, slot), productId);
+            }
+        }
+
+        foreach (var entry in Data.Economy.StartingStock ?? [])
+        {
+            var product = _products[entry.ProductId];
+            var storage = StorageRouting.FindDestination(Data, Layout.Fixtures, product)!;
+            Inventory.GetOrCreate(StockLocation.Storage(storage.InstanceId))
+                .Add(new StockLot(product.Id, entry.Quantity, Clock.Day + product.ShelfLifeDays - 1, product.CostCents));
+        }
+
+        FillShelvesFromStorage(announce: false);
     }
 
     private bool IsWalkable(GridPoint p) => LayoutRules.InBounds(Layout.Size, p) && !_occupied.Contains(p);
