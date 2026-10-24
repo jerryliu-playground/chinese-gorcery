@@ -1,0 +1,52 @@
+using ChineseGrocery.Sim.Grid;
+using ChineseGrocery.Sim.Inventory;
+
+namespace ChineseGrocery.Sim.Tasks;
+
+/// <summary>
+/// Anyone who executes tasks: the player character or a staff member. Both run the same task logic;
+/// the player just does not claim tasks automatically.
+/// </summary>
+public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCellsPerTick, int workSpeedPermille)
+{
+    private readonly List<GridPoint> _path = [];
+    private readonly List<StockLot> _carrying = [];
+
+    public int Id { get; } = id;
+    public bool IsPlayer { get; } = isPlayer;
+    public GridPoint Position { get; internal set; } = position;
+    public IReadOnlyList<GridPoint> Path => _path;
+    public int MoveCellsPerTick { get; } = moveCellsPerTick;
+    public int WorkSpeedPermille { get; } = workSpeedPermille;
+    public int? TaskId { get; internal set; }
+    public WorkStep Step { get; internal set; } = WorkStep.Idle;
+    public int WorkTicksLeft { get; internal set; }
+    public IReadOnlyList<StockLot> Carrying => _carrying;
+
+    /// <summary>In a timed step (picking, shelving, serving) and unable to walk away.</summary>
+    public bool IsWorking => Step is WorkStep.Picking or WorkStep.Shelving or WorkStep.Serving;
+
+    internal void SetPath(IEnumerable<GridPoint> path)
+    {
+        _path.Clear();
+        _path.AddRange(path);
+    }
+
+    internal void PopStep() => _path.RemoveAt(0);
+
+    internal void Carry(IEnumerable<StockLot> lots) => _carrying.AddRange(lots);
+
+    internal List<StockLot> DropAll()
+    {
+        var lots = _carrying.ToList();
+        _carrying.Clear();
+        return lots;
+    }
+
+    internal IReadOnlyList<StockLot> RemoveExpired(int closingDay)
+    {
+        var expired = _carrying.Where(l => l.BestBeforeDay <= closingDay).ToList();
+        _carrying.RemoveAll(l => l.BestBeforeDay <= closingDay);
+        return expired;
+    }
+}

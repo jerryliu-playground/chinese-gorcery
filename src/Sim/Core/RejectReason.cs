@@ -24,4 +24,11 @@ public enum RejectReason
     WrongStorageType,
     SlotNotEmpty,
     InvalidPrice,
+    Busy,
+    NothingToDo,
+    NotAtFixture,
+    Unreachable,
+    BlocksWorker,
+    FixtureInUse,
+    SlotInUse,
 }

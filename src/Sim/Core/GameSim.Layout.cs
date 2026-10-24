@@ -17,10 +17,12 @@ public sealed partial class GameSim
 
         var candidate = new PlacedFixture(Layout.NextInstanceId, def.Id, place.Origin, def.PriceCents, place.Rotation);
         if (CheckLayout([.. Layout.Fixtures, candidate], candidate.InstanceId) is { } problem) return problem;
+        if (CoversWorker(candidate)) return Reject(RejectReason.BlocksWorker);
         if (!Economy.CanAfford(def.PriceCents)) return Reject(RejectReason.InsufficientCash);
 
         Economy.Spend(ExpenseCategory.Fixtures, def.PriceCents);
         var placed = Layout.Add(def.Id, place.Origin, place.Rotation, def.PriceCents);
+        RebuildOccupancy();
         _events.Add(new FixturePlaced(placed.InstanceId, def.Id, placed.Origin, placed.Rotation, def.PriceCents));
         return null;
     }
@@ -32,8 +34,10 @@ public sealed partial class GameSim
 
         var moved = Layout.Fixtures.Select(f => f.InstanceId == move.InstanceId ? f with { Origin = move.Origin, Rotation = move.Rotation } : f).ToList();
         if (CheckLayout(moved, move.InstanceId) is { } problem) return problem;
+        if (CoversWorker(moved.Single(f => f.InstanceId == move.InstanceId))) return Reject(RejectReason.BlocksWorker);
 
         Layout.Move(move.InstanceId, move.Origin, move.Rotation);
+        RebuildOccupancy();
         _events.Add(new FixtureMoved(move.InstanceId, current.Origin, move.Origin, move.Rotation));
         return null;
     }
@@ -50,6 +54,7 @@ public sealed partial class GameSim
         }
 
         if (Inventory.Holds(sell.InstanceId)) return Reject(RejectReason.FixtureNotEmpty);
+        if (IsFixtureInUse(sell.InstanceId)) return Reject(RejectReason.FixtureInUse);
         if (_orders.Pending.Any(o => StorageRouting.FindDestination(Data, remaining, _products[o.ProductId]) is null))
         {
             return Reject(RejectReason.StorageNeededForOrders);
@@ -61,10 +66,15 @@ public sealed partial class GameSim
         Layout.Remove(sell.InstanceId);
         Inventory.Forget(sell.InstanceId);
         Shelves.Forget(sell.InstanceId);
+        Tasks.RemoveOpen(t => Involves(t, sell.InstanceId));
+        RebuildOccupancy();
         Economy.Refund(ExpenseCategory.Fixtures, refund);
         _events.Add(new FixtureSold(sell.InstanceId, target.FixtureId, refund));
         return null;
     }
+
+    private bool CoversWorker(PlacedFixture fixture) =>
+        LayoutRules.Footprint(_fixtures[fixture.FixtureId], fixture.Origin, fixture.Rotation).Any(c => _workers.Any(w => w.Position == c));
 
     private Rejection? CheckLayout(IReadOnlyList<PlacedFixture> fixtures, int focusId) =>
         LayoutRules.Check(Layout.Size, fixtures, id => _fixtures[id], focusId);

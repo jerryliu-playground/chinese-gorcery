@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Sim.Core;
@@ -18,6 +19,8 @@ public sealed partial class GameSim
     private readonly Dictionary<string, ProductDef> _products;
     private readonly Dictionary<string, FixtureDef> _fixtures;
     private readonly OrderBook _orders = new();
+    private readonly List<Worker> _workers = [];
+    private readonly HashSet<GridPoint> _occupied = [];
 
     public GameSim(GameData data, ulong seed)
     {
@@ -34,6 +37,11 @@ public sealed partial class GameSim
             Layout.Add(entry.FixtureId, entry.Origin, entry.Rotation, paidCents: 0);
         }
 
+        RebuildOccupancy();
+        var player = data.Employees.Player;
+        Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerTick, player.WorkSpeedPermille);
+        _workers.Add(Player);
+
         _events.Add(new DayStarted(Clock.Day));
     }
 
@@ -46,6 +54,9 @@ public sealed partial class GameSim
     public InventoryState Inventory { get; } = new();
     public ShelfAssignments Shelves { get; } = new();
     public PriceBook Prices { get; }
+    public TaskBoard Tasks { get; } = new();
+    public Worker Player { get; }
+    public IReadOnlyList<Worker> Workers => _workers;
     public IReadOnlyList<PendingOrder> PendingOrders => _orders.Pending;
     public IReadOnlyList<DailyReport> Reports => _reports;
 
@@ -70,6 +81,9 @@ public sealed partial class GameSim
             Execute(command);
         }
 
+        RefreshTasks();
+        UpdateWorkers();
+
         if (Clock.Phase == DayPhase.Open)
         {
             Clock.Advance(Data.Economy.MinutesPerTick);
@@ -92,6 +106,8 @@ public sealed partial class GameSim
             SellFixture sell => HandleSellFixture(sell),
             AssignShelfSlot assign => HandleAssignShelfSlot(assign),
             SetPrice price => HandleSetPrice(price),
+            MovePlayer move => HandleMovePlayer(move),
+            PlayerInteract interact => HandlePlayerInteract(interact),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
@@ -138,8 +154,38 @@ public sealed partial class GameSim
             }
         }
 
+        foreach (var worker in _workers)
+        {
+            foreach (var lot in worker.RemoveExpired(Clock.Day))
+            {
+                var loss = checked(lot.Quantity * lot.UnitCostCents);
+                Economy.RecordLoss(loss);
+                _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, null, loss));
+            }
+
+            if (worker.Step == WorkStep.Carrying && worker.Carrying.Count == 0) FinishTask(worker, completed: false);
+        }
+
         var report = Economy.CloseDay();
         _reports.Add(report);
         _events.Add(new DailyReportReady(report));
+    }
+
+    private bool IsWalkable(GridPoint p) => LayoutRules.InBounds(Layout.Size, p) && !_occupied.Contains(p);
+
+    /// <summary>Recomputes the cells covered by fixtures; call after any layout change.</summary>
+    private void RebuildOccupancy()
+    {
+        _occupied.Clear();
+        foreach (var f in Layout.Fixtures)
+        {
+            _occupied.UnionWith(LayoutRules.Footprint(_fixtures[f.FixtureId], f.Origin, f.Rotation));
+        }
+    }
+
+    private GridPoint PlayerStartCell()
+    {
+        var entrance = Layout.Fixtures.First(f => _fixtures[f.FixtureId].Kind == FixtureKind.Entrance);
+        return LayoutRules.CustomerCells(_fixtures[entrance.FixtureId], entrance.Origin, entrance.Rotation).First();
     }
 }

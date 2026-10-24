@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Sim.Core;
@@ -26,6 +27,10 @@ public sealed partial class GameSim
         var slot = new StockLocation(assign.InstanceId, assign.Slot);
         var current = Shelves.ProductAt(slot);
         if (current is not null && current != assign.ProductId && Inventory.Count(slot, current) > 0) return Reject(RejectReason.SlotNotEmpty);
+        if (current != assign.ProductId && Tasks.Tasks.Any(t => t is RestockTask r && r.Target == slot && Tasks.ClaimedBy(r.Id) is not null))
+        {
+            return Reject(RejectReason.SlotInUse);
+        }
 
         Shelves.Set(slot, assign.ProductId);
         _events.Add(new ShelfSlotAssigned(slot, assign.ProductId));
