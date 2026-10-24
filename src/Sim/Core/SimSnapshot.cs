@@ -22,8 +22,10 @@ public static class SimSnapshot
         sim.Layout.Size,
         Layout = sim.Layout.Fixtures,
         sim.Layout.NextInstanceId,
-        Inventory = sim.Inventory.Locations.Select(l => new { l.FixtureInstanceId, l.Lots }),
+        Inventory = sim.Inventory.Locations.Select(l => new { l.Location, l.Lots }),
         sim.PendingOrders,
+        Shelves = sim.Shelves.Assigned.Select(kv => new { kv.Key, kv.Value }),
+        Prices = sim.Prices.Overrides,
         sim.Reports,
     }, Options);
 

@@ -1,31 +1,41 @@
 namespace ChineseGrocery.Sim.Inventory;
 
-/// <summary>All stock in the store, by the placed fixture holding it.</summary>
+/// <summary>All stock in the store, by where it sits.</summary>
 public sealed class InventoryState
 {
-    private readonly SortedDictionary<int, Stockpile> _locations = new();
+    private readonly SortedDictionary<StockLocation, Stockpile> _locations = new();
 
     public IEnumerable<Stockpile> Locations => _locations.Values;
 
-    public Stockpile Get(int fixtureInstanceId) => _locations[fixtureInstanceId];
+    public Stockpile Get(StockLocation location) => _locations[location];
 
-    public Stockpile? TryGet(int fixtureInstanceId) => _locations.GetValueOrDefault(fixtureInstanceId);
+    public Stockpile? TryGet(StockLocation location) => _locations.GetValueOrDefault(location);
 
-    /// <summary>True if the fixture holds any goods.</summary>
-    public bool Holds(int fixtureInstanceId) => _locations.TryGetValue(fixtureInstanceId, out var pile) && pile.Lots.Count > 0;
+    /// <summary>Units of the product at the location (0 when nothing is there).</summary>
+    public int Count(StockLocation location, string productId) => TryGet(location)?.Count(productId) ?? 0;
 
     public int Total(string productId) => _locations.Values.Sum(s => s.Count(productId));
 
-    internal Stockpile GetOrCreate(int fixtureInstanceId)
+    /// <summary>True if any slot of the fixture holds goods.</summary>
+    public bool Holds(int fixtureInstanceId) =>
+        _locations.Any(kv => kv.Key.FixtureInstanceId == fixtureInstanceId && kv.Value.Lots.Count > 0);
+
+    internal Stockpile GetOrCreate(StockLocation location)
     {
-        if (!_locations.TryGetValue(fixtureInstanceId, out var pile))
+        if (!_locations.TryGetValue(location, out var pile))
         {
-            pile = new Stockpile(fixtureInstanceId);
-            _locations.Add(fixtureInstanceId, pile);
+            pile = new Stockpile(location);
+            _locations.Add(location, pile);
         }
 
         return pile;
     }
 
-    internal void Forget(int fixtureInstanceId) => _locations.Remove(fixtureInstanceId);
+    internal void Forget(int fixtureInstanceId)
+    {
+        foreach (var key in _locations.Keys.Where(k => k.FixtureInstanceId == fixtureInstanceId).ToList())
+        {
+            _locations.Remove(key);
+        }
+    }
 }

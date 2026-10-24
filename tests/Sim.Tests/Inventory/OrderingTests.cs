@@ -37,9 +37,9 @@ public class OrderingTests
         sim.Run(new StartNextDay());
 
         var backroom = sim.InstanceOf("backroom");
-        Assert.Equal(10, sim.Inventory.Get(backroom).Count(Rice));
+        Assert.Equal(10, sim.Inventory.Get(StockLocation.Storage(backroom)).Count(Rice));
         Assert.Empty(sim.PendingOrders);
-        Assert.Equal(new OrderDelivered(2, Rice, 10, backroom), sim.DrainEvents().Single<OrderDelivered>());
+        Assert.Equal(new OrderDelivered(2, Rice, 10, StockLocation.Storage(backroom)), sim.DrainEvents().Single<OrderDelivered>());
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class OrderingTests
         sim.Run(new PlaceOrder(Rice, 1));
         sim.RunFullDay();
 
-        var lot = Assert.Single(sim.Inventory.Get(sim.InstanceOf("backroom")).Lots);
+        var lot = Assert.Single(sim.Inventory.Get(StockLocation.Storage(sim.InstanceOf("backroom"))).Lots);
         Assert.Equal(2 + RiceDef.ShelfLifeDays - 1, lot.BestBeforeDay);
         Assert.Equal(RiceDef.CostCents, lot.UnitCostCents);
     }

@@ -19,4 +19,9 @@ public enum RejectReason
     LastEntrance,
     FixtureNotEmpty,
     StorageNeededForOrders,
+    NotADisplay,
+    InvalidSlot,
+    WrongStorageType,
+    SlotNotEmpty,
+    InvalidPrice,
 }

@@ -27,6 +27,7 @@ public sealed class GameSim
         _fixtures = data.Fixtures.ToDictionary(f => f.Id, StringComparer.Ordinal);
         Clock = new GameClock(data.Economy.OpenMinuteOfDay);
         Economy = new EconomyState(data.Economy.StartingCashCents);
+        Prices = new PriceBook(data.Products);
         Layout = new StoreLayout(data.Stages[0].StoreSize);
         foreach (var entry in data.Economy.StartingLayout)
         {
@@ -43,6 +44,8 @@ public sealed class GameSim
     public EconomyState Economy { get; }
     public StoreLayout Layout { get; }
     public InventoryState Inventory { get; } = new();
+    public ShelfAssignments Shelves { get; } = new();
+    public PriceBook Prices { get; }
     public IReadOnlyList<PendingOrder> PendingOrders => _orders.Pending;
     public IReadOnlyList<DailyReport> Reports => _reports;
 
@@ -87,6 +90,8 @@ public sealed class GameSim
             PlaceFixture place => HandlePlaceFixture(place),
             MoveFixture move => HandleMoveFixture(move),
             SellFixture sell => HandleSellFixture(sell),
+            AssignShelfSlot assign => HandleAssignShelfSlot(assign),
+            SetPrice price => HandleSetPrice(price),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
@@ -139,7 +144,7 @@ public sealed class GameSim
     /// <summary>Whether the destination can hold what it has, what is already on order for it, and this order.</summary>
     private bool FitsInStorage(PlacedFixture destination, ProductDef product, int quantity)
     {
-        var held = Inventory.TryGet(destination.InstanceId)?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
+        var held = Inventory.TryGet(StockLocation.Storage(destination.InstanceId))?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
         var pending = _orders.Pending
             .Where(o => StorageRouting.FindDestination(Data, Layout.Fixtures, _products[o.ProductId])?.InstanceId == destination.InstanceId)
             .Select(o => (_products[o.ProductId], o.Quantity));
@@ -198,8 +203,43 @@ public sealed class GameSim
         var refund = target.PaidCents * Data.Economy.FixtureSellRefundPermille / 1000;
         Layout.Remove(sell.InstanceId);
         Inventory.Forget(sell.InstanceId);
+        Shelves.Forget(sell.InstanceId);
         Economy.Refund(ExpenseCategory.Fixtures, refund);
         _events.Add(new FixtureSold(sell.InstanceId, target.FixtureId, refund));
+        return null;
+    }
+
+    private Rejection? HandleAssignShelfSlot(AssignShelfSlot assign)
+    {
+        if (Layout.Find(assign.InstanceId) is not { } placed) return Reject(RejectReason.UnknownFixtureInstance);
+
+        var def = _fixtures[placed.FixtureId];
+        if (!DataValidator.IsDisplay(def.Kind)) return Reject(RejectReason.NotADisplay);
+        if (assign.Slot < 0 || assign.Slot >= def.Capacity) return Reject(RejectReason.InvalidSlot);
+
+        if (assign.ProductId is not null)
+        {
+            if (!_products.TryGetValue(assign.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
+            if (!def.Storage.Contains(product.Storage)) return Reject(RejectReason.WrongStorageType);
+        }
+
+        var slot = new StockLocation(assign.InstanceId, assign.Slot);
+        var current = Shelves.ProductAt(slot);
+        if (current is not null && current != assign.ProductId && Inventory.Count(slot, current) > 0) return Reject(RejectReason.SlotNotEmpty);
+
+        Shelves.Set(slot, assign.ProductId);
+        _events.Add(new ShelfSlotAssigned(slot, assign.ProductId));
+        return null;
+    }
+
+    private Rejection? HandleSetPrice(SetPrice price)
+    {
+        if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
+        if (!_products.ContainsKey(price.ProductId)) return Reject(RejectReason.UnknownProduct);
+        if (price.PriceCents <= 0) return Reject(RejectReason.InvalidPrice);
+
+        Prices.Set(price.ProductId, price.PriceCents);
+        _events.Add(new PriceChanged(price.ProductId, price.PriceCents));
         return null;
     }
 
@@ -214,8 +254,8 @@ public sealed class GameSim
             var destination = StorageRouting.FindDestination(Data, Layout.Fixtures, product)
                 ?? throw new InvalidOperationException($"No storage for delivered '{order.ProductId}'; selling should have been blocked.");
             var bestBefore = Clock.Day + product.ShelfLifeDays - 1;
-            Inventory.GetOrCreate(destination.InstanceId).Add(new StockLot(order.ProductId, order.Quantity, bestBefore, order.UnitCostCents));
-            _events.Add(new OrderDelivered(Clock.Day, order.ProductId, order.Quantity, destination.InstanceId));
+            Inventory.GetOrCreate(StockLocation.Storage(destination.InstanceId)).Add(new StockLot(order.ProductId, order.Quantity, bestBefore, order.UnitCostCents));
+            _events.Add(new OrderDelivered(Clock.Day, order.ProductId, order.Quantity, StockLocation.Storage(destination.InstanceId)));
         }
     }
 
@@ -230,7 +270,7 @@ public sealed class GameSim
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
                 Economy.RecordLoss(loss);
-                _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, pile.FixtureInstanceId, loss));
+                _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, pile.Location, loss));
             }
         }
 

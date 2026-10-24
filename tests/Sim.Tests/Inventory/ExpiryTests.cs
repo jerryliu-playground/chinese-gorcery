@@ -28,7 +28,7 @@ public class ExpiryTests
         var events = sim.DrainEvents();
 
         Assert.Equal(0, sim.Inventory.Total(Milk));
-        Assert.Equal(new ProductExpired(2, Milk, 6, sim.InstanceOf("backroom"), 6 * MilkCost), events.Single<ProductExpired>());
+        Assert.Equal(new ProductExpired(2, Milk, 6, StockLocation.Storage(sim.InstanceOf("backroom")), 6 * MilkCost), events.Single<ProductExpired>());
         Assert.Equal(6 * MilkCost, events.Single<DailyReportReady>().Report.LossCents);
     }
 

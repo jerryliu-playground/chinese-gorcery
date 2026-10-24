@@ -285,7 +285,7 @@ public class FixturePlacementTests
         sim.Run(new MoveFixture(backroom, new GridPoint(7, 3), Rotation.None));
 
         Assert.Equal(new GridPoint(7, 3), sim.Layout.Find(backroom)!.Origin);
-        Assert.Equal(4, sim.Inventory.Get(backroom).Count("rice_jasmine"));
+        Assert.Equal(4, sim.Inventory.Get(StockLocation.Storage(backroom)).Count("rice_jasmine"));
     }
 
     [Fact]

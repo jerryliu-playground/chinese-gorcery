@@ -1,11 +1,11 @@
 namespace ChineseGrocery.Sim.Inventory;
 
-/// <summary>Goods held in one placed fixture. Lots are kept ordered by expiry; quantities never go below zero.</summary>
-public sealed class Stockpile(int fixtureInstanceId)
+/// <summary>Goods at one location. Lots are kept ordered by expiry; quantities never go below zero.</summary>
+public sealed class Stockpile(StockLocation location)
 {
     private readonly List<StockLot> _lots = [];
 
-    public int FixtureInstanceId { get; } = fixtureInstanceId;
+    public StockLocation Location { get; } = location;
 
     public IReadOnlyList<StockLot> Lots => _lots;
 
@@ -32,7 +32,7 @@ public sealed class Stockpile(int fixtureInstanceId)
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
         if (Count(productId) < quantity)
         {
-            throw new InvalidOperationException($"Stockpile of fixture {FixtureInstanceId} holds {Count(productId)} of '{productId}', cannot take {quantity}.");
+            throw new InvalidOperationException($"Stockpile at {Location} holds {Count(productId)} of '{productId}', cannot take {quantity}.");
         }
 
         var taken = new List<StockLot>();

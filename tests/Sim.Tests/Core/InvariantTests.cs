@@ -51,7 +51,7 @@ public class InvariantTests
     private static void AssertLayoutValid(GameSim sim)
     {
         Assert.Null(LayoutRules.Check(sim.Layout.Size, sim.Layout.Fixtures, id => SimTestKit.Data.Fixtures.Single(f => f.Id == id)));
-        Assert.All(sim.Inventory.Locations, l => Assert.NotNull(sim.Layout.Find(l.FixtureInstanceId)));
+        Assert.All(sim.Inventory.Locations, l => Assert.NotNull(sim.Layout.Find(l.Location.FixtureInstanceId)));
     }
 
     private static void AssertNoNegativeStock(GameSim sim)
