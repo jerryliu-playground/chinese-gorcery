@@ -1,6 +1,8 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Save;
 using Godot;
+using FileAccess = Godot.FileAccess;
 
 namespace ChineseGrocery.Game;
 
@@ -12,6 +14,7 @@ namespace ChineseGrocery.Game;
 public partial class SimHost : Node
 {
     private const int MaxTicksPerFrame = 30;
+    private const string SavePath = "user://save1.json";
 
     private double _pendingTicks;
 
@@ -28,6 +31,45 @@ public partial class SimHost : Node
 
     public event Action<IReadOnlyList<SimEvent>>? EventsReady;
     public event Action? Ticked;
+
+    /// <summary>Raised after a save is loaded and <see cref="Sim"/> is a different game.</summary>
+    public event Action? GameReplaced;
+
+    public bool HasSave => FileAccess.FileExists(SavePath);
+
+    /// <summary>Writes the single save slot. Returns false (and logs why) if it could not be written.</summary>
+    public bool SaveToSlot()
+    {
+        using var file = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
+        if (file is null)
+        {
+            GD.PushError($"Could not write {SavePath}: {FileAccess.GetOpenError()}");
+            return false;
+        }
+
+        file.StoreString(SaveGame.Write(Sim));
+        return true;
+    }
+
+    /// <summary>Replaces the running game with the saved one. Returns false (and logs why) if it could not be loaded.</summary>
+    public bool LoadFromSlot()
+    {
+        if (!HasSave) return false;
+
+        try
+        {
+            Sim = SaveGame.Read(Data, FileAccess.GetFileAsString(SavePath));
+        }
+        catch (SaveException ex)
+        {
+            GD.PushError(ex.Message);
+            return false;
+        }
+
+        _pendingTicks = 0;
+        GameReplaced?.Invoke();
+        return true;
+    }
 
     /// <summary>Loads data and starts a new game. Returns the data error text, or null on success.</summary>
     public string? StartNewGame()

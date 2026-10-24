@@ -16,6 +16,7 @@ public partial class Main : Node2D
     public override void _Ready()
     {
         InputSetup.Register();
+        Language.Apply();
         GetNode<Label>("Error").Theme = UiTheme.Create();
 
         _host = new SimHost { Name = "SimHost" };

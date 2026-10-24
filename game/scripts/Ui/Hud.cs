@@ -27,6 +27,7 @@ public partial class Hud : Control
     private readonly Label _message = new();
     private readonly Button _open = new() { Text = "ui.hud.open_store" };
     private readonly Button _mode = new();
+    private readonly Button _language = new() { Text = "ui.hud.language" };
     private readonly List<Button> _speedButtons = [];
     private readonly List<PanelBase> _panels = [];
     private readonly Queue<string> _messages = new();
@@ -56,6 +57,7 @@ public partial class Hud : Control
 
         host.EventsReady += OnEvents;
         host.Ticked += OnTicked;
+        host.GameReplaced += OnGameReplaced;
         ui.Changed += OnUiChanged;
         OnTicked();
     }
@@ -102,7 +104,39 @@ public partial class Hud : Control
 
         _open.Pressed += () => _host.Send(new OpenStore());
         bar.AddChild(_open);
+        _language.Pressed += () =>
+        {
+            Language.Toggle();
+            Retranslate();
+        };
+        bar.AddChild(_language);
         UpdateSpeedButtons();
+    }
+
+    /// <summary>Text set from translated strings does not follow a locale change by itself, so redo it.</summary>
+    private void Retranslate()
+    {
+        for (var step = 0; step < _speedButtons.Count; step++)
+        {
+            _speedButtons[step].Text = step == 0
+                ? UiText.T("ui.hud.pause")
+                : UiText.F("ui.hud.speed", ("x", _host.Data.Economy.SpeedMultipliers[step - 1]));
+        }
+
+        OnTicked();
+        foreach (var panel in _panels.Where(p => p.Visible)) panel.Open();
+        _messages.Clear();
+        _showingHint = true;
+    }
+
+    private void OnGameReplaced()
+    {
+        foreach (var p in _panels.Where(p => p.Visible)) p.Close();
+        _ui.Mode = ToolMode.Play;
+        _ui.ClearTool();
+        _ui.SelectedInstanceId = null;
+        _ui.Notify();
+        OnTicked();
     }
 
     private void BuildBottomBar()
@@ -142,6 +176,17 @@ public partial class Hud : Control
         bar.AddChild(PanelButton("ui.hud.staff", staff));
         bar.AddChild(PanelButton("ui.hud.upgrade", upgrade));
         bar.AddChild(PanelButton("ui.hud.report", _report));
+
+        var save = new Button { Text = "ui.hud.save" };
+        save.Pressed += () => _messages.Enqueue(UiText.T(_host.SaveToSlot() ? "ui.event.saved" : "ui.event.save_failed"));
+        bar.AddChild(save);
+        var load = new Button { Text = "ui.hud.load" };
+        load.Pressed += () =>
+        {
+            var key = !_host.HasSave ? "ui.event.no_save" : _host.LoadFromSlot() ? "ui.event.loaded" : "ui.event.load_failed";
+            _messages.Enqueue(UiText.T(key));
+        };
+        bar.AddChild(load);
         OnUiChanged();
     }
 

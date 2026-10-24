@@ -42,6 +42,11 @@ public partial class StoreView : Node2D
             _before = _after;
             _after = Walkers();
         };
+        host.GameReplaced += () =>
+        {
+            _after = Walkers();
+            _before = [];
+        };
     }
 
     private Dictionary<string, GridPoint> Walkers()

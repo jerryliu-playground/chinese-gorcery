@@ -136,3 +136,11 @@ ui.reject.role_locked,Not unlocked yet.,还没解锁。
 ui.reject.role_full,No more of that role.,这个岗位已经满了。
 ui.reject.unknown_worker,No such employee.,没有这个员工。
 ui.reject.invalid_wage,Wage can't be negative.,工资不能是负数。
+ui.hud.save,Save,存档
+ui.hud.load,Load,读档
+ui.hud.language,中文,English
+ui.event.saved,Game saved.,已存档。
+ui.event.save_failed,Could not save.,存档失败。
+ui.event.loaded,Save loaded.,已读档。
+ui.event.load_failed,That save could not be loaded.,这个存档读不出来。
+ui.event.no_save,No save yet.,还没有存档。
