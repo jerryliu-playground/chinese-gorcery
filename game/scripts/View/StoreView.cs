@@ -20,6 +20,11 @@ public partial class StoreView : Node2D
     private GridPoint _facing = new(0, -1);
     private GridPoint? _hover;
     private long _lastMoveTick = -1;
+    private bool _keyboardWalking;
+
+    // Where each walker stood after the previous tick and the one before, to draw them sliding between ticks.
+    private Dictionary<string, GridPoint> _before = [];
+    private Dictionary<string, GridPoint> _after = [];
 
     /// <summary>Raised when a display fixture is clicked in play mode (to open its slots).</summary>
     public event Action<int>? DisplayClicked;
@@ -31,6 +36,31 @@ public partial class StoreView : Node2D
     {
         _host = host;
         _ui = ui;
+        _after = Walkers();
+        host.Ticked += () =>
+        {
+            _before = _after;
+            _after = Walkers();
+        };
+    }
+
+    private Dictionary<string, GridPoint> Walkers()
+    {
+        var sim = _host.Sim;
+        var all = new Dictionary<string, GridPoint>();
+        foreach (var w in sim.Workers) all["w" + w.Id] = w.Position;
+        foreach (var c in sim.Customers) all["c" + c.Id] = c.Position;
+        return all;
+    }
+
+    /// <summary>Pixel centre of a walker, slid between its last two tick positions (snapping on long jumps).</summary>
+    private Vector2 DrawPosition(string key, GridPoint now)
+    {
+        var to = CenterOf(now);
+        if (!_before.TryGetValue(key, out var was) || !_after.TryGetValue(key, out var latest) || latest != now) return to;
+
+        var from = CenterOf(was);
+        return from.DistanceTo(to) > 3 * Cell ? to : from.Lerp(to, Mathf.Clamp(_host.TickProgress, 0, 1));
     }
 
     private GameData Data => _host.Data;
@@ -68,9 +98,13 @@ public partial class StoreView : Node2D
         return LayoutRules.InBounds(_host.Sim.Layout.Size, cell) ? cell : null;
     }
 
-    /// <summary>WASD / arrows: one cell per tick while held.</summary>
+    /// <summary>
+    /// WASD / arrows: while held, keep a short walk queued ahead in that direction (re-aimed each tick) so the player
+    /// moves at full walking speed; on release, stop where they are.
+    /// </summary>
     private void HandleHeldMovement()
     {
+        const int lookAhead = 3;
         if (_ui.Mode != ToolMode.Play) return;
 
         GridPoint? dir = Input.IsActionPressed(InputSetup.MoveUp) ? new(0, -1)
@@ -78,16 +112,30 @@ public partial class StoreView : Node2D
             : Input.IsActionPressed(InputSetup.MoveLeft) ? new(-1, 0)
             : Input.IsActionPressed(InputSetup.MoveRight) ? new(1, 0)
             : null;
-        if (dir is not { } d) return;
+        var player = _host.Sim.Player;
+        if (_lastMoveTick == _host.Sim.TickCount || player.IsWorking) return;
+
+        if (dir is not { } d)
+        {
+            if (_keyboardWalking) _host.Send(new MovePlayer(player.Position));
+            _keyboardWalking = false;
+            _lastMoveTick = _host.Sim.TickCount;
+            return;
+        }
 
         _facing = d;
-        var player = _host.Sim.Player;
-        if (player.IsWorking || player.Path.Count > 0 || _lastMoveTick == _host.Sim.TickCount) return;
+        var target = player.Position;
+        for (var i = 0; i < lookAhead; i++)
+        {
+            var next = new GridPoint(target.X + d.X, target.Y + d.Y);
+            if (!IsFree(next)) break;
+            target = next;
+        }
 
-        var next = new GridPoint(player.Position.X + d.X, player.Position.Y + d.Y);
-        if (!IsFree(next)) return;
+        if (target == player.Position) return;
 
-        _host.Send(new MovePlayer(next));
+        _host.Send(new MovePlayer(target));
+        _keyboardWalking = true;
         _lastMoveTick = _host.Sim.TickCount;
     }
 
@@ -271,7 +319,7 @@ public partial class StoreView : Node2D
 
         // Spread customers who share a cell so a queue reads as a group.
         var offset = new Vector2((c.Id % 3 - 1) * 7, (c.Id / 3 % 3 - 1) * 7);
-        var at = CenterOf(c.Position) + offset;
+        var at = DrawPosition("c" + c.Id, c.Position) + offset;
         DrawCircle(at, 5, Palette.Customer(typeIndex, c.State));
         DrawArc(at, 5, 0, Mathf.Tau, 12, Palette.Outline, 1);
         if (c.Basket.Count > 0) DrawRect(new Rect2(at + new Vector2(3, 1), new Vector2(4, 4)), Colors.White);
@@ -279,7 +327,7 @@ public partial class StoreView : Node2D
 
     private void DrawWorker(Worker w)
     {
-        var at = CenterOf(w.Position);
+        var at = DrawPosition("w" + w.Id, w.Position);
         var color = w.IsPlayer ? Palette.Player : Palette.Staff;
         DrawRect(new Rect2(at - new Vector2(8, 8), new Vector2(16, 16)), color);
         DrawRect(new Rect2(at - new Vector2(8, 8), new Vector2(16, 16)), Palette.Outline, filled: false, width: 1);

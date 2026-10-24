@@ -57,7 +57,7 @@ public partial class SimHost : Node
         if (Sim is null || SpeedStep == 0) return;
 
         var e = Data.Economy;
-        var ticksPerDayOpen = (double)(e.CloseMinuteOfDay - e.OpenMinuteOfDay) / e.MinutesPerTick;
+        var ticksPerDayOpen = (double)(e.CloseMinuteOfDay - e.OpenMinuteOfDay) * 60 / e.SecondsPerTick;
         _pendingTicks += delta * ticksPerDayOpen / e.RealSecondsPerOpenPhaseAt1x * SpeedMultiplier;
 
         for (var i = 0; _pendingTicks >= 1 && i < MaxTicksPerFrame; i++)
