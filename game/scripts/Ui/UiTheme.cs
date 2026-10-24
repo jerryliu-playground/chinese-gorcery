@@ -2,19 +2,21 @@ using Godot;
 
 namespace ChineseGrocery.Game.Ui;
 
-/// <summary>Placeholder theme: the OS's Chinese UI font at a size that fits the 640x360 base resolution.</summary>
+/// <summary>UI theme: the bundled Fusion Pixel Font (Simplified Chinese, 12 px, SIL OFL 1.1; see game/fonts/fusion-pixel).</summary>
 public static class UiTheme
 {
-    public const int FontSize = 10;
+    /// <summary>The font's native pixel size; other sizes would blur the pixel glyphs.</summary>
+    public const int FontSize = 12;
 
-    /// <summary>
-    /// Godot's automatic glyph fallback missed some simplified characters (e.g. U+6742), so name system Simplified
-    /// Chinese fonts explicitly. Not PingFang: on macOS "PingFang SC" resolves to PingFang HK, which lacks some
-    /// simplified glyphs. To be replaced by a bundled font when one is chosen.
-    /// </summary>
-    public static Theme Create() => new()
+    private const string FontPath = "res://fonts/fusion-pixel/fusion-pixel-12px-proportional-zh_hans.ttf.woff2";
+
+    public static Theme Create()
     {
-        DefaultFont = new SystemFont { FontNames = ["Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "sans-serif"] },
-        DefaultFontSize = FontSize,
-    };
+        var font = GD.Load<FontFile>(FontPath);
+        font.Antialiasing = TextServer.FontAntialiasing.None;
+        font.Hinting = TextServer.Hinting.None;
+        font.SubpixelPositioning = TextServer.SubpixelPositioning.Disabled;
+        font.GenerateMipmaps = false;
+        return new Theme { DefaultFont = font, DefaultFontSize = FontSize };
+    }
 }
