@@ -24,6 +24,9 @@ public partial class ScreenshotTour : Node
 {
     private const int MaxWaitFrames = 1800;
 
+    /// <summary>The tour always plays the same store so every scene is reachable run after run.</summary>
+    public const ulong Seed = 20261024;
+
     private readonly Queue<(string Name, Action Setup, Func<bool>? Until, int Frames)> _steps = new();
     private readonly List<SimEvent> _seen = [];
     private string _dir = "";
@@ -98,11 +101,12 @@ public partial class ScreenshotTour : Node
             Hud.Retranslate();
             Store.DebugHover = ShelfCell();
         }, () => true, frames: 20);
-        Live("17-all-customer-types", () =>
+        // The type drawn with a palette swap (Chinese families wear the auntie sprite in other colours).
+        Live("17-recoloured-customer", () =>
         {
             TranslationServer.SetLocale("zh");
             Hud.Retranslate();
-        }, () => Sim.Data.CustomerTypes.All(t => Sim.Customers.Any(c => c.TypeId == t.Id)), frames: 3);
+        }, () => Sim.Customers.Any(c => Sim.Data.CustomerTypes.Single(t => t.Id == c.TypeId).Sprite?.Recolor is { Count: > 0 }), frames: 3);
     }
 
     public override void _Process(double delta)
@@ -117,7 +121,7 @@ public partial class ScreenshotTour : Node
         if (_pending is { } name && --_wait <= 0)
         {
             GetViewport().GetTexture().GetImage().SavePng(_dir.PathJoin(name + ".png"));
-            GD.Print($"Screenshot: {name}");
+            GD.Print($"Screenshot: {name}  (HUD shows {Hud.CashText}, actual cash {UiText.Money(Sim.Economy.CashCents)})");
             _pending = null;
         }
 

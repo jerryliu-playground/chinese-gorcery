@@ -21,7 +21,8 @@ public partial class Main : Node2D
 
         _host = new SimHost { Name = "SimHost" };
         AddChild(_host);
-        if (_host.StartNewGame() is { } error)
+        var tour = Dev.ScreenshotTour.RequestedDir() is not null;
+        if (_host.StartNewGame(tour ? Dev.ScreenshotTour.Seed : null) is { } error)
         {
             GetNode<Label>("Error").Text = UiText.T("ui.error.data_invalid") + "\n" + error;
             _host.SetProcess(false);
@@ -47,7 +48,7 @@ public partial class Main : Node2D
         _store.DisplayClicked += hud.ShowShelf;
         _store.FixtureSelected += _ => ui.Notify();
 
-        if (Dev.ScreenshotTour.RequestedDir() is not null)
+        if (tour)
         {
             AddChild(new Dev.ScreenshotTour { Name = "ScreenshotTour", Host = _host, Ui = ui, Store = _store, Hud = hud });
         }

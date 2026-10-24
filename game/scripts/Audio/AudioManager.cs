@@ -44,8 +44,12 @@ public partial class AudioManager : Node
             _voices.Add(voice);
         }
 
-        StartLoop("ambient_shop", AudioSettings.SfxBus, AmbienceVolumeDb);
-        StartLoop("music", AudioSettings.MusicBus, MusicVolumeDb, optional: true);
+        // Headless runs (build checks) have no sound, and the dummy audio driver never releases a looping playback.
+        if (DisplayServer.GetName() != "headless")
+        {
+            StartLoop("ambient_shop", AudioSettings.SfxBus, AmbienceVolumeDb);
+            StartLoop("music", AudioSettings.MusicBus, MusicVolumeDb, optional: true);
+        }
 
         host.EventsReady += OnEvents;
         GetTree().NodeAdded += node =>
@@ -80,13 +84,9 @@ public partial class AudioManager : Node
             return;
         }
 
+        // WAV loops are set in the file's import settings (ambient_shop.wav.import); compressed music loops here.
         switch (stream)
         {
-            case AudioStreamWav wav:
-                wav.LoopMode = AudioStreamWav.LoopModeEnum.Forward;
-                wav.LoopBegin = 0;
-                wav.LoopEnd = (int)(wav.GetLength() * wav.MixRate);
-                break;
             case AudioStreamOggVorbis ogg:
                 ogg.Loop = true;
                 break;
@@ -134,6 +134,18 @@ public partial class AudioManager : Node
                     break;
             }
         }
+    }
+
+    /// <summary>Stops and lets go of every stream so nothing (e.g. the looping ambience) is still held at exit.</summary>
+    public override void _ExitTree()
+    {
+        foreach (var player in GetChildren().OfType<AudioStreamPlayer>())
+        {
+            player.Stop();
+            player.Stream = null;
+        }
+
+        _streams.Clear();
     }
 
     public override void _Process(double delta)

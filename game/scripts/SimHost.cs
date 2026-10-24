@@ -79,8 +79,8 @@ public partial class SimHost : Node
         return true;
     }
 
-    /// <summary>Loads data and starts a new game. Returns the data error text, or null on success.</summary>
-    public string? StartNewGame()
+    /// <summary>Loads data and starts a new game (seeded from the clock unless a seed is given). Returns the data error text, or null on success.</summary>
+    public string? StartNewGame(ulong? seed = null)
     {
         var dataDir = ProjectSettings.GlobalizePath("res://").PathJoin("../data").SimplifyPath();
         try
@@ -94,7 +94,7 @@ public partial class SimHost : Node
         }
 
         // The seed only has to differ between games; the Sim itself stays deterministic for a given seed.
-        Sim = new GameSim(Data, (ulong)Time.GetUnixTimeFromSystem());
+        Sim = new GameSim(Data, seed ?? (ulong)Time.GetUnixTimeFromSystem());
         return null;
     }
 

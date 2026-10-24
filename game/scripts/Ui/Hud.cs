@@ -223,6 +223,9 @@ public partial class Hud : Control
         panel.Open();
     }
 
+    /// <summary>The cash figure as currently shown (it counts toward the real amount).</summary>
+    public string CashText => _cash.Text;
+
     public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 
     public void CloseAllPanels()
