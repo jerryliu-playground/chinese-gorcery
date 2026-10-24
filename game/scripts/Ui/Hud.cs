@@ -167,6 +167,7 @@ public partial class Hud : Control
         var staff = AddPanel<StaffPanel>();
         var upgrade = AddPanel<UpgradePanel>();
         var settings = AddPanel<SettingsPanel>();
+        _report.OrderRequested += () => ShowOnly(order);
 
         _build.Closed += () =>
         {
@@ -225,6 +226,13 @@ public partial class Hud : Control
 
     /// <summary>The cash figure as currently shown (it counts toward the real amount).</summary>
     public string CashText => _cash.Text;
+
+    /// <summary>Opens the report panel on a given day's report.</summary>
+    public void ShowReport(DailyReport report)
+    {
+        _report.Report = report;
+        ShowOnly(_report);
+    }
 
     public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 

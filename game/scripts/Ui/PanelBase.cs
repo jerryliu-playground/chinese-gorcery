@@ -37,11 +37,16 @@ public abstract partial class PanelBase : PanelContainer
         Body = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
         scroll.AddChild(Body);
         Scroll = scroll;
+
+        // Actions that must stay in reach however long the list above gets.
+        Footer = new HBoxContainer();
+        outer.AddChild(Footer);
     }
 
     protected SimHost Host { get; private set; } = null!;
     protected UiState Ui { get; private set; } = null!;
     protected VBoxContainer Body { get; }
+    protected HBoxContainer Footer { get; }
     private ScrollContainer Scroll { get; }
 
     public event Action? Closed;
@@ -79,9 +84,9 @@ public abstract partial class PanelBase : PanelContainer
 
     protected void ClearBody()
     {
-        foreach (var child in Body.GetChildren())
+        foreach (var child in Body.GetChildren().Concat(Footer.GetChildren()))
         {
-            Body.RemoveChild(child);
+            child.GetParent().RemoveChild(child);
             child.QueueFree();
         }
     }

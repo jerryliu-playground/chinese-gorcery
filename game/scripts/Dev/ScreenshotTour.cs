@@ -65,7 +65,14 @@ public partial class ScreenshotTour : Node
     private void Plan()
     {
         // Art
-        Step("01-day1-empty-store", () => { });
+        Step("01-day1-opening-stock", () => { });
+        Step("02-report-with-order-button", () =>
+        {
+            WalkTo(new GridPoint(2, 4));
+            Send(new OpenStore());
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowReport(Sim.Reports[^1]);
+        });
         Step("02-day2-backroom-full", PrepareDayTwo);
         Step("03-build-ghost-fits", () => Ghost("shelf", new GridPoint(7, 3)));
         Step("04-build-ghost-blocked", () => Ghost("shelf", new GridPoint(2, 1)));

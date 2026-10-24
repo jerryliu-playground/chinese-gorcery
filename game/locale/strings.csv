@@ -45,7 +45,7 @@ ui.phase.pre_open,Before opening,开店前
 ui.phase.open,Open,营业中
 ui.phase.closed,Closed,已打烊
 ui.order.title,Order from wholesaler,向批发商进货
-ui.order.hint,"Paid now, delivered before tomorrow's opening.",下单即付款，明天开店前送到。
+ui.order.hint,"Order before opening or after closing: paid now, delivered before the next opening.",开店前或打烊后都能下单：下单即付款，下次开店前送到。
 ui.order.have,have {stock} (+{pending}),现有 {stock}（+{pending}）
 ui.order.place,Order,下单
 ui.price.title,Prices,定价
@@ -170,3 +170,4 @@ customer.family.line.dumplings,Let's make dumplings tonight.,买点回去包饺�
 customer.family.line.kids,"Kids, stay close!",小朋友别乱跑！
 customer.family.line.rice,We're almost out of rice.,米快吃完了。
 ui.tag.stock,{have}/{max},{have}/{max}
+ui.report.order,Order stock,进货

@@ -8,6 +8,9 @@ public partial class ReportPanel : PanelBase
 {
     public DailyReport? Report { get; set; }
 
+    /// <summary>Raised when the player wants to order straight from the report (ordering is allowed after closing).</summary>
+    public event Action? OrderRequested;
+
     protected override void Rebuild()
     {
         ClearBody();
@@ -42,10 +45,13 @@ public partial class ReportPanel : PanelBase
             Body.AddChild(Row(Text("  " + name, 150), Text(UiText.F("ui.report.sold_line", ("units", s.Units), ("revenue", UiText.Money(s.RevenueCents))))));
         }
 
-        Body.AddChild(ActionButton("ui.report.next_day", () =>
-        {
-            Host.Send(new StartNextDay());
-            Close();
-        }, Host.Sim.Clock.Phase == DayPhase.Closed && Host.Sim.Reports.Count > 0 && Host.Sim.Reports[^1] == r));
+        var isLatest = Host.Sim.Clock.Phase == DayPhase.Closed && Host.Sim.Reports.Count > 0 && Host.Sim.Reports[^1] == r;
+        Footer.AddChild(Row(
+            ActionButton("ui.report.order", () => OrderRequested?.Invoke(), isLatest),
+            ActionButton("ui.report.next_day", () =>
+            {
+                Host.Send(new StartNextDay());
+                Close();
+            }, isLatest)));
     }
 }
