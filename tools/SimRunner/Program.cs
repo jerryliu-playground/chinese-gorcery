@@ -4,7 +4,7 @@ using ChineseGrocery.Sim.Data;
 
 namespace ChineseGrocery.SimRunner;
 
-/// <summary>Headless simulation runner: plays N days with a simple bot and prints the daily reports.</summary>
+/// <summary>Headless simulation runner: plays N days with a player bot and prints the daily reports.</summary>
 public static class Program
 {
     private const int ExitOk = 0;
@@ -46,7 +46,7 @@ public static class Program
         Console.WriteLine();
 
         var sim = new GameSim(data, options.Seed);
-        var bot = new RestockBot(options.StockTarget);
+        var bot = new PlayerBot(options.StockTarget);
         var anomalies = new List<string>();
         ReportPrinter.PrintHeader();
 
@@ -59,7 +59,11 @@ public static class Program
         }
 
         Console.WriteLine();
-        Console.WriteLine($"Rejected commands: {bot.RejectedCommands}");
+        var reports = sim.Reports;
+        Console.WriteLine($"Totals: revenue={ReportPrinter.Money(reports.Sum(r => r.RevenueCents))} profit={ReportPrinter.Money(reports.Sum(r => r.ProfitCents))} " +
+                          $"customers={reports.Sum(r => r.Customers)} angry={reports.Sum(r => r.AngryLeaves)} " +
+                          $"notFound={reports.Sum(r => r.ItemsNotFound)} tooExpensive={reports.Sum(r => r.ItemsTooExpensive)}");
+        Console.WriteLine($"Rejected commands: {bot.RejectedCommands} (orders cut for storage space: {bot.OrdersCutForSpace})");
         Console.WriteLine($"State hash: {SimSnapshot.Hash(sim)}");
 
         if (anomalies.Count > 0)
@@ -77,7 +81,7 @@ public static class Program
 
     private static bool TryParseArgs(string[] args, out Options options, out string error)
     {
-        options = new Options(Days: 30, Seed: 1, StockTarget: 20, DataDir: null);
+        options = new Options(Days: 30, Seed: 1, StockTarget: 40, DataDir: null);
         error = "";
 
         for (var i = 0; i < args.Length; i++)

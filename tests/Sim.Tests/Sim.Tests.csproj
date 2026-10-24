@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Sim/Sim.csproj" />
+    <ProjectReference Include="../../tools/SimRunner/SimRunner.csproj" />
   </ItemGroup>
 
 </Project>
