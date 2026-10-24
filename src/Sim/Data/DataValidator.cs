@@ -196,6 +196,10 @@ public static partial class DataValidator
             {
                 errors.Add($"{at}: {field} '{id}' is not in the meat department");
             }
+            else if (p.WeightGrams is not > 0)
+            {
+                errors.Add($"{at}: {field} '{id}' needs weightGrams > 0");
+            }
         }
 
         for (var i = 0; i < cuts.Count; i++)
