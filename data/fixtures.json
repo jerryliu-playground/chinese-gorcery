@@ -12,7 +12,7 @@
   {
     "id": "backroom", "nameKey": "fixture.backroom.name", "kind": "backroom",
     "size": { "w": 3, "h": 2 }, "interactionCells": [{ "x": 1, "y": 2 }],
-    "capacity": 40, "storage": ["ambient", "chilled"], "priceCents": 0, "unlockStage": 1, "_tbd": true
+    "capacity": 40, "storage": ["ambient"], "priceCents": 0, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "entrance", "nameKey": "fixture.entrance.name", "kind": "entrance",
@@ -28,5 +28,10 @@
     "id": "cutting_table", "nameKey": "fixture.cutting_table.name", "kind": "cutting_table",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
     "capacity": 0, "storage": [], "priceCents": 60000, "unlockStage": 2, "_tbd": true
+  },
+  {
+    "id": "cold_storage", "nameKey": "fixture.cold_storage.name", "kind": "cold_storage",
+    "size": { "w": 2, "h": 2 }, "interactionCells": [{ "x": 0, "y": 2 }],
+    "capacity": 20, "storage": ["chilled"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
   }
 ]

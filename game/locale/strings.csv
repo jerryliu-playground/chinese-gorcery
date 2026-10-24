@@ -19,6 +19,7 @@ fixture.backroom.name,Backroom,后仓
 fixture.entrance.name,Entrance,门口
 fixture.meat_display.name,Meat Display Case,肉类展示冷柜
 fixture.cutting_table.name,Cutting Table,切肉台
+fixture.cold_storage.name,Cold Storage,冷库
 customer_type.bargain_hunter.name,Bargain-Hunting Aunties & Uncles,精打细算的阿姨叔叔
 customer_type.international_student.name,International Student,留学生
 customer_type.chinese_family.name,Chinese Family,华人家庭

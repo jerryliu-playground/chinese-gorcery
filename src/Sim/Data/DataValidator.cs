@@ -29,6 +29,7 @@ public static partial class DataValidator
 
         ValidateProducts(data.Products, errors);
         ValidateFixtures(data.Fixtures, stageIds, errors);
+        ValidateStorageCoverage(data.Products, data.Fixtures, errors);
         ValidateCustomerTypes(data.CustomerTypes, errors);
         ValidateEmployees(data.Employees, stageIds, errors);
         ValidateMeatCuts(data.MeatCuts, products, errors);
@@ -52,6 +53,7 @@ public static partial class DataValidator
             if (p.SuggestedPriceCents <= 0) errors.Add($"{at}: suggestedPriceCents must be > 0");
             if (p.ShelfLifeDays <= 0) errors.Add($"{at}: shelfLifeDays must be > 0");
             if (p.UnitsPerSlot <= 0) errors.Add($"{at}: unitsPerSlot must be > 0");
+            if (p.Orderable && p.CostCents <= 0) errors.Add($"{at}: orderable products need costCents > 0");
         }
     }
 
@@ -70,6 +72,7 @@ public static partial class DataValidator
             if (f.PriceCents < 0) errors.Add($"{at}: priceCents must be >= 0");
             if (!stageIds.Contains(f.UnlockStage)) errors.Add($"{at}: unlockStage {f.UnlockStage} does not exist in {DataFiles.Stages}");
             if (f.Storage.Distinct().Count() != f.Storage.Count) errors.Add($"{at}: storage has duplicates");
+            if (IsStorageArea(f.Kind) && f.Storage.Count == 0) errors.Add($"{at}: storage areas must list at least one storage type");
 
             foreach (var cell in f.InteractionCells)
             {
@@ -88,6 +91,18 @@ public static partial class DataValidator
             {
                 errors.Add($"{file}: no fixture of kind '{kind}' is available at stage 1");
             }
+        }
+    }
+
+    /// <summary>Fixture kinds that receive deliveries.</summary>
+    public static bool IsStorageArea(FixtureKind kind) => kind is FixtureKind.Backroom or FixtureKind.ColdStorage;
+
+    private static void ValidateStorageCoverage(IReadOnlyList<ProductDef> products, IReadOnlyList<FixtureDef> fixtures, List<string> errors)
+    {
+        var storable = fixtures.Where(f => IsStorageArea(f.Kind)).SelectMany(f => f.Storage).ToHashSet();
+        foreach (var p in products.Where(p => p.Orderable && !storable.Contains(p.Storage)))
+        {
+            errors.Add($"{DataFiles.Products}: '{p.Id}' is orderable but no backroom/cold storage fixture stores '{p.Storage}'");
         }
     }
 

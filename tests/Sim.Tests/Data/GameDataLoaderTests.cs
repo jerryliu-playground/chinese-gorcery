@@ -92,7 +92,7 @@ public class GameDataLoaderTests
         [{
           "id": "{{id}}", "nameKey": "product.{{id}}.name", "department": "snacks",
           "costCents": 100, "suggestedPriceCents": 199, "shelfLifeDays": 30,
-          "storage": "ambient", "unitsPerSlot": 10 {{extra}}
+          "storage": "ambient", "unitsPerSlot": 10, "orderable": true {{extra}}
         }]
         """;
 }

@@ -57,6 +57,23 @@ public class DataValidatorTests
     }
 
     [Fact]
+    public void Orderable_product_needs_a_positive_cost()
+    {
+        var index = Valid.Products.ToList().FindIndex(p => p.Orderable);
+        var data = Valid with { Products = Replace(Valid.Products, index, p => p with { CostCents = 0 }) };
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("orderable products need costCents > 0"));
+    }
+
+    [Fact]
+    public void Orderable_chilled_product_needs_cold_storage()
+    {
+        var data = Valid with { Fixtures = Valid.Fixtures.Where(f => f.Kind != FixtureKind.ColdStorage).ToList() };
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("no backroom/cold storage fixture stores 'Chilled'"));
+    }
+
+    [Fact]
     public void Fixture_referencing_unknown_stage_is_reported()
     {
         var data = Valid with { Fixtures = Replace(Valid.Fixtures, 0, f => f with { UnlockStage = 99 }) };

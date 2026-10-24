@@ -1,28 +1,28 @@
 [
-  { "id": "rice_jasmine", "nameKey": "product.rice_jasmine.name", "department": "dry_goods", "costCents": 900, "suggestedPriceCents": 1599, "shelfLifeDays": 365, "storage": "ambient", "unitsPerSlot": 4, "_tbd": true }
+  { "id": "rice_jasmine", "nameKey": "product.rice_jasmine.name", "department": "dry_goods", "costCents": 900, "suggestedPriceCents": 1599, "shelfLifeDays": 365, "storage": "ambient", "unitsPerSlot": 4, "orderable": true, "_tbd": true }
 ,
-  { "id": "noodles_instant", "nameKey": "product.noodles_instant.name", "department": "dry_goods", "costCents": 80, "suggestedPriceCents": 149, "shelfLifeDays": 180, "storage": "ambient", "unitsPerSlot": 20, "_tbd": true }
+  { "id": "noodles_instant", "nameKey": "product.noodles_instant.name", "department": "dry_goods", "costCents": 80, "suggestedPriceCents": 149, "shelfLifeDays": 180, "storage": "ambient", "unitsPerSlot": 20, "orderable": true, "_tbd": true }
 ,
-  { "id": "soy_sauce_light", "nameKey": "product.soy_sauce_light.name", "department": "sauces", "costCents": 180, "suggestedPriceCents": 349, "shelfLifeDays": 540, "storage": "ambient", "unitsPerSlot": 12, "_tbd": true }
+  { "id": "soy_sauce_light", "nameKey": "product.soy_sauce_light.name", "department": "sauces", "costCents": 180, "suggestedPriceCents": 349, "shelfLifeDays": 540, "storage": "ambient", "unitsPerSlot": 12, "orderable": true, "_tbd": true }
 ,
-  { "id": "chili_crisp", "nameKey": "product.chili_crisp.name", "department": "sauces", "costCents": 250, "suggestedPriceCents": 499, "shelfLifeDays": 365, "storage": "ambient", "unitsPerSlot": 12, "_tbd": true }
+  { "id": "chili_crisp", "nameKey": "product.chili_crisp.name", "department": "sauces", "costCents": 250, "suggestedPriceCents": 499, "shelfLifeDays": 365, "storage": "ambient", "unitsPerSlot": 12, "orderable": true, "_tbd": true }
 ,
-  { "id": "shrimp_chips", "nameKey": "product.shrimp_chips.name", "department": "snacks", "costCents": 120, "suggestedPriceCents": 249, "shelfLifeDays": 120, "storage": "ambient", "unitsPerSlot": 16, "_tbd": true }
+  { "id": "shrimp_chips", "nameKey": "product.shrimp_chips.name", "department": "snacks", "costCents": 120, "suggestedPriceCents": 249, "shelfLifeDays": 120, "storage": "ambient", "unitsPerSlot": 16, "orderable": true, "_tbd": true }
 ,
-  { "id": "milk_candy", "nameKey": "product.milk_candy.name", "department": "snacks", "costCents": 200, "suggestedPriceCents": 399, "shelfLifeDays": 270, "storage": "ambient", "unitsPerSlot": 16, "_tbd": true }
+  { "id": "milk_candy", "nameKey": "product.milk_candy.name", "department": "snacks", "costCents": 200, "suggestedPriceCents": 399, "shelfLifeDays": 270, "storage": "ambient", "unitsPerSlot": 16, "orderable": true, "_tbd": true }
 ,
-  { "id": "soy_milk", "nameKey": "product.soy_milk.name", "department": "drinks", "costCents": 90, "suggestedPriceCents": 179, "shelfLifeDays": 90, "storage": "ambient", "unitsPerSlot": 24, "_tbd": true }
+  { "id": "soy_milk", "nameKey": "product.soy_milk.name", "department": "drinks", "costCents": 90, "suggestedPriceCents": 179, "shelfLifeDays": 90, "storage": "ambient", "unitsPerSlot": 24, "orderable": true, "_tbd": true }
 ,
-  { "id": "jasmine_tea", "nameKey": "product.jasmine_tea.name", "department": "drinks", "costCents": 70, "suggestedPriceCents": 149, "shelfLifeDays": 180, "storage": "ambient", "unitsPerSlot": 24, "_tbd": true }
+  { "id": "jasmine_tea", "nameKey": "product.jasmine_tea.name", "department": "drinks", "costCents": 70, "suggestedPriceCents": 149, "shelfLifeDays": 180, "storage": "ambient", "unitsPerSlot": 24, "orderable": true, "_tbd": true }
 ,
-  { "id": "pork_primal", "nameKey": "product.pork_primal.name", "department": "meat", "costCents": 6000, "suggestedPriceCents": 9999, "shelfLifeDays": 3, "storage": "chilled", "unitsPerSlot": 1, "_tbd": true }
+  { "id": "pork_primal", "nameKey": "product.pork_primal.name", "department": "meat", "costCents": 6000, "suggestedPriceCents": 9999, "shelfLifeDays": 3, "storage": "chilled", "unitsPerSlot": 1, "orderable": true, "_tbd": true }
 ,
-  { "id": "pork_belly", "nameKey": "product.pork_belly.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 899, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "_tbd": true }
+  { "id": "pork_belly", "nameKey": "product.pork_belly.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 899, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "orderable": false, "_tbd": true }
 ,
-  { "id": "pork_ribs", "nameKey": "product.pork_ribs.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 799, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "_tbd": true }
+  { "id": "pork_ribs", "nameKey": "product.pork_ribs.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 799, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "orderable": false, "_tbd": true }
 ,
-  { "id": "pork_loin", "nameKey": "product.pork_loin.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 699, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "_tbd": true }
+  { "id": "pork_loin", "nameKey": "product.pork_loin.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 699, "shelfLifeDays": 2, "storage": "chilled", "unitsPerSlot": 8, "orderable": false, "_tbd": true }
 ,
-  { "id": "ground_pork", "nameKey": "product.ground_pork.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 499, "shelfLifeDays": 1, "storage": "chilled", "unitsPerSlot": 8, "_tbd": true }
+  { "id": "ground_pork", "nameKey": "product.ground_pork.name", "department": "meat", "costCents": 0, "suggestedPriceCents": 499, "shelfLifeDays": 1, "storage": "chilled", "unitsPerSlot": 8, "orderable": false, "_tbd": true }
 
 ]
