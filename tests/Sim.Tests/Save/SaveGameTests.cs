@@ -1,3 +1,4 @@
+using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Grid;
@@ -58,6 +59,30 @@ public class SaveGameTests
         var resumed = Reload(first);
         var secondBot = new PlayerBot(stockTarget: 40);
         for (var day = 7; day < 14; day++) secondBot.PlayDay(resumed);
+
+        Assert.Equal(SaveGame.Write(straight), SaveGame.Write(resumed));
+    }
+
+    [Fact]
+    public void Loading_with_produce_batches_and_messy_stands_matches_never_stopping()
+    {
+        var straight = SimTestKit.NewSim(2);
+        var bot = new PlayerBot(stockTarget: 40);
+        for (var day = 0; day < 28; day++) bot.PlayDay(straight);
+
+        var first = SimTestKit.NewSim(2);
+        var firstBot = new PlayerBot(stockTarget: 40);
+        for (var day = 0; day < 25; day++) firstBot.PlayDay(first);
+
+        // Produce in several batches and a stand that is not perfectly tidy, so both have to survive the save.
+        var stands = first.Layout.Fixtures.Where(f => f.FixtureId == "produce_stand").Select(f => f.InstanceId).ToList();
+        Assert.Contains(stands, s => first.TidinessOf(s) < 100);
+        Assert.Contains(first.Inventory.Locations, p => p.Lots.Count(l => first.Data.Products.Single(x => x.Id == l.ProductId).Department == Department.Produce) > 1);
+
+        var resumed = Reload(first);
+        Assert.All(stands, s => Assert.Equal(first.TidinessOf(s), resumed.TidinessOf(s)));
+        var secondBot = new PlayerBot(stockTarget: 40);
+        for (var day = 25; day < 28; day++) secondBot.PlayDay(resumed);
 
         Assert.Equal(SaveGame.Write(straight), SaveGame.Write(resumed));
     }
