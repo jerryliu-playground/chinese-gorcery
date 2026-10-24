@@ -29,6 +29,7 @@ public static class Palette
         FixtureKind.MeatDisplay => new Color(0.62f, 0.80f, 0.90f),
         FixtureKind.CuttingTable => new Color(0.58f, 0.60f, 0.64f),
         FixtureKind.ColdStorage => new Color(0.20f, 0.30f, 0.55f),
+        FixtureKind.ProduceStand => new Color(0.62f, 0.45f, 0.28f),
         _ => Colors.Magenta,
     };
 
@@ -39,8 +40,30 @@ public static class Palette
         Sim.Data.Department.Snacks => new Color(0.98f, 0.70f, 0.20f),
         Sim.Data.Department.Drinks => new Color(0.35f, 0.80f, 0.85f),
         Sim.Data.Department.Meat => new Color(0.92f, 0.45f, 0.50f),
+        Sim.Data.Department.Produce => new Color(0.40f, 0.75f, 0.30f),
         _ => Colors.Magenta,
     };
+
+    /// <summary>Colour of a produce pile in its crate.</summary>
+    public static Color Produce(ProduceColor? color) => color switch
+    {
+        ProduceColor.Green => new Color(0.38f, 0.74f, 0.30f),
+        ProduceColor.White => new Color(0.94f, 0.93f, 0.86f),
+        ProduceColor.Yellow => new Color(0.88f, 0.74f, 0.36f),
+        ProduceColor.Orange => new Color(0.98f, 0.60f, 0.16f),
+        ProduceColor.Red => new Color(0.86f, 0.22f, 0.24f),
+        _ => Department(Sim.Data.Department.Produce),
+    };
+
+    /// <summary>Produce tinted by how fresh it is: duller as it ages, browning when ripe.</summary>
+    public static Color Aged(Color c, FreshnessTier tier) => tier switch
+    {
+        FreshnessTier.Fresh => c,
+        FreshnessTier.Normal => c.Darkened(0.18f),
+        _ => c.Lerp(new Color(0.45f, 0.32f, 0.16f), 0.55f),
+    };
+
+    public static readonly Color SaleTag = new(0.85f, 0.12f, 0.12f);
 
     public static Color Customer(int typeIndex, CustomerState state)
     {

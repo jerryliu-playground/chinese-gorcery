@@ -99,6 +99,9 @@ public partial class Effects : Node2D
                 case ItemsShelved s:
                     _fixtures[s.Slot.FixtureInstanceId] = (0, _feel.ShelfBounceSeconds, false, s.WasEmpty && MinorEffectsOn);
                     break;
+                case Sim.Produce.StandTidied t:
+                    _fixtures[t.StandInstanceId] = (0, _feel.ShelfBounceSeconds, false, MinorEffectsOn);
+                    break;
                 case Sim.Grid.FixturePlaced p:
                     _fixtures[p.InstanceId] = (0, _feel.PlaceBounceSeconds, true, false);
                     break;

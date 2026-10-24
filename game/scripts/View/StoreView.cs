@@ -2,6 +2,7 @@ using ChineseGrocery.Game.Ui;
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Produce;
 using ChineseGrocery.Sim.Tasks;
 using Godot;
 using GridRotation = ChineseGrocery.Sim.Grid.Rotation;
@@ -267,9 +268,20 @@ public partial class StoreView : Node2D
             {
                 var product = Data.Products.Single(p => p.Id == _host.Sim.Shelves.ProductAt(slot));
                 var stock = UiText.F("ui.tag.stock", ("have", _host.Sim.Inventory.Count(slot, product.Id)), ("max", product.UnitsPerShelfSlot));
-                return (product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}");
+                return ((string?)product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}{FreshnessNote(slot, product)}");
             })
             .ToList();
+        if (def.Kind == FixtureKind.ProduceStand)
+        {
+            var score = _host.Sim.DisplayScoreOf(f.InstanceId);
+            rows.Add((null, UiText.F("ui.display.score", ("score", score.Total))));
+            rows.Add((null, string.Join("  ", new[]
+            {
+                ("ui.display.fullness", score.Fullness), ("ui.display.freshness", score.Freshness),
+                ("ui.display.tidiness", score.Tidiness), ("ui.display.pairing", score.Pairing),
+            }.Select(part => UiText.F("ui.display.part", ("name", UiText.T(part.Item1)), ("value", part.Item2))))));
+        }
+
         if (rows.Count == 0) return;
 
         var font = UiTheme.Font();
@@ -277,7 +289,9 @@ public partial class StoreView : Node2D
         var width = rows.Max(r => font.GetStringSize(r.Text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X) + 22;
         var height = rows.Count * lineHeight + 4;
         var floor = new Vector2(_host.Sim.Layout.Size.W * Cell, _host.Sim.Layout.Size.H * Cell);
-        var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2);
+        // Above the sale card a produce stand may be wearing.
+        var lift = def.Kind == FixtureKind.ProduceStand ? 12 : 0;
+        var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2 - lift);
         at = new Vector2(Mathf.Clamp(at.X, 0, floor.X - width), at.Y < 0 ? (cell.Y + 1) * Cell + 2 : at.Y);
 
         var box = new Rect2(at, new Vector2(width, height));
@@ -286,9 +300,28 @@ public partial class StoreView : Node2D
         for (var i = 0; i < rows.Count; i++)
         {
             var y = at.Y + 2 + i * lineHeight;
-            DrawIconAt(this, rows[i].Id, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
+            if (rows[i].Item1 is { } productId) DrawIconAt(this, productId, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
             DrawString(font, new Vector2(at.X + 18, y + 11), rows[i].Text, HorizontalAlignment.Left, -1, UiTheme.FontSize, new Color(0.25f, 0.12f, 0.1f));
         }
+    }
+
+    /// <summary>For produce: the freshest batch's tier, plus the sale price if a batch is marked down to clear.</summary>
+    private string FreshnessNote(StockLocation slot, ProductDef product)
+    {
+        if (product.FreshnessDays is null || _host.Sim.Inventory.TryGet(slot) is not { } pile) return "";
+
+        var lots = pile.Lots.Where(l => l.ProductId == product.Id).ToList();
+        if (lots.Count == 0) return "";
+
+        var day = _host.Sim.Clock.Day;
+        var freshest = lots.MaxBy(l => l.BestBeforeDay)!;
+        var note = "  " + UiText.T("ui.freshness." + Freshness.TierOf(product, freshest, day).ToString().ToLowerInvariant());
+        if (lots.Where(l => Freshness.TierOf(product, l, day) >= FreshnessTier.Ripe).MinBy(_host.Sim.EffectivePrice) is { } sale)
+        {
+            note += $"  {UiText.T("ui.tag.sale")} {UiText.Money(_host.Sim.EffectivePrice(sale))}";
+        }
+
+        return note;
     }
 
     // ---------- sprites ----------
@@ -372,7 +405,12 @@ public partial class StoreView : Node2D
         foreach (var (index, cell) in cells)
         {
             var name = sprite.Main;
-            if (DataValidator.IsDisplay(def.Kind))
+            if (def.Kind == FixtureKind.ProduceStand)
+            {
+                // The crates are filled below with the actual produce.
+                name = sprite.Empty ?? sprite.Main;
+            }
+            else if (DataValidator.IsDisplay(def.Kind))
             {
                 var stocked = Enumerable.Range(index * slotsPerCell, slotsPerCell)
                     .Any(slot => _host.Sim.Shelves.ProductAt(new StockLocation(f.InstanceId, slot)) is { } p && _host.Sim.Inventory.Count(new StockLocation(f.InstanceId, slot), p) > 0);
@@ -389,6 +427,7 @@ public partial class StoreView : Node2D
         }
 
         if (def.Kind == FixtureKind.CuttingTable) DrawChopping(f, cells[0].Cell);
+        if (def.Kind == FixtureKind.ProduceStand) DrawProduce(f, def, TopLeftOf(cells[0].Cell) + new Vector2(0, _effects.FixtureFeel(f.InstanceId).Lift));
 
         if (_art.Get(sprite.Decoration) is { } ornament)
         {
@@ -400,6 +439,112 @@ public partial class StoreView : Node2D
         {
             DrawRect(Area(f.Origin, LayoutRules.RotatedSize(def, f.Rotation), 1), Palette.Selection, filled: false, width: 1);
         }
+    }
+
+    /// <summary>Left edge of each crate on the produce stand sprite, one per slot (tools/art/make_sprites.py).</summary>
+    private static readonly int[] CrateX = [2, 17];
+
+    private const int PileRows = 4;
+    private const int PileColumns = 3;
+
+    /// <summary>
+    /// Fills each crate with piles in the product's colour, as many as the slot is full, oldest batch on top and tinted
+    /// by its freshness. A messy stand has its piles knocked about and bits on the floor; a marked-down batch hangs a
+    /// sale card over the stand; a high display score sparkles now and then.
+    /// </summary>
+    private void DrawProduce(PlacedFixture f, FixtureDef def, Vector2 topLeft)
+    {
+        var sim = _host.Sim;
+        var messy = sim.TidinessOf(f.InstanceId) < (Data.Economy.Display?.TidyBelow ?? 0);
+        var onSale = false;
+        for (var slot = 0; slot < Math.Min(def.Capacity, CrateX.Length); slot++)
+        {
+            var location = new StockLocation(f.InstanceId, slot);
+            if (sim.Shelves.ProductAt(location) is not { } productId) continue;
+
+            var product = Data.Products.Single(p => p.Id == productId);
+            var lots = (sim.Inventory.TryGet(location)?.Lots ?? []).Where(l => l.ProductId == productId).OrderByDescending(l => l.BestBeforeDay).ToList();
+            var units = lots.Sum(l => l.Quantity);
+            if (units == 0) continue;
+
+            var tiers = lots.Select(l => (Tier: Freshness.TierOf(product, l, sim.Clock.Day), l.Quantity)).ToList();
+            onSale |= tiers.Any(t => t.Tier >= FreshnessTier.Ripe);
+            var piles = (int)Math.Ceiling(Math.Min(units, product.UnitsPerShelfSlot) * PileRows * PileColumns / (double)product.UnitsPerShelfSlot);
+            var baseColour = Palette.Produce(product.Color);
+            for (var i = 0; i < piles; i++)
+            {
+                // Fill bottom row first; pile i stands for the units at that share of the slot, freshest at the bottom.
+                var unitAt = (long)i * units / piles;
+                var tier = FreshnessTier.Fresh;
+                foreach (var t in tiers)
+                {
+                    tier = t.Tier;
+                    if ((unitAt -= t.Quantity) < 0) break;
+                }
+
+                var row = PileRows - 1 - i / PileColumns;
+                var at = topLeft + new Vector2(CrateX[slot] + 2 + i % PileColumns * 3, 6 + row * 3);
+                if (messy) at += new Vector2(Wobble(f.InstanceId, slot, i, 0), Wobble(f.InstanceId, slot, i, 1)) * _feel.MessJitter;
+                DrawPile(at, Palette.Aged(baseColour, tier));
+            }
+
+            if (messy)
+            {
+                var colour = Palette.Aged(baseColour, tiers[^1].Tier);
+                DrawRect(new Rect2(topLeft + new Vector2(CrateX[slot] + 1, 30), new Vector2(2, 1)), colour);
+                DrawRect(new Rect2(topLeft + new Vector2(CrateX[slot] + 9, 31), new Vector2(2, 1)), colour);
+                DrawRect(new Rect2(topLeft + new Vector2(CrateX[slot] + 13, 19), new Vector2(1, 2)), colour);
+            }
+        }
+
+        if (onSale) DrawSaleCard(topLeft);
+        DrawSparkle(f, topLeft);
+    }
+
+    private void DrawPile(Vector2 at, Color colour)
+    {
+        DrawRect(new Rect2(at, new Vector2(3, 3)), colour);
+        DrawRect(new Rect2(at + new Vector2(2, 2), Vector2.One), colour.Darkened(0.35f));
+        DrawRect(new Rect2(at, Vector2.One), colour.Lightened(0.5f));
+    }
+
+    /// <summary>A fixed -1, 0 or 1 per pile, so a messy stand looks the same from frame to frame.</summary>
+    private static int Wobble(int instanceId, int slot, int pile, int axis) =>
+        (int)((uint)(instanceId * 73856093 ^ slot * 19349663 ^ pile * 83492791 ^ axis * 2654435761u) % 3) - 1;
+
+    private void DrawSaleCard(Vector2 topLeft)
+    {
+        var font = UiTheme.Font();
+        var text = UiText.T("ui.tag.sale");
+        var width = font.GetStringSize(text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X + 4;
+        var card = new Rect2(topLeft + new Vector2((Cell - width) / 2, -11), new Vector2(width, 13));
+        DrawRect(card, Palette.SaleTag);
+        DrawRect(card, Palette.Outline, filled: false, width: 1);
+        DrawString(font, card.Position + new Vector2(2, 11), text, HorizontalAlignment.Left, -1, UiTheme.FontSize, Colors.White);
+    }
+
+    public bool IsSparkling(int standInstanceId)
+    {
+        if (!_effects.MinorEffectsOn || _host.Sim.DisplayScoreOf(standInstanceId).Total < _feel.SparkleScore) return false;
+
+        return (_effects.Clock + standInstanceId * 0.77f) % Mathf.Max(0.1f, _feel.SparklePeriodSeconds) < _feel.SparkleSeconds;
+    }
+
+    /// <summary>A brief four-point glint on a well-kept stand, at a different spot each time.</summary>
+    private void DrawSparkle(PlacedFixture f, Vector2 topLeft)
+    {
+        if (!IsSparkling(f.InstanceId)) return;
+
+        var period = Mathf.Max(0.1f, _feel.SparklePeriodSeconds);
+        var clock = _effects.Clock + f.InstanceId * 0.77f;
+        var t = clock % period;
+        var round = (int)(clock / period);
+        var at = topLeft + new Vector2(4 + (uint)(round * 2654435761u + (uint)f.InstanceId) % 24, 4 + (uint)(round * 40503u) % 12);
+        var size = Mathf.Sin(t / _feel.SparkleSeconds * Mathf.Pi) * 3;
+        var glint = new Color(1, 0.9f, 0.4f);
+        DrawLine(at - new Vector2(size, 0), at + new Vector2(size, 0), glint, 1);
+        DrawLine(at - new Vector2(0, size), at + new Vector2(0, size), glint, 1);
+        DrawRect(new Rect2(at - Vector2.One, new Vector2(2, 2)), Colors.White);
     }
 
     /// <summary>While someone cuts at this table: a cleaver rising and falling, then a short pause.</summary>

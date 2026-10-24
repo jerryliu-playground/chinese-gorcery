@@ -2,10 +2,12 @@ using ChineseGrocery.Game.Ui;
 using ChineseGrocery.Game.View;
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Customers;
+using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Meat;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Produce;
 using ChineseGrocery.Sim.Save;
 using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
@@ -18,7 +20,8 @@ namespace ChineseGrocery.Game.Dev;
 /// Developer tool, not part of play: launched with <c>--screenshot-tour=DIR</c>, it walks through scripted scenes using
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
 /// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
-/// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>.
+/// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> for the
+/// produce department scenes instead of the M7 ones.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
@@ -64,6 +67,12 @@ public partial class ScreenshotTour : Node
 
     private void Plan()
     {
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m8"))
+        {
+            PlanProduce();
+            return;
+        }
+
         // Art
         Step("01-day1-opening-stock", () => { });
         Step("02-report-with-order-button", () =>
@@ -108,12 +117,138 @@ public partial class ScreenshotTour : Node
             Hud.Retranslate();
             Store.DebugHover = ShelfCell();
         }, () => true, frames: 20);
-        // The type drawn with a palette swap (Chinese families wear the auntie sprite in other colours).
-        Live("17-recoloured-customer", () =>
+        Live("17-family-customer", () =>
         {
             TranslationServer.SetLocale("zh");
             Hud.Retranslate();
-        }, () => Sim.Customers.Any(c => Sim.Data.CustomerTypes.Single(t => t.Id == c.TypeId).Sprite?.Recolor is { Count: > 0 }), frames: 3);
+        }, () => Sim.Customers.Any(c => c.TypeId == "chinese_family"), frames: 3);
+    }
+
+    // ---------- M8: produce ----------
+
+    private static readonly GridPoint[] StandCells = [new(12, 7), new(13, 7), new(14, 7), new(15, 7)];
+
+    /// <summary>Two products per stand, neighbours in different colours.</summary>
+    private static readonly string[][] StandProducts =
+        [["napa_cabbage", "bok_choy"], ["orange", "lychee"], ["daikon", "scallion"], ["ginger", "lychee"]];
+
+    private List<int> Stands() => Sim.Layout.Fixtures.Where(f => f.FixtureId == "produce_stand").Select(f => f.InstanceId).ToList();
+
+    /// <summary>Spec 11.7 item 4: stage 2, place stands, order, shelve, freshness and markdowns, tidy, hover the score.</summary>
+    private void PlanProduce()
+    {
+        Step("01-stage2-place-produce-stand", () =>
+        {
+            ReachStageTwo();
+            Ghost("produce_stand", StandCells[0]);
+        });
+        Step("02-stands-placed-and-assigned", () =>
+        {
+            // A second backroom, so the produce has somewhere to wait next to the opening stock.
+            Send(new PlaceFixture("backroom", new GridPoint(14, 0)));
+            for (var i = 0; i < StandCells.Length; i++)
+            {
+                Send(new PlaceFixture("produce_stand", StandCells[i]));
+                var stand = Sim.Layout.Fixtures[^1].InstanceId;
+                for (var slot = 0; slot < 2; slot++) Send(new AssignShelfSlot(stand, slot, StandProducts[i][slot]));
+            }
+
+            Ui.Mode = ToolMode.Build;
+        });
+        Step("03-order-produce", () =>
+        {
+            // Lychees priced far above what shoppers pay, so they sit until they ripen and get marked down.
+            Send(new SetPrice("lychee", 1199));
+            OrderProduce(1);
+            Hud.ShowPanel<OrderPanel>();
+        });
+        Live("04-shelved-fresh-hover-score", () =>
+        {
+            WalkTo(new GridPoint(2, 4));
+            RunToNextDay();
+            Host.Send(new RestockAll());
+            Store.DebugHover = StandCells[1];
+        }, () => Seen<ItemsShelved>(), frames: 4);
+        Step("05-days-later-ripe-sale-card-messy", () =>
+        {
+            // Two more days of trade, with a fresh delivery on top of what is left (but no more lychees), so stands hold
+            // old and new batches.
+            WalkTo(new GridPoint(2, 4));
+            RunToNextDay();
+            OrderProduce(0.5, except: "lychee");
+            RunToNextDay();
+            Send(new RestockAll());
+            Store.DebugHover = Sim.Layout.Find(Stands().FirstOrDefault(HasRipe, Stands()[1]))!.Origin;
+        });
+        Live("06-player-tidying", () =>
+        {
+            var stand = Sim.Layout.Find(Sim.Tasks.Tasks.OfType<TidyTask>().First().StandInstanceId)!;
+            Store.DebugHover = stand.Origin;
+            WalkTo(new GridPoint(stand.Origin.X, stand.Origin.Y + 1));
+            Host.Send(new PlayerInteract(stand.InstanceId));
+        }, () => Sim.Player.Step == WorkStep.Tidying, frames: 4);
+        Live("07-tidied-hover-score", () => { }, () => Seen<StandTidied>(), frames: 3);
+        Live("08-shoppers-mess-it-up-again", () =>
+        {
+            Store.DebugHover = null;
+            TidyEverything();
+            WalkTo(new GridPoint(2, 4));
+            Send(new OpenStore());
+            // Skip ahead to a stand one rummage away from needing a tidy, then watch it happen.
+            var nearly = (Sim.Data.Economy.Display?.TidyBelow ?? 0) + (Sim.Data.Economy.Display?.MessPerItemTaken ?? 0);
+            for (var i = 0; i < 20_000 && Sim.Clock.Phase == DayPhase.Open && !Stands().Any(s => Sim.TidinessOf(s) < nearly); i++) Sim.Tick();
+        }, () => Sim.Tasks.Tasks.OfType<TidyTask>().Any(), frames: 3);
+        Live("09-good-display-sparkles", () =>
+        {
+            // A tidy, freshly topped-up row, before the doors open.
+            WalkTo(new GridPoint(2, 4));
+            RunToNextDay();
+            OrderProduce(1);
+            RunToNextDay();
+            Send(new RestockAll());
+            TidyEverything();
+        }, () => Stands().Any(Store.IsSparkling), frames: 4);
+        Step("10-hover-score-en", () =>
+        {
+            TranslationServer.SetLocale("en");
+            Hud.Retranslate();
+            Store.DebugHover = StandCells[1];
+        });
+    }
+
+    /// <summary>Orders each stand product, the given share of what its slots hold.</summary>
+    private void OrderProduce(double share, string? except = null)
+    {
+        var products = StandProducts.SelectMany(p => p).ToList();
+        foreach (var product in products.Distinct().Where(p => p != except)) Send(new PlaceOrder(product, (int)(Full(product) * products.Count(p => p == product) * share)));
+    }
+
+    /// <summary>The player works every Tidy task on the board, one stand after another.</summary>
+    private void TidyEverything()
+    {
+        foreach (var task in Sim.Tasks.Tasks.OfType<TidyTask>().ToList())
+        {
+            var stand = Sim.Layout.Find(task.StandInstanceId)!;
+            WalkTo(new GridPoint(stand.Origin.X, stand.Origin.Y + 1));
+            Send(new PlayerInteract(stand.InstanceId));
+            for (var i = 0; i < 500 && Sim.Player.Step != WorkStep.Idle; i++) Sim.Tick();
+        }
+    }
+
+    private int Full(string productId) => Sim.Data.Products.Single(p => p.Id == productId).UnitsPerShelfSlot;
+
+    private bool HasRipe(int stand) =>
+        Enumerable.Range(0, 2).Any(slot => Sim.Inventory.TryGet(new StockLocation(stand, slot)) is { } pile
+            && pile.Lots.Any(l => Freshness.TierOf(Sim.Data.Products.Single(p => p.Id == l.ProductId), l, Sim.Clock.Day) >= FreshnessTier.Ripe));
+
+    /// <summary>Upgrades to stage 2 straight away, by editing a save so the revenue target and the cost are covered.</summary>
+    private void ReachStageTwo()
+    {
+        var json = SaveGame.Write(Sim)
+            .Replace($"\"cumulativeRevenueCents\":{Sim.Economy.CumulativeRevenueCents}", "\"cumulativeRevenueCents\":1000000")
+            .Replace($"\"cashCents\":{Sim.Economy.CashCents},", "\"cashCents\":1000000,");
+        Host.LoadFromJson(json);
+        Send(new UpgradeStage());
     }
 
     public override void _Process(double delta)
@@ -161,6 +296,7 @@ public partial class ScreenshotTour : Node
     {
         Sim.Enqueue(command);
         Sim.Tick();
+        foreach (var rejected in Sim.DrainEvents().OfType<CommandRejected>()) GD.PushWarning($"Tour: {rejected.Command} rejected: {rejected.Reason}");
     }
 
     private void Ticks(int count)

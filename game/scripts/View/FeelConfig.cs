@@ -28,6 +28,14 @@ public partial class FeelConfig : Resource
     [Export] public float ChopSeconds { get; set; } = 0.4f;
     [Export] public float CutPopSeconds { get; set; } = 0.8f;
 
+    [ExportGroup("Produce stands")]
+    /// <summary>Stands at or above this display score sparkle now and then.</summary>
+    [Export(PropertyHint.Range, "0,100,1")] public int SparkleScore { get; set; } = 80;
+    [Export] public float SparklePeriodSeconds { get; set; } = 3.0f;
+    [Export] public float SparkleSeconds { get; set; } = 0.4f;
+    /// <summary>How far (pixels) produce shifts in its crate when the stand is messy.</summary>
+    [Export] public int MessJitter { get; set; } = 1;
+
     [ExportGroup("Customers")]
     [Export] public float BubbleSeconds { get; set; } = 1.2f;
     [Export(PropertyHint.Range, "0,1,0.01")] public float HeartChance { get; set; } = 0.3f;
