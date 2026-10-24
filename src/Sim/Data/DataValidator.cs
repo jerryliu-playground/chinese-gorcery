@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Grid;
 
 namespace ChineseGrocery.Sim.Data;
@@ -35,6 +36,7 @@ public static partial class DataValidator
         ValidateMeatCuts(data.MeatCuts, products, errors);
         ValidateStages(data.Stages, errors);
         ValidateEconomy(data.Economy, errors);
+        ValidateStartingLayout(data, errors);
 
         return errors;
     }
@@ -255,6 +257,36 @@ public static partial class DataValidator
         }
 
         CheckPermille(file, "fixtureSellRefundPermille", e.FixtureSellRefundPermille, errors);
+    }
+
+    private static void ValidateStartingLayout(GameData data, List<string> errors)
+    {
+        const string at = DataFiles.Economy + ": startingLayout";
+        var fixtures = data.Fixtures.GroupBy(f => f.Id).ToDictionary(g => g.Key, g => g.First());
+        var layout = data.Economy.StartingLayout;
+
+        var bad = false;
+        foreach (var entry in layout)
+        {
+            if (!fixtures.TryGetValue(entry.FixtureId, out var def))
+            {
+                errors.Add($"{at}: fixture '{entry.FixtureId}' does not exist in {DataFiles.Fixtures}");
+                bad = true;
+            }
+            else if (def.UnlockStage != 1)
+            {
+                errors.Add($"{at}: fixture '{entry.FixtureId}' is not available at stage 1");
+            }
+        }
+
+        if (bad || data.Stages.Count == 0) return;
+
+        var placed = layout.Select((e, i) => new PlacedFixture(i + 1, e.FixtureId, e.Origin, 0)).ToList();
+        if (LayoutRules.Check(data.Stages[0].StoreSize, placed, id => fixtures[id]) is { } problem)
+        {
+            var which = problem.InstanceId == 0 ? "" : $" at entry [{problem.InstanceId - 1}] '{placed[problem.InstanceId - 1].FixtureId}'";
+            errors.Add($"{at}: invalid layout ({problem.Reason}){which}");
+        }
     }
 
     private static void CheckIds(string file, IReadOnlyList<string> ids, List<string> errors)

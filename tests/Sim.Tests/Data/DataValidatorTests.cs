@@ -174,6 +174,41 @@ public class DataValidatorTests
         Assert.Contains(ErrorsFor(data), e => e.Contains("startingCashCents"));
     }
 
+    private static GameData WithStartingLayout(params LayoutEntry[] layout) =>
+        Valid with { Economy = Valid.Economy with { StartingLayout = layout } };
+
+    [Fact]
+    public void Starting_layout_needs_an_entrance()
+    {
+        var data = WithStartingLayout(new LayoutEntry("shelf", new GridPoint(1, 1)));
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("MissingEntrance"));
+    }
+
+    [Fact]
+    public void Starting_layout_must_obey_placement_rules()
+    {
+        var data = WithStartingLayout(
+            new LayoutEntry("entrance", new GridPoint(5, 7)),
+            new LayoutEntry("shelf", new GridPoint(1, 1)),
+            new LayoutEntry("shelf", new GridPoint(2, 1)));
+
+        Assert.Contains(ErrorsFor(data), e => e.Contains("Overlap") && e.Contains("[2] 'shelf'"));
+    }
+
+    [Fact]
+    public void Starting_layout_only_uses_stage_one_fixtures_that_exist()
+    {
+        var data = WithStartingLayout(
+            new LayoutEntry("entrance", new GridPoint(5, 7)),
+            new LayoutEntry("meat_display", new GridPoint(1, 1)),
+            new LayoutEntry("fish_tank", new GridPoint(4, 1)));
+
+        var errors = ErrorsFor(data);
+        Assert.Contains(errors, e => e.Contains("'meat_display' is not available at stage 1"));
+        Assert.Contains(errors, e => e.Contains("'fish_tank' does not exist"));
+    }
+
     [Fact]
     public void Throw_if_invalid_lists_all_errors()
     {

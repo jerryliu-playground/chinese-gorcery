@@ -1,5 +1,6 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 
 namespace ChineseGrocery.Sim.Tests.Core;
@@ -21,11 +22,36 @@ public class InvariantTests
                 sim.Enqueue(new PlaceOrder(products[driver.Next(products.Count)], driver.Next(-2, 60)));
             }
 
+            for (var i = driver.Next(0, 4); i > 0; i--)
+            {
+                sim.Enqueue(RandomLayoutCommand(sim, driver));
+            }
+
             sim.RunFullDay();
             AssertNoNegativeStock(sim);
+            AssertLayoutValid(sim);
         }
 
         return sim;
+    }
+
+    private static SimCommand RandomLayoutCommand(GameSim sim, Random driver)
+    {
+        var fixtures = SimTestKit.Data.Fixtures.Select(f => f.Id).ToList();
+        var placed = sim.Layout.Fixtures;
+        var spot = new GridPoint(driver.Next(-1, sim.Layout.Size.W), driver.Next(-1, sim.Layout.Size.H));
+        return driver.Next(3) switch
+        {
+            0 => new PlaceFixture(fixtures[driver.Next(fixtures.Count)], spot),
+            1 => new MoveFixture(placed[driver.Next(placed.Count)].InstanceId, spot),
+            _ => new SellFixture(placed[driver.Next(placed.Count)].InstanceId),
+        };
+    }
+
+    private static void AssertLayoutValid(GameSim sim)
+    {
+        Assert.Null(LayoutRules.Check(sim.Layout.Size, sim.Layout.Fixtures, id => SimTestKit.Data.Fixtures.Single(f => f.Id == id)));
+        Assert.All(sim.Inventory.Locations, l => Assert.NotNull(sim.Layout.Find(l.FixtureInstanceId)));
     }
 
     private static void AssertNoNegativeStock(GameSim sim)
@@ -50,6 +76,17 @@ public class InvariantTests
             Assert.True(r.LossCents >= 0);
         });
         Assert.Equal(sim.Reports[^1].CashEndCents, sim.Economy.CashCents);
+    }
+
+    [Fact]
+    public void Random_layout_play_actually_changes_the_layout()
+    {
+        var sim = PlayRandomly(seed: 6, days: 20);
+        var events = sim.DrainEvents();
+
+        Assert.NotEmpty(events.OfType<FixturePlaced>());
+        Assert.NotEmpty(events.OfType<FixtureMoved>());
+        Assert.NotEmpty(events.OfType<FixtureSold>());
     }
 
     [Theory]

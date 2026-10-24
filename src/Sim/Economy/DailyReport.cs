@@ -1,6 +1,9 @@
 namespace ChineseGrocery.Sim.Economy;
 
-/// <summary>End-of-day summary. Profit is cash-based: revenue minus all spending (equals the day's cash change); loss is informational.</summary>
+/// <summary>
+/// End-of-day summary. Profit is cash-based: revenue minus all spending (equals the day's cash change); loss is informational.
+/// FixtureSpendCents is net of sell refunds, so it can be negative.
+/// </summary>
 public sealed record DailyReport(
     int Day,
     long CashStartCents,

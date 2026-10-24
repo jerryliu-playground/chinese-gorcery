@@ -13,5 +13,12 @@
     { "startMinuteOfDay": 1140, "customersPerHour": 4 }
   ],
   "fixtureSellRefundPermille": 500,
+  "startingLayout": [
+    { "fixtureId": "entrance", "origin": { "x": 5, "y": 7 } },
+    { "fixtureId": "checkout", "origin": { "x": 2, "y": 5 } },
+    { "fixtureId": "backroom", "origin": { "x": 9, "y": 0 } },
+    { "fixtureId": "shelf", "origin": { "x": 1, "y": 1 } },
+    { "fixtureId": "shelf", "origin": { "x": 4, "y": 1 } }
+  ],
   "_tbd": true
 }

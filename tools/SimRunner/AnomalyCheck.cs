@@ -3,7 +3,7 @@ using ChineseGrocery.Sim.Economy;
 
 namespace ChineseGrocery.SimRunner;
 
-/// <summary>Sanity checks after each day: negative numbers, unbalanced cash, negative stock.</summary>
+/// <summary>Sanity checks after each day: negative numbers, unbalanced cash, negative stock. Fixture spend is net of refunds, so it may be negative.</summary>
 public static class AnomalyCheck
 {
     public static IEnumerable<string> Check(GameSim sim, DailyReport r)
@@ -14,7 +14,7 @@ public static class AnomalyCheck
         foreach (var (name, value) in new[]
                  {
                      ("revenue", r.RevenueCents), ("purchases", r.PurchaseCostCents), ("wages", r.WagesCents),
-                     ("fixtures", r.FixtureSpendCents), ("loss", r.LossCents), ("customers", r.Customers), ("angry", r.AngryLeaves),
+                     ("loss", r.LossCents), ("customers", r.Customers), ("angry", r.AngryLeaves),
                  })
         {
             if (value < 0) yield return $"{day}: {name} is negative ({value})";

@@ -1,3 +1,4 @@
 namespace ChineseGrocery.Sim.Core;
 
-public sealed record CommandRejected(SimCommand Command, RejectReason Reason) : SimEvent;
+/// <param name="FixtureInstanceId">For layout problems, the fixture involved (e.g. the one whose access would be blocked).</param>
+public sealed record CommandRejected(SimCommand Command, RejectReason Reason, int? FixtureInstanceId = null) : SimEvent;

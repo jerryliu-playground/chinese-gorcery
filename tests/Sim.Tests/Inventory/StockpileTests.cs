@@ -6,7 +6,7 @@ public class StockpileTests
 {
     private static Stockpile WithLots(params StockLot[] lots)
     {
-        var pile = new Stockpile("backroom");
+        var pile = new Stockpile(1);
         foreach (var lot in lots) pile.Add(lot);
         return pile;
     }

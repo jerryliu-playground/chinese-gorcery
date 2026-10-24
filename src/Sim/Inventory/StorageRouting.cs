@@ -1,12 +1,18 @@
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Grid;
 
 namespace ChineseGrocery.Sim.Inventory;
 
-/// <summary>Decides which storage area receives a delivered product.</summary>
+/// <summary>Decides which placed storage area receives a delivered product.</summary>
 public static class StorageRouting
 {
-    /// <summary>First storage-area fixture unlocked at <paramref name="stage"/> that can hold the product, or null.</summary>
-    public static FixtureDef? FindDestination(GameData data, ProductDef product, int stage) =>
-        data.Fixtures.FirstOrDefault(f =>
-            DataValidator.IsStorageArea(f.Kind) && f.UnlockStage <= stage && f.Storage.Contains(product.Storage));
+    /// <summary>The lowest-id placed backroom / cold storage that can hold the product, or null.</summary>
+    public static PlacedFixture? FindDestination(GameData data, IEnumerable<PlacedFixture> placed, ProductDef product) =>
+        placed
+            .OrderBy(p => p.InstanceId)
+            .FirstOrDefault(p =>
+            {
+                var def = data.Fixtures.Single(f => f.Id == p.FixtureId);
+                return DataValidator.IsStorageArea(def.Kind) && def.Storage.Contains(product.Storage);
+            });
 }

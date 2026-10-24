@@ -19,7 +19,10 @@ public static class SimSnapshot
         sim.Economy.CumulativeRevenueCents,
         sim.Economy.Stage,
         Rng = sim.Rng.State,
-        Inventory = sim.Inventory.Locations.Select(l => new { l.Id, l.Lots }),
+        sim.Layout.Size,
+        Layout = sim.Layout.Fixtures,
+        sim.Layout.NextInstanceId,
+        Inventory = sim.Inventory.Locations.Select(l => new { l.FixtureInstanceId, l.Lots }),
         sim.PendingOrders,
         sim.Reports,
     }, Options);

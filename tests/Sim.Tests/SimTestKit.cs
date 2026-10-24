@@ -1,5 +1,6 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Sim.Tests;
@@ -40,6 +41,10 @@ public static class SimTestKit
         sim.OpenAndRunToClose();
         sim.Run(new StartNextDay());
     }
+
+    /// <summary>Instance id of the first placed fixture with this definition id.</summary>
+    public static int InstanceOf(this GameSim sim, string fixtureId) =>
+        sim.Layout.Fixtures.First(f => f.FixtureId == fixtureId).InstanceId;
 
     public static T Single<T>(this IEnumerable<SimEvent> events) where T : SimEvent => events.OfType<T>().Single();
 }

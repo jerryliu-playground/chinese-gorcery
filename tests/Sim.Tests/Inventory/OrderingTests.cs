@@ -1,5 +1,6 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Time;
 
@@ -19,7 +20,7 @@ public class OrderingTests
         sim.Run(new PlaceOrder(Rice, 10));
 
         Assert.Equal(SimTestKit.Data.Economy.StartingCashCents - 10 * RiceDef.CostCents, sim.Economy.CashCents);
-        Assert.Equal(new PendingOrder(Rice, 10, RiceDef.CostCents, 1, "backroom"), Assert.Single(sim.PendingOrders));
+        Assert.Equal(new PendingOrder(Rice, 10, RiceDef.CostCents, 1), Assert.Single(sim.PendingOrders));
         Assert.Equal(new OrderPlaced(1, Rice, 10, 10 * RiceDef.CostCents), sim.DrainEvents().Single<OrderPlaced>());
     }
 
@@ -35,9 +36,10 @@ public class OrderingTests
         sim.DrainEvents();
         sim.Run(new StartNextDay());
 
-        Assert.Equal(10, sim.Inventory.Get("backroom").Count(Rice));
+        var backroom = sim.InstanceOf("backroom");
+        Assert.Equal(10, sim.Inventory.Get(backroom).Count(Rice));
         Assert.Empty(sim.PendingOrders);
-        Assert.Equal(new OrderDelivered(2, Rice, 10, "backroom"), sim.DrainEvents().Single<OrderDelivered>());
+        Assert.Equal(new OrderDelivered(2, Rice, 10, backroom), sim.DrainEvents().Single<OrderDelivered>());
     }
 
     [Fact]
@@ -47,7 +49,7 @@ public class OrderingTests
         sim.Run(new PlaceOrder(Rice, 1));
         sim.RunFullDay();
 
-        var lot = Assert.Single(sim.Inventory.Get("backroom").Lots);
+        var lot = Assert.Single(sim.Inventory.Get(sim.InstanceOf("backroom")).Lots);
         Assert.Equal(2 + RiceDef.ShelfLifeDays - 1, lot.BestBeforeDay);
         Assert.Equal(RiceDef.CostCents, lot.UnitCostCents);
     }
@@ -106,12 +108,19 @@ public class OrderingTests
     }
 
     [Fact]
-    public void Chilled_goods_route_to_cold_storage_once_it_is_unlocked()
+    public void Goods_route_to_the_first_placed_storage_that_can_hold_them()
     {
         var primal = SimTestKit.Data.Products.Single(p => p.Id == "pork_primal");
+        PlacedFixture[] placed =
+        [
+            new(1, "shelf", new GridPoint(0, 0), 0),
+            new(2, "backroom", new GridPoint(0, 0), 0),
+            new(3, "cold_storage", new GridPoint(0, 0), 0),
+            new(4, "cold_storage", new GridPoint(0, 0), 0),
+        ];
 
-        Assert.Null(StorageRouting.FindDestination(SimTestKit.Data, primal, stage: 1));
-        Assert.Equal("cold_storage", StorageRouting.FindDestination(SimTestKit.Data, primal, stage: 2)?.Id);
-        Assert.Equal("backroom", StorageRouting.FindDestination(SimTestKit.Data, RiceDef, stage: 1)?.Id);
+        Assert.Equal(3, StorageRouting.FindDestination(SimTestKit.Data, placed, primal)?.InstanceId);
+        Assert.Equal(2, StorageRouting.FindDestination(SimTestKit.Data, placed, RiceDef)?.InstanceId);
+        Assert.Null(StorageRouting.FindDestination(SimTestKit.Data, placed[..2], primal));
     }
 }

@@ -18,7 +18,7 @@ public sealed class RestockBot(int stockTarget)
     {
         foreach (var product in sim.Data.Products.Where(p => p.Orderable))
         {
-            if (StorageRouting.FindDestination(sim.Data, product, sim.Economy.Stage) is null) continue;
+            if (StorageRouting.FindDestination(sim.Data, sim.Layout.Fixtures, product) is null) continue;
 
             var have = sim.Inventory.Total(product.Id) + sim.PendingOrders.Where(o => o.ProductId == product.Id).Sum(o => o.Quantity);
             if (have < stockTarget)
