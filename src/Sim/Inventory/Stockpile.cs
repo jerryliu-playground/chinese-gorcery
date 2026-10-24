@@ -58,6 +58,19 @@ public sealed class Stockpile(StockLocation location)
         return taken;
     }
 
+    /// <summary>Removes units from one particular batch (same product, expiry and cost). Throws if it does not hold them.</summary>
+    internal StockLot TakeFrom(StockLot batch, int quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+        var i = _lots.FindIndex(l => l.ProductId == batch.ProductId && l.BestBeforeDay == batch.BestBeforeDay && l.UnitCostCents == batch.UnitCostCents);
+        if (i < 0 || _lots[i].Quantity < quantity) throw new InvalidOperationException($"Stockpile at {Location} does not hold {quantity} of that batch.");
+
+        var lot = _lots[i];
+        if (lot.Quantity == quantity) _lots.RemoveAt(i);
+        else _lots[i] = lot with { Quantity = lot.Quantity - quantity };
+        return lot with { Quantity = quantity };
+    }
+
     /// <summary>Removes and returns every lot whose best-before day is on or before <paramref name="closingDay"/>.</summary>
     internal IReadOnlyList<StockLot> RemoveExpired(int closingDay)
     {

@@ -64,6 +64,7 @@ public sealed partial class GameSim
         var onDisplay = Inventory.Locations
             .Where(p => IsDisplay(p.Location.FixtureInstanceId))
             .SelectMany(p => p.Lots.Select(l => l.ProductId))
+            .Where(id => !IsProduce(id) || type.ProduceCategories is not { } only || only.Contains(_products[id].Category!.Value))
             .Distinct()
             .Order(StringComparer.Ordinal)
             .GroupBy(id => _products[id].Department)
@@ -185,7 +186,9 @@ public sealed partial class GameSim
             return;
         }
 
-        var chance = PriceAcceptance.BuyChancePermille(type, Prices.PriceOf(productId), Prices.ReferenceOf(productId));
+        var batch = ChooseBatch(Inventory.Get(slot), productId, type);
+        var price = EffectivePrice(batch);
+        var chance = PriceAcceptance.BuyChancePermille(type, price, Prices.ReferenceOf(productId));
         if (Rng.NextInt(0, 1000) >= chance)
         {
             customer.ItemsTooExpensive++;
@@ -194,13 +197,24 @@ public sealed partial class GameSim
             return;
         }
 
-        foreach (var lot in Inventory.Get(slot).Take(productId, 1))
-        {
-            customer.AddToBasket(new BasketItem(lot, slot));
-        }
+        customer.AddToBasket(new BasketItem(Inventory.Get(slot).TakeFrom(batch, 1), slot, price));
 
         _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TookItem, productId));
         if (Inventory.Count(slot, productId) == 0) _events.Add(new ProductSoldOut(slot, productId));
+    }
+
+    /// <summary>
+    /// Which batch a shopper takes: produce goes freshest first, except that bargain hunters go for the cheapest
+    /// (marked-down) one; everything else goes oldest first.
+    /// </summary>
+    private StockLot ChooseBatch(Stockpile pile, string productId, CustomerTypeDef type)
+    {
+        var lots = pile.Lots.Where(l => l.ProductId == productId).ToList();
+        if (!IsProduce(productId)) return lots.MinBy(l => l.BestBeforeDay)!;
+
+        return type.PrefersDiscount
+            ? lots.OrderBy(EffectivePrice).ThenBy(l => l.BestBeforeDay).First()
+            : lots.MaxBy(l => l.BestBeforeDay)!;
     }
 
     private void NoteNotFound(Customer customer, string? productId = null)
@@ -257,7 +271,7 @@ public sealed partial class GameSim
     /// <summary>Puts a customer's goods back: to the slot they came from if it still fits, else into storage, else they are lost.</summary>
     private void ReturnBasket(Customer customer)
     {
-        foreach (var (lot, from) in customer.EmptyBasket())
+        foreach (var (lot, from, _) in customer.EmptyBasket())
         {
             var product = _products[lot.ProductId];
             if (Shelves.ProductAt(from) == lot.ProductId && Inventory.Count(from, lot.ProductId) + lot.Quantity <= product.UnitsPerShelfSlot)
@@ -294,7 +308,7 @@ public sealed partial class GameSim
         foreach (var group in customer.EmptyBasket().GroupBy(i => i.Lot.ProductId).OrderBy(g => g.Key, StringComparer.Ordinal))
         {
             var units = group.Sum(i => i.Lot.Quantity);
-            var revenue = checked(units * Prices.PriceOf(group.Key));
+            var revenue = checked(group.Sum(i => i.Lot.Quantity * (i.PriceCents >= 0 ? i.PriceCents : Prices.PriceOf(group.Key))));
             Economy.Earn(group.Key, units, revenue, group.Sum(i => i.Lot.Quantity * i.Lot.UnitCostCents));
             total += revenue;
         }

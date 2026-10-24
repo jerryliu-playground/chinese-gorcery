@@ -15,6 +15,7 @@ public sealed record DailyReport(
     long WagesCents,
     long FixtureSpendCents,
     long LossCents,
+    long ProduceLossCents,
     long ProfitCents,
     int Customers,
     int AngryLeaves,

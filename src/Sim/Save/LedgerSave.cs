@@ -16,4 +16,5 @@ public sealed record LedgerSave(
     int AngryLeaves,
     int ItemsNotFound,
     int ItemsTooExpensive,
-    IReadOnlyList<ProductSales> Sales);
+    IReadOnlyList<ProductSales> Sales,
+    long ProduceLossCents = 0);

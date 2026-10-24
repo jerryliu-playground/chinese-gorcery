@@ -13,6 +13,7 @@ public sealed class DayLedger(int day, long cashStartCents)
     public long WagesCents { get; internal set; }
     public long FixtureSpendCents { get; internal set; }
     public long LossCents { get; internal set; }
+    public long ProduceLossCents { get; internal set; }
     public int Customers { get; internal set; }
     public int AngryLeaves { get; internal set; }
 
@@ -31,7 +32,11 @@ public sealed class DayLedger(int day, long cashStartCents)
     public int ItemsTooExpensive { get; internal set; }
     public IReadOnlyList<ProductSales> Sales => _sales.Values.ToList();
 
-    internal void AddLoss(long cents) => LossCents += cents;
+    internal void AddLoss(long cents, bool produce)
+    {
+        LossCents += cents;
+        if (produce) ProduceLossCents += cents;
+    }
 
     internal void AddSale(string productId, int units, long revenueCents, long costCents)
     {
@@ -63,6 +68,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         WagesCents,
         FixtureSpendCents,
         LossCents,
+        ProduceLossCents,
         RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents,
         Customers,
         AngryLeaves,

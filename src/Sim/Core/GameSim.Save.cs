@@ -28,7 +28,7 @@ public sealed partial class GameSim
             new LedgerSave(
                 today.Day, today.CashStartCents, today.RevenueCents, today.CostOfGoodsSoldCents, today.PurchaseCostCents,
                 today.WagesCents, today.FixtureSpendCents, today.LossCents, today.Customers, today.AngryLeaves,
-                today.ItemsNotFound, today.ItemsTooExpensive, today.Sales),
+                today.ItemsNotFound, today.ItemsTooExpensive, today.Sales, today.ProduceLossCents),
             _reports.ToList(),
             Layout.Size,
             Layout.Fixtures.ToList(),
@@ -72,6 +72,7 @@ public sealed partial class GameSim
             RevenueCents = t.RevenueCents, CostOfGoodsSoldCents = t.CostOfGoodsSoldCents, PurchaseCostCents = t.PurchaseCostCents,
             WagesCents = t.WagesCents, FixtureSpendCents = t.FixtureSpendCents, LossCents = t.LossCents, Customers = t.Customers,
             AngryLeaves = t.AngryLeaves, ItemsNotFound = t.ItemsNotFound, ItemsTooExpensive = t.ItemsTooExpensive,
+            ProduceLossCents = t.ProduceLossCents,
         };
         ledger.RestoreSales(t.Sales);
         Economy = new EconomyState(save.CashCents)

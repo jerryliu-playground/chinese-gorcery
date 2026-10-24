@@ -51,10 +51,10 @@ public sealed class EconomyState
         Today.AddSale(productId, units, revenueCents, costCents);
     }
 
-    internal void RecordLoss(long cents)
+    internal void RecordLoss(long cents, bool produce = false)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(cents);
-        Today.AddLoss(cents);
+        Today.AddLoss(cents, produce);
     }
 
     internal void AdvanceStage() => Stage++;

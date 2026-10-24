@@ -158,7 +158,7 @@ public sealed partial class GameSim
             foreach (var lot in pile.RemoveExpired(Clock.Day))
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
-                Economy.RecordLoss(loss);
+                Economy.RecordLoss(loss, IsProduce(lot.ProductId));
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, pile.Location, loss));
             }
         }
@@ -170,7 +170,7 @@ public sealed partial class GameSim
             foreach (var lot in worker.RemoveExpired(Clock.Day))
             {
                 var loss = checked(lot.Quantity * lot.UnitCostCents);
-                Economy.RecordLoss(loss);
+                Economy.RecordLoss(loss, IsProduce(lot.ProductId));
                 _events.Add(new ProductExpired(Clock.Day, lot.ProductId, lot.Quantity, null, loss));
             }
 
@@ -207,6 +207,18 @@ public sealed partial class GameSim
         }
 
         FillShelvesFromStorage(announce: false);
+    }
+
+    private bool IsProduce(string productId) => _products[productId].Department == Department.Produce;
+
+    /// <summary>What one unit of this batch sells for today: the set price, marked down by the batch's freshness tier.</summary>
+    public long EffectivePrice(StockLot lot)
+    {
+        var product = _products[lot.ProductId];
+        var price = Prices.PriceOf(lot.ProductId);
+        if (product.FreshnessDays is null || Data.Economy.Freshness is not { } f) return price;
+
+        return price * f.PriceFactorsPermille.Of(Produce.Freshness.TierOf(product, lot, Clock.Day)) / 1000;
     }
 
     private bool IsWalkable(GridPoint p) => LayoutRules.InBounds(Layout.Size, p) && !_occupied.Contains(p);
