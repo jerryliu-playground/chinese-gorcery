@@ -106,7 +106,7 @@ public class CustomerTests
         ServeOne(sim);
         var events = sim.DrainEvents();
 
-        Assert.Equal(new CheckoutCompleted(customer.Id, RicePrice, sim.Player.Id), events.Single<CheckoutCompleted>());
+        Assert.Equal(new CheckoutCompleted(customer.Id, RicePrice, sim.Player.Id, sim.InstanceOf("checkout")), events.Single<CheckoutCompleted>());
         Assert.Equal(cashBefore + RicePrice, sim.Economy.CashCents);
         Assert.Equal(RicePrice, sim.Economy.Today.RevenueCents);
         Assert.Equal(RicePrice, sim.Economy.CumulativeRevenueCents);

@@ -371,15 +371,18 @@ public sealed partial class GameSim
 
             case (WorkStep.Shelving, RestockTask r):
                 var shelf = Inventory.GetOrCreate(r.Target);
-                foreach (var lot in worker.DropAll()) shelf.Add(lot);
+                var wasEmpty = shelf.Count(r.ProductId) == 0;
+                var shelved = worker.DropAll();
+                foreach (var lot in shelved) shelf.Add(lot);
+                _events.Add(new ItemsShelved(r.Target, r.ProductId, shelved.Sum(l => l.Quantity), wasEmpty));
                 FinishTask(worker, completed: true);
                 break;
 
-            case (WorkStep.Serving, CheckoutTask):
+            case (WorkStep.Serving, CheckoutTask checkout):
                 var served = _customers.Single(c => c.Id == worker.ServingCustomerId);
                 var revenue = CheckOut(served);
                 worker.ServingCustomerId = null;
-                _events.Add(new CheckoutCompleted(served.Id, revenue, worker.Id));
+                _events.Add(new CheckoutCompleted(served.Id, revenue, worker.Id, checkout.CheckoutInstanceId));
                 FinishTask(worker, completed: true);
                 break;
 
@@ -425,7 +428,7 @@ public sealed partial class GameSim
         }
 
         Economy.RecordLoss(lostCents);
-        _events.Add(new MeatCut(task.Id, worker.Id, task.PrimalId, result.Outputs, lostCents));
+        _events.Add(new MeatCut(task.Id, worker.Id, task.CuttingTableInstanceId, task.PrimalId, result.Outputs, lostCents));
     }
 
     private void FinishTask(Worker worker, bool completed)

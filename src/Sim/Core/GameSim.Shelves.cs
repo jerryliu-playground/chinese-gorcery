@@ -21,14 +21,19 @@ public sealed partial class GameSim
             if (Tasks.Tasks.Any(t => t is RestockTask r && r.Target == slot && Tasks.ClaimedBy(r.Id) is not null)) continue;
 
             var space = _products[productId].UnitsPerShelfSlot - Inventory.Count(slot, productId);
+            var wasEmpty = Inventory.Count(slot, productId) == 0;
+            var movedHere = 0;
             while (space > 0 && FindOldestInStorage(productId) is { } source)
             {
                 var take = Math.Min(space, Inventory.Count(source, productId));
                 var shelf = Inventory.GetOrCreate(slot);
                 foreach (var lot in Inventory.Get(source).Take(productId, take)) shelf.Add(lot);
                 space -= take;
-                moved += take;
+                movedHere += take;
             }
+
+            moved += movedHere;
+            if (movedHere > 0) _events.Add(new ItemsShelved(slot, productId, movedHere, wasEmpty));
         }
 
         if (moved == 0) return Reject(RejectReason.NothingToDo);

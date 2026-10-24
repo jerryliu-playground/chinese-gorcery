@@ -106,6 +106,7 @@ public sealed partial class GameSim
                     customer.WaitedSeconds += Data.Economy.SecondsPerTick;
                     if (customer.WaitedSeconds > type.PatienceMinutes * 60)
                     {
+                        _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.GaveUp));
                         ReturnBasket(customer);
                         Economy.Today.CountAngryLeave();
                         StartLeaving(customer, CustomerExit.Angry);
@@ -153,7 +154,7 @@ public sealed partial class GameSim
                 return;
             }
 
-            NoteNotFound(customer);
+            NoteNotFound(customer, productId);
         }
 
         if (customer.Basket.Count == 0)
@@ -180,7 +181,7 @@ public sealed partial class GameSim
     {
         if (Inventory.Count(slot, productId) == 0)
         {
-            NoteNotFound(customer);
+            NoteNotFound(customer, productId);
             return;
         }
 
@@ -189,6 +190,7 @@ public sealed partial class GameSim
         {
             customer.ItemsTooExpensive++;
             Economy.Today.CountItemTooExpensive();
+            _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, productId));
             return;
         }
 
@@ -197,13 +199,15 @@ public sealed partial class GameSim
             customer.AddToBasket(new BasketItem(lot, slot));
         }
 
+        _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TookItem, productId));
         if (Inventory.Count(slot, productId) == 0) _events.Add(new ProductSoldOut(slot, productId));
     }
 
-    private void NoteNotFound(Customer customer)
+    private void NoteNotFound(Customer customer, string? productId = null)
     {
         customer.ItemsNotFound++;
         Economy.Today.CountItemNotFound();
+        _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.NotFound, productId));
     }
 
     /// <summary>The closest display slot holding the product, by walking distance, and the cell to stand on.</summary>
