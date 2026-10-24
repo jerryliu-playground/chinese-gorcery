@@ -19,6 +19,7 @@ public sealed record CustomerTypeDef(
     int BrowseMinutesPerItem,
     int PatienceMinutes,
     IntRange ShoppingListSize,
+    SpriteDef? Sprite = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 public sealed record DepartmentWeight(Department Department, int Weight);

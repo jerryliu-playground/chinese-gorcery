@@ -19,4 +19,5 @@ public sealed record ProductDef(
     int UnitsPerStorageSlot,
     bool Orderable,
     int? WeightGrams = null,
+    string? Sprite = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

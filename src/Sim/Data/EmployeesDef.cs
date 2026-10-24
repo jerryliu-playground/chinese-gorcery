@@ -30,6 +30,7 @@ public sealed record RoleDef(
     int MaxLevel,
     int LevelUpKnifeSkill,
     int LevelUpSpeedPermille,
+    SpriteDef? Sprite = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 /// <param name="WorkSpeedPermille">1000 = baseline task speed.</param>
@@ -38,4 +39,5 @@ public sealed record PlayerDef(
     int MoveCellsPerMinute,
     int WorkSpeedPermille,
     int KnifeSkill,
+    SpriteDef? Sprite = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

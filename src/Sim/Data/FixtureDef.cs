@@ -19,4 +19,5 @@ public sealed record FixtureDef(
     IReadOnlyList<StorageType> Storage,
     long PriceCents,
     int UnlockStage,
+    SpriteDef? Sprite = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

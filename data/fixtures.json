@@ -3,13 +3,15 @@
     "id": "shelf", "nameKey": "fixture.shelf.name", "kind": "shelf",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
-    "capacity": 4, "storage": ["ambient"], "priceCents": 15000, "unlockStage": 1, "_tbd": true
+    "capacity": 4, "storage": ["ambient"], "priceCents": 15000, "unlockStage": 1, "sprite": { "main": "shelf_full", "alternate": "shelf_full_b", "empty": "shelf_empty" },
+    "_tbd": true
   },
   {
     "id": "checkout", "nameKey": "fixture.checkout.name", "kind": "checkout",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
     "customerCells": [{ "x": 0, "y": 1 }],
-    "capacity": 0, "storage": [], "priceCents": 40000, "unlockStage": 1, "_tbd": true
+    "capacity": 0, "storage": [], "priceCents": 40000, "unlockStage": 1, "sprite": { "main": "counter", "rest": "counter_plain", "decoration": "deco_lucky_cat" },
+    "_tbd": true
   },
   {
     "id": "backroom", "nameKey": "fixture.backroom.name", "kind": "backroom",
@@ -21,19 +23,22 @@
     "id": "entrance", "nameKey": "fixture.entrance.name", "kind": "entrance",
     "size": { "w": 1, "h": 1 }, "interactionCells": [],
     "customerCells": [{ "x": 0, "y": -1 }],
-    "capacity": 0, "storage": [], "priceCents": 0, "unlockStage": 1, "_tbd": true
+    "capacity": 0, "storage": [], "priceCents": 0, "unlockStage": 1, "sprite": { "main": "door" },
+    "_tbd": true
   },
   {
     "id": "meat_display", "nameKey": "fixture.meat_display.name", "kind": "meat_display",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
-    "capacity": 4, "storage": ["chilled"], "priceCents": 120000, "unlockStage": 2, "_tbd": true
+    "capacity": 4, "storage": ["chilled"], "priceCents": 120000, "unlockStage": 2, "sprite": { "main": "meat_fridge" },
+    "_tbd": true
   },
   {
     "id": "cutting_table", "nameKey": "fixture.cutting_table.name", "kind": "cutting_table",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
     "customerCells": [],
-    "capacity": 0, "storage": [], "priceCents": 60000, "unlockStage": 2, "_tbd": true
+    "capacity": 0, "storage": [], "priceCents": 60000, "unlockStage": 2, "sprite": { "main": "cutting_table" },
+    "_tbd": true
   },
   {
     "id": "cold_storage", "nameKey": "fixture.cold_storage.name", "kind": "cold_storage",

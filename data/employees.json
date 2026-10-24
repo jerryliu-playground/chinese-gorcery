@@ -7,8 +7,9 @@
       "moveCellsPerMinute": 3,
       "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
       "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
+      "sprite": { "main": "char_butcher" },
       "_tbd": true
     }
   ],
-  "player": { "moveCellsPerMinute": 4, "workSpeedPermille": 1000, "knifeSkill": 1, "_tbd": true }
+  "player": { "moveCellsPerMinute": 4, "workSpeedPermille": 1000, "knifeSkill": 1, "sprite": { "main": "char_protagonist" }, "_tbd": true }
 }

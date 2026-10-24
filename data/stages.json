@@ -1,10 +1,19 @@
 [
   {
     "id": 1, "nameKey": "stage.1.name", "storeSize": { "w": 12, "h": 8 },
-    "requiredCumulativeRevenueCents": 0, "upgradeCostCents": 0, "_tbd": true
+    "requiredCumulativeRevenueCents": 0, "upgradeCostCents": 0,
+    "floorSprite": "tile_floor", "wallSprite": "tile_wall",
+    "decorations": [{ "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 9, "y": -1 } }],
+    "_tbd": true
   },
   {
     "id": 2, "nameKey": "stage.2.name", "storeSize": { "w": 18, "h": 10 },
-    "requiredCumulativeRevenueCents": 500000, "upgradeCostCents": 300000, "_tbd": true
+    "requiredCumulativeRevenueCents": 500000, "upgradeCostCents": 300000,
+    "floorSprite": "tile_floor", "wallSprite": "tile_wall",
+    "decorations": [
+      { "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 8, "y": -1 } },
+      { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }
+    ],
+    "_tbd": true
   }
 ]

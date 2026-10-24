@@ -10,4 +10,7 @@ public sealed record StageDef(
     GridSize StoreSize,
     long RequiredCumulativeRevenueCents,
     long UpgradeCostCents,
+    string? FloorSprite = null,
+    string? WallSprite = null,
+    IReadOnlyList<DecorationDef>? Decorations = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
