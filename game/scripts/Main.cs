@@ -40,6 +40,10 @@ public partial class Main : Node2D
         var hud = new Hud { Name = "Hud" };
         layer.AddChild(hud);
         hud.Init(_host, ui, feel);
+
+        var audio = new Audio.AudioManager { Name = "Audio" };
+        AddChild(audio);
+        audio.Init(_host, feel);
         _store.DisplayClicked += hud.ShowShelf;
         _store.FixtureSelected += _ => ui.Notify();
 

@@ -166,6 +166,7 @@ public partial class Hud : Control
         var price = AddPanel<PricePanel>();
         var staff = AddPanel<StaffPanel>();
         var upgrade = AddPanel<UpgradePanel>();
+        var settings = AddPanel<SettingsPanel>();
 
         _build.Closed += () =>
         {
@@ -205,6 +206,7 @@ public partial class Hud : Control
             _messages.Enqueue(UiText.T(key));
         };
         bar.AddChild(load);
+        bar.AddChild(PanelButton("ui.hud.settings", settings));
         OnUiChanged();
     }
 
@@ -220,6 +222,8 @@ public partial class Hud : Control
         foreach (var p in _panels.Where(p => p != panel && p.Visible)) p.Close();
         panel.Open();
     }
+
+    public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 
     public void CloseAllPanels()
     {

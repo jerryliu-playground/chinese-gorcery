@@ -86,6 +86,9 @@ public partial class ScreenshotTour : Node
         Live("11-upgrade-celebration", PrepareUpgrade, () => Seen<StageUpgraded>(), frames: 4);
         Live("12-chopping", PrepareMeatCorner, () => Sim.Workers.Any(w => w.Step == WorkStep.Cutting), frames: 4);
         Live("13-cut-meat-pops-up", () => { }, () => Seen<MeatCut>(), frames: 3);
+
+        // Sound (10.3)
+        Step("14-settings-volume-sliders", () => Hud.ShowPanel<SettingsPanel>());
     }
 
     public override void _Process(double delta)
@@ -116,13 +119,13 @@ public partial class ScreenshotTour : Node
         Ui.Mode = ToolMode.Play;
         Store.DebugHover = null;
         _seen.Clear();
+        Hud.CloseAllPanels();
         setup();
         Ui.Notify();
 
         // Set-up skips ahead by ticking the Sim directly; drop that backlog of events (e.g. day-closed reports)
         // so pop-ups from skipped time do not cover the shot. Live steps then play on normally.
         Sim.DrainEvents();
-        Hud.CloseAllPanels();
         _pending = next;
         _wait = frames;
         _until = until;
