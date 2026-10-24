@@ -17,7 +17,7 @@ public static class Program
         if (!TryParseArgs(args, out var options, out var usageError))
         {
             Console.Error.WriteLine(usageError);
-            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--data DIR]");
+            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--data DIR]");
             return ExitUsageError;
         }
 
@@ -42,10 +42,12 @@ public static class Program
         Console.WriteLine($"Data OK ({Path.GetFullPath(dataDir)})");
         Console.WriteLine($"  products={data.Products.Count} fixtures={data.Fixtures.Count} customerTypes={data.CustomerTypes.Count} " +
                           $"roles={data.Employees.Roles.Count} meatCuts={data.MeatCuts.Count} stages={data.Stages.Count}");
-        Console.WriteLine($"Run: days={options.Days} seed={options.Seed} stockTarget={options.StockTarget}");
+        Console.WriteLine($"Run: days={options.Days} seed={options.Seed} stockTarget={options.StockTarget}" +
+                          (options.DisplayScore is { } fixedScore ? $" displayScore={fixedScore} (fixed)" : ""));
         Console.WriteLine();
 
-        var sim = new GameSim(data, options.Seed);
+        var sim = new GameSim(data, options.Seed) { DisplayScoreOverride = options.DisplayScore };
+        var produce = data.Products.Where(p => p.Department == Department.Produce).Select(p => p.Id).ToHashSet();
         var bot = new PlayerBot(options.StockTarget);
         var anomalies = new List<string>();
         ReportPrinter.PrintHeader();
@@ -54,7 +56,7 @@ public static class Program
         {
             bot.PlayDay(sim);
             var report = sim.Reports[^1];
-            ReportPrinter.PrintRow(report);
+            ReportPrinter.PrintRow(report, produce);
             foreach (var note in bot.TakeNotes()) Console.WriteLine("      * " + note);
             anomalies.AddRange(AnomalyCheck.Check(sim, report));
         }
@@ -64,6 +66,9 @@ public static class Program
         Console.WriteLine($"Totals: revenue={ReportPrinter.Money(reports.Sum(r => r.RevenueCents))} profit={ReportPrinter.Money(reports.Sum(r => r.ProfitCents))} " +
                           $"customers={reports.Sum(r => r.Customers)} angry={reports.Sum(r => r.AngryLeaves)} " +
                           $"notFound={reports.Sum(r => r.ItemsNotFound)} tooExpensive={reports.Sum(r => r.ItemsTooExpensive)}");
+        var produceSales = reports.SelectMany(r => r.Sales).Where(s => produce.Contains(s.ProductId)).ToList();
+        Console.WriteLine($"Produce: units={produceSales.Sum(s => s.Units)} revenue={ReportPrinter.Money(produceSales.Sum(s => s.RevenueCents))} " +
+                          $"loss={ReportPrinter.Money(reports.Sum(r => r.ProduceLossCents))}");
         Console.WriteLine($"Stage: {sim.Economy.Stage}  staff: {string.Join(", ", sim.Workers.Where(w => w.RoleId is not null).Select(w => $"{w.RoleId} L{w.Level} knife {w.KnifeSkill}"))}");
         Console.WriteLine($"Rejected commands: {bot.RejectedCommands} {string.Join(", ", bot.Rejections.Select(kv => $"{kv.Key} x{kv.Value}"))}" +
                           $" (orders cut for storage space: {bot.OrdersCutForSpace})");
@@ -80,7 +85,7 @@ public static class Program
         return ExitOk;
     }
 
-    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir);
+    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null);
 
     private static bool TryParseArgs(string[] args, out Options options, out string error)
     {
@@ -107,6 +112,9 @@ public static class Program
                     break;
                 case "--stock-target" when int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var target) && target > 0:
                     options = options with { StockTarget = target };
+                    break;
+                case "--display-score" when int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var score) && score <= 100:
+                    options = options with { DisplayScore = score };
                     break;
                 case "--data":
                     options = options with { DataDir = value };

@@ -14,7 +14,7 @@ public static class ReportPrinter
             "Day", "CashStart", "Revenue", "Purchases", "Wages", "Fixtures", "Loss", "Profit", "CashEnd", "Cust", "Angry", "NotFound", "TooExp"));
     }
 
-    public static void PrintRow(DailyReport r)
+    public static void PrintRow(DailyReport r, ISet<string> produce)
     {
         Console.WriteLine(string.Format(CultureInfo.InvariantCulture, Format,
             r.Day, Money(r.CashStartCents), Money(r.RevenueCents), Money(r.PurchaseCostCents), Money(r.WagesCents),
@@ -24,6 +24,12 @@ public static class ReportPrinter
         if (r.Sales.Count > 0)
         {
             Console.WriteLine("      sold: " + string.Join(", ", r.Sales.Select(s => $"{s.ProductId} {s.Units}")));
+        }
+
+        var produceSales = r.Sales.Where(s => produce.Contains(s.ProductId)).ToList();
+        if (produceSales.Count > 0 || r.ProduceLossCents > 0)
+        {
+            Console.WriteLine($"      produce: units {produceSales.Sum(s => s.Units)}, revenue {Money(produceSales.Sum(s => s.RevenueCents))}, loss {Money(r.ProduceLossCents)}");
         }
     }
 

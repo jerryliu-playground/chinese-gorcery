@@ -11,12 +11,13 @@ namespace ChineseGrocery.SimRunner;
 
 /// <summary>
 /// Stand-in player for headless runs. It only uses real commands. Before opening it upgrades the store once it can
-/// afford to (keeping a cash reserve), places any missing meat fixtures, hires one of each unlocked role, assigns empty
-/// display slots round-robin, tops each shelved product up to a stock target, keeps a primal on hand per cutting
-/// recipe, fills the shelves in one go, and does any work left. While open it works the highest-priority open task.
+/// afford to (keeping a cash reserve), places any missing meat fixtures and a row of produce stands, hires one of each
+/// unlocked role, assigns empty display slots round-robin (produce only on produce stands), tops each shelved product up
+/// to a stock target (produce first, and only to two fills of its slots since it spoils), keeps a primal on hand per cutting recipe,
+/// fills the shelves in one go, and does any work left. While open it works the highest-priority open task.
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 100_000)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 100_000, int produceStands = 4)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
@@ -48,6 +49,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     {
         TryUpgrade(sim);
         PlaceMissingMeatFixtures(sim);
+        PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
         PlaceOrders(sim);
@@ -92,12 +94,32 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         }
     }
 
-    /// <summary>The first legal spot, scanning from the right-hand side (where an upgrade adds floor).</summary>
-    private static (GridPoint Origin, Rotation Rotation)? FindSpot(GameSim sim, FixtureDef def)
+    /// <summary>One produce stand a day, once the meat corner is done, until there is a row of them.</summary>
+    private void PlaceProduceStands(GameSim sim)
+    {
+        if (!MeatFixtures.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) return;
+        if (sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == FixtureKind.ProduceStand) >= produceStands) return;
+        if (sim.Data.Fixtures.FirstOrDefault(f => f.Kind == FixtureKind.ProduceStand && f.UnlockStage <= sim.Economy.Stage) is not { } def) return;
+        if (sim.Economy.CashCents < def.PriceCents + cashReserveCents) return;
+        if (FindSpot(sim, def, besideKind: FixtureKind.ProduceStand) is not { } spot) return;
+
+        if (Send(sim, new PlaceFixture(def.Id, spot.Origin, spot.Rotation)) is null) _notes.Add($"placed {def.Id} at {spot.Origin.X},{spot.Origin.Y}");
+    }
+
+    /// <summary>
+    /// The first legal spot, scanning from the right-hand side (where an upgrade adds floor); with
+    /// <paramref name="besideKind"/>, a spot touching a fixture of that kind wins if there is one.
+    /// </summary>
+    private static (GridPoint Origin, Rotation Rotation)? FindSpot(GameSim sim, FixtureDef def, FixtureKind? besideKind = null)
     {
         var size = sim.Layout.Size;
         FixtureDef Lookup(string id) => sim.Data.Fixtures.Single(f => f.Id == id);
         var workers = sim.Workers.Select(w => w.Position).ToHashSet();
+        var beside = sim.Layout.Fixtures
+            .Where(f => besideKind is { } kind && Def(sim.Data, f).Kind == kind)
+            .SelectMany(f => LayoutRules.Footprint(Def(sim.Data, f), f.Origin, f.Rotation))
+            .ToHashSet();
+        (GridPoint, Rotation)? first = null;
 
         for (var x = size.W - 1; x >= 0; x--)
         for (var y = 0; y < size.H; y++)
@@ -105,11 +127,14 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         {
             var candidate = new PlacedFixture(sim.Layout.NextInstanceId, def.Id, new GridPoint(x, y), def.PriceCents, rotation);
             if (LayoutRules.Check(size, [.. sim.Layout.Fixtures, candidate], Lookup, candidate.InstanceId) is not null) continue;
-            if (LayoutRules.Footprint(def, candidate.Origin, rotation).Any(workers.Contains)) continue;
-            return (candidate.Origin, rotation);
+            var footprint = LayoutRules.Footprint(def, candidate.Origin, rotation).ToList();
+            if (footprint.Any(workers.Contains)) continue;
+            if (footprint.Any(c => beside.Any(b => Math.Abs(b.X - c.X) + Math.Abs(b.Y - c.Y) == 1))) return (candidate.Origin, rotation);
+            first ??= (candidate.Origin, rotation);
+            if (beside.Count == 0) return first;
         }
 
-        return null;
+        return first;
     }
 
     private void HireUnlockedRoles(GameSim sim)
@@ -135,9 +160,10 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             var def = Def(data, fixture);
             if (!DataValidator.IsDisplay(def.Kind)) continue;
 
-            // Sell what can be bought or cut, but never a whole primal.
+            // Sell what can be bought or cut, but never a whole primal; produce goes on produce stands and only there.
             var candidates = data.Products
                 .Where(p => def.Storage.Contains(p.Storage) && !primals.Contains(p.Id) && (p.Orderable || producible.Contains(p.Id)))
+                .Where(p => (p.Department == Department.Produce) == (def.Kind == FixtureKind.ProduceStand))
                 .ToList();
             for (var slot = 0; slot < def.Capacity && candidates.Count > 0; slot++)
             {
@@ -154,9 +180,17 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private void PlaceOrders(GameSim sim)
     {
         var orderable = sim.Data.Products.Where(p => p.Orderable).Select(p => p.Id).ToHashSet();
-        foreach (var productId in sim.Shelves.Assigned.Values.Distinct().Where(orderable.Contains).Order(StringComparer.Ordinal))
+        // Produce first, so dry goods do not crowd it out of the backroom; it spoils, so only two fills of its slots.
+        var products = sim.Shelves.Assigned.Values.Distinct().Where(orderable.Contains)
+            .Select(id => sim.Data.Products.Single(p => p.Id == id))
+            .OrderBy(p => p.Department != Department.Produce)
+            .ThenBy(p => p.Id, StringComparer.Ordinal);
+        foreach (var product in products)
         {
-            TopUp(sim, productId, stockTarget);
+            var target = product.Department == Department.Produce
+                ? 2 * sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot
+                : stockTarget;
+            TopUp(sim, product.Id, target);
         }
 
         if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.CuttingTable))
@@ -203,6 +237,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 CheckoutTask c => c.CheckoutInstanceId,
                 RestockTask r => r.Source.FixtureInstanceId,
                 CutMeatTask c => c.Source.FixtureInstanceId,
+                TidyTask t => t.StandInstanceId,
                 _ => null,
             };
         if (fixtureId is null)
