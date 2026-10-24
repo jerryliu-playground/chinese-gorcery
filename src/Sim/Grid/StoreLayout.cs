@@ -7,7 +7,8 @@ public sealed class StoreLayout
 
     internal StoreLayout(GridSize size) => Size = size;
 
-    public GridSize Size { get; }
+    /// <summary>Grows when the store upgrades; existing fixtures keep their positions.</summary>
+    public GridSize Size { get; internal set; }
     public IReadOnlyList<PlacedFixture> Fixtures => _fixtures;
     public int NextInstanceId { get; private set; } = 1;
 

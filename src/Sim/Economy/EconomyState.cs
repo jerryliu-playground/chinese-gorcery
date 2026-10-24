@@ -49,6 +49,8 @@ public sealed class EconomyState
         Today.AddLoss(cents);
     }
 
+    internal void AdvanceStage() => Stage++;
+
     internal DailyReport CloseDay() => Today.ToReport(CashCents);
 
     internal void BeginDay(int day) => Today = new DayLedger(day, CashCents);

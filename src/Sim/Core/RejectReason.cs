@@ -31,4 +31,6 @@ public enum RejectReason
     BlocksWorker,
     FixtureInUse,
     SlotInUse,
+    NotEnoughRevenue,
+    MaxStage,
 }

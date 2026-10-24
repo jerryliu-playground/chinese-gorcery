@@ -112,6 +112,7 @@ public sealed partial class GameSim
             SetPrice price => HandleSetPrice(price),
             MovePlayer move => HandleMovePlayer(move),
             PlayerInteract interact => HandlePlayerInteract(interact),
+            UpgradeStage => HandleUpgradeStage(),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
