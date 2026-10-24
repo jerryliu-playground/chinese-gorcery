@@ -179,6 +179,7 @@ public static partial class DataValidator
         var player = employees.Player;
         if (player.MoveCellsPerTick <= 0) errors.Add($"{file}: player: moveCellsPerTick must be > 0");
         if (player.WorkSpeedPermille <= 0) errors.Add($"{file}: player: workSpeedPermille must be > 0");
+        if (player.KnifeSkill < 0) errors.Add($"{file}: player: knifeSkill must be >= 0");
     }
 
     private static void ValidateMeatCuts(IReadOnlyList<MeatCutDef> cuts, Dictionary<string, ProductDef> products, List<string> errors)
@@ -286,6 +287,7 @@ public static partial class DataValidator
                  {
                      ("restockPickupMinutes", t.RestockPickupMinutes), ("restockShelveMinutes", t.RestockShelveMinutes),
                      ("checkoutBaseMinutes", t.CheckoutBaseMinutes), ("checkoutMinutesPerItem", t.CheckoutMinutesPerItem),
+                     ("cutPickupMinutes", t.CutPickupMinutes), ("cutMeatMinutes", t.CutMeatMinutes),
                  })
         {
             if (minutes < 0) errors.Add($"{file}: tasks.{name} must be >= 0");

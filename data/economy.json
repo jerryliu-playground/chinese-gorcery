@@ -19,6 +19,8 @@
     "restockShelveMinutes": 2,
     "checkoutBaseMinutes": 1,
     "checkoutMinutesPerItem": 1,
+    "cutPickupMinutes": 2,
+    "cutMeatMinutes": 30,
     "priorities": [
       { "taskType": "checkout", "priority": 20 },
       { "taskType": "restock", "priority": 10 },

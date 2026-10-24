@@ -39,7 +39,7 @@ public sealed partial class GameSim
 
         RebuildOccupancy();
         var player = data.Employees.Player;
-        Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerTick, player.WorkSpeedPermille);
+        Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerTick, player.WorkSpeedPermille, player.KnifeSkill);
         _workers.Add(Player);
 
         _events.Add(new DayStarted(Clock.Day));

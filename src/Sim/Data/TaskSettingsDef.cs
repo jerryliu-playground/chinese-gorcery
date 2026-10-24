@@ -10,6 +10,8 @@ public sealed record TaskSettingsDef(
     int RestockShelveMinutes,
     int CheckoutBaseMinutes,
     int CheckoutMinutesPerItem,
+    int CutPickupMinutes,
+    int CutMeatMinutes,
     IReadOnlyList<TaskPriority> Priorities)
 {
     public int PriorityOf(TaskType type) => Priorities.Single(p => p.TaskType == type).Priority;

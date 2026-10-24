@@ -2,35 +2,24 @@ using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Meat;
 using ChineseGrocery.Sim.Tasks;
 
 namespace ChineseGrocery.Sim.Core;
 
-/// <summary>Generating tasks and running workers through them. Shared by the player and staff.</summary>
+/// <summary>
+/// Generating tasks and running workers through them. Every task starts at one fixture (storage area or checkout) and
+/// some continue at a second one (the shelf to fill, the cutting table). The player and staff run the same steps; staff
+/// just claim open tasks on their own.
+/// </summary>
 public sealed partial class GameSim
 {
     private void RefreshTasks()
     {
         RefreshRestockTasks();
         RefreshCheckoutTasks();
+        RefreshCutMeatTasks();
     }
-
-    /// <summary>One task per checkout with someone waiting; finishing it serves one customer.</summary>
-    private void RefreshCheckoutTasks()
-    {
-        Tasks.RemoveOpen(t => t is CheckoutTask c && !HasQueue(c.CheckoutInstanceId));
-
-        foreach (var checkout in Layout.Fixtures.Where(f => _fixtures[f.FixtureId].Kind == FixtureKind.Checkout))
-        {
-            if (!HasQueue(checkout.InstanceId)) continue;
-            if (Tasks.Tasks.Any(t => t is CheckoutTask c && c.CheckoutInstanceId == checkout.InstanceId)) continue;
-
-            Tasks.Add(id => new CheckoutTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Checkout), checkout.InstanceId));
-        }
-    }
-
-    private bool HasQueue(int checkoutInstanceId) =>
-        _customers.Any(c => c.State == CustomerState.Queued && c.CheckoutInstanceId == checkoutInstanceId);
 
     private void RefreshRestockTasks()
     {
@@ -58,18 +47,86 @@ public sealed partial class GameSim
             .Select(p => (StockLocation?)p.Location)
             .FirstOrDefault();
 
+    /// <summary>One task per checkout with someone waiting; finishing it serves one customer.</summary>
+    private void RefreshCheckoutTasks()
+    {
+        Tasks.RemoveOpen(t => t is CheckoutTask c && !HasQueue(c.CheckoutInstanceId));
+
+        foreach (var checkout in Layout.Fixtures.Where(f => _fixtures[f.FixtureId].Kind == FixtureKind.Checkout))
+        {
+            if (!HasQueue(checkout.InstanceId)) continue;
+            if (Tasks.Tasks.Any(t => t is CheckoutTask c && c.CheckoutInstanceId == checkout.InstanceId)) continue;
+
+            Tasks.Add(id => new CheckoutTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Checkout), checkout.InstanceId));
+        }
+    }
+
+    private bool HasQueue(int checkoutInstanceId) =>
+        _customers.Any(c => c.State == CustomerState.Queued && c.CheckoutInstanceId == checkoutInstanceId);
+
+    /// <summary>One task per primal waiting in storage, as long as there is a cutting table.</summary>
+    private void RefreshCutMeatTasks()
+    {
+        var table = Layout.Fixtures.FirstOrDefault(f => _fixtures[f.FixtureId].Kind == FixtureKind.CuttingTable);
+        if (table is null)
+        {
+            Tasks.RemoveOpen(t => t is CutMeatTask);
+            return;
+        }
+
+        foreach (var cut in Data.MeatCuts)
+        {
+            foreach (var pile in Inventory.Locations.Where(p => IsStorageArea(p.Location.FixtureInstanceId)).ToList())
+            {
+                // Tasks whose primal is still in this pile: open ones, plus claimed ones not picked up yet.
+                var waiting = pile.Count(cut.PrimalId);
+                var tasks = Tasks.Tasks
+                    .OfType<CutMeatTask>()
+                    .Where(c => c.Source == pile.Location && c.PrimalId == cut.PrimalId && !IsPrimalPickedUp(c))
+                    .ToList();
+
+                // Too many (a primal expired or was cut elsewhere): drop the newest open ones.
+                foreach (var extra in tasks.Where(t => Tasks.ClaimedBy(t.Id) is null).OrderByDescending(t => t.Id).Take(tasks.Count - waiting))
+                {
+                    Tasks.Remove(extra.Id);
+                }
+
+                for (var n = tasks.Count; n < waiting; n++)
+                {
+                    Tasks.Add(id => new CutMeatTask(id, Data.Economy.Tasks.PriorityOf(TaskType.CutMeat), pile.Location, cut.PrimalId, table.InstanceId));
+                }
+            }
+        }
+    }
+
+    private bool IsPrimalPickedUp(CutMeatTask task) =>
+        _workers.Any(w => w.TaskId == task.Id && w.Step is WorkStep.Carrying or WorkStep.Cutting);
+
     private bool IsStorageArea(int instanceId) =>
         Layout.Find(instanceId) is { } f && DataValidator.IsStorageArea(_fixtures[f.FixtureId].Kind);
 
-    /// <summary>Whether any claimed task (or goods being carried for one) involves the fixture.</summary>
+    /// <summary>Whether any claimed task involves the fixture.</summary>
     private bool IsFixtureInUse(int instanceId) =>
         Tasks.Tasks.Any(t => Tasks.ClaimedBy(t.Id) is not null && Involves(t, instanceId));
 
-    private static bool Involves(SimTask task, int instanceId) => task switch
+    private static bool Involves(SimTask task, int instanceId) =>
+        StartFixtureOf(task) == instanceId || SecondFixtureOf(task) == instanceId;
+
+    /// <summary>Where a task begins: the storage area to take goods from, or the checkout.</summary>
+    private static int StartFixtureOf(SimTask task) => task switch
     {
-        RestockTask r => r.Source.FixtureInstanceId == instanceId || r.Target.FixtureInstanceId == instanceId,
-        CheckoutTask c => c.CheckoutInstanceId == instanceId,
-        _ => false,
+        RestockTask r => r.Source.FixtureInstanceId,
+        CheckoutTask c => c.CheckoutInstanceId,
+        CutMeatTask c => c.Source.FixtureInstanceId,
+        _ => throw new ArgumentOutOfRangeException(nameof(task)),
+    };
+
+    /// <summary>Where carried goods go next, if anywhere.</summary>
+    private static int? SecondFixtureOf(SimTask task) => task switch
+    {
+        RestockTask r => r.Target.FixtureInstanceId,
+        CutMeatTask c => c.CuttingTableInstanceId,
+        _ => null,
     };
 
     /// <summary>Starts whatever the worker can do at this fixture. Returns false when there is nothing.</summary>
@@ -77,47 +134,69 @@ public sealed partial class GameSim
     {
         if (worker.Step == WorkStep.Carrying)
         {
-            if (Tasks.Find(worker.TaskId!.Value) is not RestockTask carrying || carrying.Target.FixtureInstanceId != placed.InstanceId) return false;
+            var carrying = Tasks.Find(worker.TaskId!.Value)!;
+            if (SecondFixtureOf(carrying) != placed.InstanceId) return false;
 
-            BeginStep(worker, WorkStep.Shelving, Data.Economy.Tasks.RestockShelveMinutes);
+            StartSecondStep(worker, carrying);
             return true;
         }
 
-        if (_fixtures[placed.FixtureId].Kind == FixtureKind.Checkout)
+        var task = Tasks.OpenTasks.FirstOrDefault(t => StartFixtureOf(t) == placed.InstanceId && CanDo(worker, t));
+        if (task is null || !Tasks.TryClaim(task.Id, worker.Id)) return false;
+
+        worker.TaskId = task.Id;
+        StartFirstStep(worker, task);
+        return true;
+    }
+
+    /// <summary>The player can do every task type; staff only their role's.</summary>
+    private bool CanDo(Worker worker, SimTask task) =>
+        worker.IsPlayer || RoleOf(worker)?.TaskTypes.Contains(task.Type) == true;
+
+    private void StartFirstStep(Worker worker, SimTask task)
+    {
+        var settings = Data.Economy.Tasks;
+        switch (task)
         {
-            var task = Tasks.OpenTasks.OfType<CheckoutTask>().FirstOrDefault(t => t.CheckoutInstanceId == placed.InstanceId);
-            if (task is null || !Tasks.TryClaim(task.Id, worker.Id)) return false;
+            case RestockTask:
+                BeginStep(worker, WorkStep.Picking, settings.RestockPickupMinutes);
+                break;
 
-            var customer = _customers
-                .Where(c => c.State == CustomerState.Queued && c.CheckoutInstanceId == placed.InstanceId)
-                .MinBy(c => c.QueueNumber)!;
-            customer.State = CustomerState.BeingServed;
-            worker.TaskId = task.Id;
-            worker.ServingCustomerId = customer.Id;
-            var settings = Data.Economy.Tasks;
-            BeginStep(worker, WorkStep.Serving, settings.CheckoutBaseMinutes + settings.CheckoutMinutesPerItem * customer.Basket.Sum(i => i.Lot.Quantity));
-            _events.Add(new TaskStarted(task.Id, task.Type, worker.Id));
-            return true;
+            case CutMeatTask:
+                BeginStep(worker, WorkStep.Picking, settings.CutPickupMinutes);
+                break;
+
+            case CheckoutTask c:
+                var customer = _customers
+                    .Where(x => x.State == CustomerState.Queued && x.CheckoutInstanceId == c.CheckoutInstanceId)
+                    .MinBy(x => x.QueueNumber)!;
+                customer.State = CustomerState.BeingServed;
+                worker.ServingCustomerId = customer.Id;
+                BeginStep(worker, WorkStep.Serving, settings.CheckoutBaseMinutes + settings.CheckoutMinutesPerItem * customer.Basket.Sum(i => i.Lot.Quantity));
+                break;
         }
 
-        if (DataValidator.IsStorageArea(_fixtures[placed.FixtureId].Kind))
+        _events.Add(new TaskStarted(task.Id, task.Type, worker.Id));
+    }
+
+    private void StartSecondStep(Worker worker, SimTask task)
+    {
+        switch (task)
         {
-            var task = Tasks.OpenTasks.OfType<RestockTask>().FirstOrDefault(t => t.Source.FixtureInstanceId == placed.InstanceId);
-            if (task is null || !Tasks.TryClaim(task.Id, worker.Id)) return false;
+            case RestockTask:
+                BeginStep(worker, WorkStep.Shelving, Data.Economy.Tasks.RestockShelveMinutes);
+                break;
 
-            worker.TaskId = task.Id;
-            BeginStep(worker, WorkStep.Picking, Data.Economy.Tasks.RestockPickupMinutes);
-            _events.Add(new TaskStarted(task.Id, task.Type, worker.Id));
-            return true;
+            case CutMeatTask:
+                BeginStep(worker, WorkStep.Cutting, Data.Economy.Tasks.CutMeatMinutes);
+                break;
         }
-
-        return false;
     }
 
     private void BeginStep(Worker worker, WorkStep step, int minutes)
     {
         worker.Step = step;
-        worker.WorkTicksLeft = WorkTicks(minutes, worker.WorkSpeedPermille);
+        worker.WorkTicksLeft = WorkTicks(minutes, EffectiveSpeed(worker));
     }
 
     /// <summary>Ticks a job of <paramref name="minutes"/> takes at the given speed, rounded up.</summary>
@@ -131,12 +210,60 @@ public sealed partial class GameSim
     {
         foreach (var worker in _workers)
         {
+            if (!worker.IsPlayer) DriveStaff(worker);
+
             MoveWorker(worker);
             if (!worker.IsWorking) continue;
 
             if (worker.WorkTicksLeft > 0) worker.WorkTicksLeft--;
             if (worker.WorkTicksLeft == 0) CompleteStep(worker);
         }
+    }
+
+    /// <summary>Staff pick their own work: claim the best open task they can do, walk to it, and carry it through.</summary>
+    private void DriveStaff(Worker worker)
+    {
+        if (worker.IsWorking || worker.Path.Count > 0) return;
+
+        if (worker.Step == WorkStep.Idle)
+        {
+            foreach (var task in Tasks.OpenTasks.Where(t => CanDo(worker, t)).ToList())
+            {
+                if (PathToFixture(worker, StartFixtureOf(task)) is not { } path || !Tasks.TryClaim(task.Id, worker.Id)) continue;
+
+                worker.TaskId = task.Id;
+                worker.Step = WorkStep.ToTask;
+                worker.SetPath(path);
+                break;
+            }
+        }
+
+        if (worker.Step == WorkStep.ToTask && worker.Path.Count == 0)
+        {
+            var task = Tasks.Find(worker.TaskId!.Value)!;
+            if (IsAtFixture(worker, StartFixtureOf(task))) StartFirstStep(worker, task);
+            else worker.SetPath(PathToFixture(worker, StartFixtureOf(task)) ?? []);
+        }
+        else if (worker.Step == WorkStep.Carrying)
+        {
+            var target = SecondFixtureOf(Tasks.Find(worker.TaskId!.Value)!)!.Value;
+            if (IsAtFixture(worker, target)) StartSecondStep(worker, Tasks.Find(worker.TaskId!.Value)!);
+            else worker.SetPath(PathToFixture(worker, target) ?? []);
+        }
+    }
+
+    private bool IsAtFixture(Worker worker, int instanceId) =>
+        Layout.Find(instanceId) is { } f && LayoutRules.InteractionCells(_fixtures[f.FixtureId], f.Origin, f.Rotation).Contains(worker.Position);
+
+    /// <summary>Shortest walk to any of the fixture's interaction cells, or null if none can be reached.</summary>
+    private List<GridPoint>? PathToFixture(Worker worker, int instanceId)
+    {
+        if (Layout.Find(instanceId) is not { } f) return null;
+
+        return LayoutRules.InteractionCells(_fixtures[f.FixtureId], f.Origin, f.Rotation)
+            .Select(cell => GridPaths.FindPath(IsWalkable, worker.Position, cell))
+            .Where(p => p is not null)
+            .MinBy(p => p!.Count);
     }
 
     private void MoveWorker(Worker worker)
@@ -188,9 +315,49 @@ public sealed partial class GameSim
                 FinishTask(worker, completed: true);
                 break;
 
+            case (WorkStep.Picking, CutMeatTask c):
+                if (Inventory.Count(c.Source, c.PrimalId) == 0)
+                {
+                    FinishTask(worker, completed: false);
+                    return;
+                }
+
+                worker.Carry(Inventory.Get(c.Source).Take(c.PrimalId, 1));
+                worker.Step = WorkStep.Carrying;
+                break;
+
+            case (WorkStep.Cutting, CutMeatTask c):
+                CutPrimal(worker, c);
+                FinishTask(worker, completed: true);
+                break;
+
             default:
                 throw new InvalidOperationException($"Worker {worker.Id} cannot finish {worker.Step} on {task.GetType().Name}.");
         }
+    }
+
+    /// <summary>Turns the carried primal into boxes stored back where it came from (or wherever they fit); the rest is loss.</summary>
+    private void CutPrimal(Worker worker, CutMeatTask task)
+    {
+        var primal = worker.DropAll().Single();
+        var def = Data.MeatCuts.Single(m => m.PrimalId == task.PrimalId);
+        var result = MeatCutting.Cut(def, id => _products[id], worker.KnifeSkill, primal.UnitCostCents);
+
+        long lostCents = result.LossCents;
+        foreach (var output in result.Outputs)
+        {
+            var product = _products[output.ProductId];
+            var lot = new StockLot(output.ProductId, output.Packages, Clock.Day + product.ShelfLifeDays - 1, output.UnitCostCents);
+            var destination = IsStorageArea(task.Source.FixtureInstanceId) && _fixtures[Layout.Find(task.Source.FixtureInstanceId)!.FixtureId].Storage.Contains(product.Storage)
+                ? task.Source
+                : StorageRouting.FindDestination(Data, Layout.Fixtures, product) is { } other ? StockLocation.Storage(other.InstanceId) : (StockLocation?)null;
+
+            if (destination is { } to) Inventory.GetOrCreate(to).Add(lot);
+            else lostCents += output.Packages * output.UnitCostCents;
+        }
+
+        Economy.RecordLoss(lostCents);
+        _events.Add(new MeatCut(task.Id, worker.Id, task.PrimalId, result.Outputs, lostCents));
     }
 
     private void FinishTask(Worker worker, bool completed)
@@ -200,6 +367,10 @@ public sealed partial class GameSim
         worker.TaskId = null;
         worker.Step = WorkStep.Idle;
         worker.WorkTicksLeft = 0;
-        if (completed) _events.Add(new TaskCompleted(task.Id, task.Type, worker.Id));
+        if (completed)
+        {
+            _events.Add(new TaskCompleted(task.Id, task.Type, worker.Id));
+            GainExperience(worker);
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace ChineseGrocery.Sim.Tasks;
 /// Anyone who executes tasks: the player character or a staff member. Both run the same task logic;
 /// the player just does not claim tasks automatically.
 /// </summary>
-public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCellsPerTick, int workSpeedPermille)
+public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCellsPerTick, int workSpeedPermille, int knifeSkill)
 {
     private readonly List<GridPoint> _path = [];
     private readonly List<StockLot> _carrying = [];
@@ -17,7 +17,8 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
     public GridPoint Position { get; internal set; } = position;
     public IReadOnlyList<GridPoint> Path => _path;
     public int MoveCellsPerTick { get; } = moveCellsPerTick;
-    public int WorkSpeedPermille { get; } = workSpeedPermille;
+    public int WorkSpeedPermille { get; internal set; } = workSpeedPermille;
+    public int KnifeSkill { get; internal set; } = knifeSkill;
     public int? TaskId { get; internal set; }
     public WorkStep Step { get; internal set; } = WorkStep.Idle;
     public int WorkTicksLeft { get; internal set; }
@@ -25,7 +26,7 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
     public IReadOnlyList<StockLot> Carrying => _carrying;
 
     /// <summary>In a timed step (picking, shelving, serving) and unable to walk away.</summary>
-    public bool IsWorking => Step is WorkStep.Picking or WorkStep.Shelving or WorkStep.Serving;
+    public bool IsWorking => Step is WorkStep.Picking or WorkStep.Shelving or WorkStep.Serving or WorkStep.Cutting;
 
     internal void SetPath(IEnumerable<GridPoint> path)
     {

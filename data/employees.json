@@ -7,5 +7,5 @@
       "xpPerTask": 10, "xpPerLevel": 100, "_tbd": true
     }
   ],
-  "player": { "moveCellsPerTick": 10, "workSpeedPermille": 1000, "_tbd": true }
+  "player": { "moveCellsPerTick": 10, "workSpeedPermille": 1000, "knifeSkill": 1, "_tbd": true }
 }

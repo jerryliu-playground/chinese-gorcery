@@ -22,7 +22,9 @@ public sealed record RoleDef(
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 /// <param name="WorkSpeedPermille">1000 = baseline task speed.</param>
+/// <param name="KnifeSkill">Used when the player cuts meat.</param>
 public sealed record PlayerDef(
     int MoveCellsPerTick,
     int WorkSpeedPermille,
+    int KnifeSkill,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
