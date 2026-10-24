@@ -25,7 +25,12 @@ public sealed class Customer(int id, string typeId, GridPoint position, IEnumera
     public (StockLocation Slot, string ProductId)? Target { get; internal set; }
 
     public int BrowseTicksLeft { get; internal set; }
+
+    /// <summary>The checkout, or seafood counter, the customer is heading to or queuing at.</summary>
     public int? CheckoutInstanceId { get; internal set; }
+
+    /// <summary>At a seafood counter: the live product being killed to order for them.</summary>
+    public string? WaitingFor { get; internal set; }
     public long QueueNumber { get; internal set; }
     public int WaitedSeconds { get; internal set; }
 

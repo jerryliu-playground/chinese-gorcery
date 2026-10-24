@@ -21,4 +21,5 @@ public sealed record CustomerSave(
     int WaitedSeconds,
     CustomerExit? Exit,
     int ItemsNotFound,
-    int ItemsTooExpensive);
+    int ItemsTooExpensive,
+    string? WaitingFor = null);

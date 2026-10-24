@@ -12,4 +12,5 @@ public enum WorkStep
     Tidying,
     Cleaning,
     RemovingDead,
+    Killing,
 }

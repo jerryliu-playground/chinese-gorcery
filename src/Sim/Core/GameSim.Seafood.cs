@@ -162,12 +162,28 @@ public sealed partial class GameSim
         long lossCents = 0;
         foreach (var body in dead)
         {
-            if (_products[body.ProductId].Live?.DiesAs is not { } chilledId)
-            {
-                lossCents += checked(body.Quantity * body.UnitCostCents);
-                continue;
-            }
+            var (lot, loss) = KeepAsChilled(body);
+            lossCents += loss;
+            if (lot is not null) kept.Add(lot);
+        }
 
+        _events.Add(new DeadRemoved(tankInstanceId, worker.Id, kept, lossCents));
+    }
+
+    /// <summary>
+    /// A dead or killed animal goes on as its chilled form, fresh today at the same cost (display slot first, then
+    /// storage); without a chilled form or anywhere to put it, it is written off. Returns what was kept and the loss.
+    /// </summary>
+    private (StockLot? Kept, long LossCents) KeepAsChilled(StockLot body)
+    {
+        long lossCents;
+        StockLot? kept = null;
+        if (_products[body.ProductId].Live?.DiesAs is not { } chilledId)
+        {
+            lossCents = checked(body.Quantity * body.UnitCostCents);
+        }
+        else
+        {
             var chilled = _products[chilledId];
             var lot = new StockLot(chilledId, body.Quantity, Clock.Day + chilled.ShelfLifeDays - 1, body.UnitCostCents);
             var left = PutOnDisplay(lot);
@@ -177,12 +193,12 @@ public sealed partial class GameSim
                 left = 0;
             }
 
-            lossCents += checked(left * body.UnitCostCents);
-            if (body.Quantity > left) kept.Add(lot with { Quantity = body.Quantity - left });
+            lossCents = checked(left * body.UnitCostCents);
+            if (body.Quantity > left) kept = lot with { Quantity = body.Quantity - left };
         }
 
         Economy.RecordLoss(lossCents, Department.Seafood);
-        _events.Add(new DeadRemoved(tankInstanceId, worker.Id, kept, lossCents));
+        return (kept, lossCents);
     }
 
     /// <summary>Fills display slots assigned to the lot's product as far as they have room; returns the units left over.</summary>

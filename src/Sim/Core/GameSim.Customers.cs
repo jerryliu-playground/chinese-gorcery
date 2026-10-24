@@ -58,8 +58,11 @@ public sealed partial class GameSim
         throw new InvalidOperationException("Weights must sum to more than zero.");
     }
 
-    /// <summary>Items drawn from what is on display right now, by the type's department preferences.</summary>
-    private List<string> BuildShoppingList(CustomerTypeDef type)
+    /// <summary>
+    /// Items drawn from what is on display right now: a department by the type's preferences, then a product in it by
+    /// the type's product weights.
+    /// </summary>
+    internal List<string> BuildShoppingList(CustomerTypeDef type)
     {
         var onDisplay = Inventory.Locations
             .Where(p => IsDisplay(p.Location.FixtureInstanceId))
@@ -77,7 +80,11 @@ public sealed partial class GameSim
         {
             var department = wanted[PickWeighted(wanted.Select(p => p.Weight).ToList())].Department;
             var products = onDisplay[department];
-            list.Add(products[Rng.NextInt(0, products.Count)]);
+            var weights = products.Select(type.WeightOf).ToList();
+            if (weights.Sum() <= 0) continue;
+
+            // Equal weights keep the plain uniform roll, so stores without weighted products play out as before.
+            list.Add(products[weights.Distinct().Count() == 1 ? Rng.NextInt(0, products.Count) : PickWeighted(weights)]);
         }
 
         return list;
@@ -97,13 +104,13 @@ public sealed partial class GameSim
                     Shop(customer, type);
                     break;
 
-                case CustomerState.ToCheckout:
-                    customer.State = CustomerState.Queued;
+                case CustomerState.ToCheckout or CustomerState.ToCounter:
+                    customer.State = customer.State == CustomerState.ToCheckout ? CustomerState.Queued : CustomerState.AtCounter;
                     customer.QueueNumber = _nextQueueNumber++;
                     customer.WaitedSeconds = 0;
                     break;
 
-                case CustomerState.Queued:
+                case CustomerState.Queued or CustomerState.AtCounter:
                     customer.WaitedSeconds += Data.Economy.SecondsPerTick;
                     if (customer.WaitedSeconds > type.PatienceMinutes * 60)
                     {
@@ -147,6 +154,12 @@ public sealed partial class GameSim
 
         while (customer.NextListItem() is { } productId)
         {
+            if (_products[productId].Live?.KillToOrder == true)
+            {
+                if (TryQueueAtCounter(customer, type, productId)) return;
+                continue;
+            }
+
             if (NearestDisplayWith(productId, customer.Position) is { } stop)
             {
                 customer.Target = (stop.Slot, productId);
@@ -218,6 +231,47 @@ public sealed partial class GameSim
             : lots.MaxBy(l => l.BestBeforeDay)!;
     }
 
+    /// <summary>
+    /// Live fish and lobster are not taken from the tank: if some are in, the price is acceptable and a seafood counter
+    /// can be reached, the customer goes to queue there. Returns false (noting why) otherwise.
+    /// </summary>
+    private bool TryQueueAtCounter(Customer customer, CustomerTypeDef type, string productId)
+    {
+        if (!Tanks().Any(t => TankSlots(t).Any(p => p.Count(productId) > 0)) || NearestCounter(customer.Position) is not { } counter)
+        {
+            NoteNotFound(customer, productId);
+            return false;
+        }
+
+        if (Rng.NextInt(0, 1000) >= PriceAcceptance.BuyChancePermille(type, Prices.PriceOf(productId), Prices.ReferenceOf(productId)))
+        {
+            customer.ItemsTooExpensive++;
+            Economy.Today.CountItemTooExpensive();
+            _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, productId));
+            return false;
+        }
+
+        customer.CheckoutInstanceId = counter.InstanceId;
+        customer.WaitingFor = productId;
+        customer.SetPath(GridPaths.FindPath(IsWalkable, customer.Position, counter.Cell)!);
+        customer.State = CustomerState.ToCounter;
+        return true;
+    }
+
+    /// <summary>The seafood counter with the shortest walk, and where its customers stand.</summary>
+    private (int InstanceId, GridPoint Cell)? NearestCounter(GridPoint from)
+    {
+        var distances = GridPaths.Distances(IsWalkable, from);
+        return Layout.Fixtures
+            .Where(f => _fixtures[f.FixtureId].Kind == FixtureKind.SeafoodCounter)
+            .Select(f => (f.InstanceId, Cell: LayoutRules.CustomerCells(_fixtures[f.FixtureId], f.Origin, f.Rotation).First()))
+            .Where(c => distances.ContainsKey(c.Cell))
+            .OrderBy(c => distances[c.Cell])
+            .ThenBy(c => c.InstanceId)
+            .Select(c => ((int, GridPoint)?)c)
+            .FirstOrDefault();
+    }
+
     private void NoteNotFound(Customer customer, string? productId = null)
     {
         customer.ItemsNotFound++;
@@ -264,6 +318,7 @@ public sealed partial class GameSim
         customer.Exit = exit;
         customer.State = CustomerState.Leaving;
         customer.CheckoutInstanceId = null;
+        customer.WaitingFor = null;
         var distances = GridPaths.Distances(IsWalkable, customer.Position);
         var door = EntranceCells().Where(distances.ContainsKey).MinBy(c => distances[c]);
         customer.SetPath(GridPaths.FindPath(IsWalkable, customer.Position, door)!);
@@ -275,6 +330,13 @@ public sealed partial class GameSim
         foreach (var (lot, from, _) in customer.EmptyBasket())
         {
             var product = _products[lot.ProductId];
+            if (product.Live?.KillToOrder == true && !IsDisplay(from.FixtureInstanceId))
+            {
+                // Already killed at the counter: it can only go on as chilled goods.
+                KeepAsChilled(lot);
+                continue;
+            }
+
             if (Shelves.ProductAt(from) == lot.ProductId && Inventory.Count(from, lot.ProductId) + lot.Quantity <= product.UnitsPerShelfSlot)
             {
                 Inventory.GetOrCreate(from).Add(lot);

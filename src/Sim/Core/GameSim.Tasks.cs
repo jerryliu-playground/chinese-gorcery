@@ -21,6 +21,7 @@ public sealed partial class GameSim
         RefreshCutMeatTasks();
         RefreshTidyTasks();
         RefreshTankTasks();
+        RefreshKillTasks();
     }
 
     private void RefreshRestockTasks()
@@ -125,6 +126,7 @@ public sealed partial class GameSim
         TidyTask t => t.StandInstanceId,
         CleanTankTask c => c.TankInstanceId,
         RemoveDeadTask r => r.TankInstanceId,
+        KillFishTask k => k.Source.FixtureInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -133,6 +135,7 @@ public sealed partial class GameSim
     {
         RestockTask r => r.Target.FixtureInstanceId,
         CutMeatTask c => c.CuttingTableInstanceId,
+        KillFishTask k => k.CounterInstanceId,
         _ => null,
     };
 
@@ -211,6 +214,16 @@ public sealed partial class GameSim
                 BeginStep(worker, WorkStep.RemovingDead, settings.RemoveDeadMinutes);
                 break;
 
+            case KillFishTask k:
+                if (!StartKill(worker, k))
+                {
+                    // The customer stopped waiting before the fish was fetched.
+                    FinishTask(worker, completed: false);
+                    return;
+                }
+
+                break;
+
             case CheckoutTask c:
                 var customer = _customers
                     .Where(x => x.State == CustomerState.Queued && x.CheckoutInstanceId == c.CheckoutInstanceId)
@@ -234,6 +247,10 @@ public sealed partial class GameSim
 
             case CutMeatTask:
                 BeginStep(worker, WorkStep.Cutting, Data.Economy.Tasks.CutMeatMinutes);
+                break;
+
+            case KillFishTask:
+                StartKilling(worker);
                 break;
         }
     }
@@ -426,6 +443,15 @@ public sealed partial class GameSim
 
             case (WorkStep.Cleaning, CleanTankTask c):
                 CleanTank(worker, c.TankInstanceId);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Picking, KillFishTask k):
+                PickUpForKill(worker, k);
+                break;
+
+            case (WorkStep.Killing, KillFishTask k):
+                FinishKill(worker, k);
                 FinishTask(worker, completed: true);
                 break;
 

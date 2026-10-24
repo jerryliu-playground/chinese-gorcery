@@ -47,7 +47,7 @@ public sealed partial class GameSim
             _customers.Select(c => new CustomerSave(
                 c.Id, c.TypeId, c.Position, c.Path.ToList(), c.MoveProgress, c.State, c.ShoppingList.ToList(), c.Basket.ToList(),
                 c.Target?.Slot, c.Target?.ProductId, c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedSeconds,
-                c.Exit, c.ItemsNotFound, c.ItemsTooExpensive)).ToList(),
+                c.Exit, c.ItemsNotFound, c.ItemsTooExpensive, c.WaitingFor)).ToList(),
             _nextCustomerId,
             _nextQueueNumber,
             _queue.ToList(),
@@ -123,7 +123,7 @@ public sealed partial class GameSim
             {
                 MoveProgress = c.MoveProgress, State = c.State, BrowseTicksLeft = c.BrowseTicksLeft,
                 CheckoutInstanceId = c.CheckoutInstanceId, QueueNumber = c.QueueNumber, WaitedSeconds = c.WaitedSeconds,
-                Exit = c.Exit, ItemsNotFound = c.ItemsNotFound, ItemsTooExpensive = c.ItemsTooExpensive,
+                Exit = c.Exit, ItemsNotFound = c.ItemsNotFound, ItemsTooExpensive = c.ItemsTooExpensive, WaitingFor = c.WaitingFor,
                 Target = c.TargetSlot is { } slot ? (slot, c.TargetProductId!) : null,
             };
             customer.SetPath(c.Path);

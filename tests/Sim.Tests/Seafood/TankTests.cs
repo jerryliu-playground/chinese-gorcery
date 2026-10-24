@@ -91,8 +91,12 @@ public class TankTests
         Stock(sim, tank, 0, Fish, 6);
         Stock(sim, tank, 1, Shrimp, 12);
         sim.TankCleaningDisabled = true;
+        Open(sim);
+
+        // The water fouls all day; set it just before closing so the deaths are judged at this quality.
+        TickUntil(sim, () => sim.Clock.MinuteOfDay >= sim.Data.Economy.CloseMinuteOfDay - 1);
         sim.SetWaterQuality(tank, quality);
-        sim.OpenAndRunToClose();
+        TickUntil(sim, () => sim.Clock.Phase == DayPhase.Closed);
         return (sim.DeadIn(tank).Sum(l => l.Quantity), SaveGame.Write(sim));
     }
 
