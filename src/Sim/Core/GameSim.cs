@@ -81,13 +81,17 @@ public sealed partial class GameSim
             Execute(command);
         }
 
+        SpawnArrivals();
+        UpdateCustomers();
         RefreshTasks();
         UpdateWorkers();
 
         if (Clock.Phase == DayPhase.Open)
         {
             Clock.Advance(Data.Economy.MinutesPerTick);
-            if (Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay)
+
+            // Doors shut at closing time, but the day only ends once the last customer is out.
+            if (Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay && _customers.Count == 0)
             {
                 CloseDay();
             }

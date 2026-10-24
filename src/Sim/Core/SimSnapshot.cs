@@ -28,6 +28,11 @@ public static class SimSnapshot
         Prices = sim.Prices.Overrides,
         Workers = sim.Workers.Select(w => new { w.Id, w.Position, w.Path, w.TaskId, Step = w.Step.ToString(), w.WorkTicksLeft, w.Carrying }),
         Tasks = sim.Tasks.Tasks.Select(t => new { Task = t.ToString(), ClaimedBy = sim.Tasks.ClaimedBy(t.Id) }),
+        Customers = sim.Customers.Select(c => new
+        {
+            c.Id, c.TypeId, c.Position, c.Path, State = c.State.ToString(), c.ShoppingList, c.Basket, c.Target,
+            c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedMinutes, c.ItemsNotFound, c.ItemsTooExpensive,
+        }),
         sim.Reports,
     }, Options);
 

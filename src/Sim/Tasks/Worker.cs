@@ -21,6 +21,7 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
     public int? TaskId { get; internal set; }
     public WorkStep Step { get; internal set; } = WorkStep.Idle;
     public int WorkTicksLeft { get; internal set; }
+    public int? ServingCustomerId { get; internal set; }
     public IReadOnlyList<StockLot> Carrying => _carrying;
 
     /// <summary>In a timed step (picking, shelving, serving) and unable to walk away.</summary>

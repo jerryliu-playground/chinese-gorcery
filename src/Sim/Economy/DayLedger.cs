@@ -26,7 +26,23 @@ public sealed class DayLedger(int day, long cashStartCents)
         }
     }
 
+    public int ItemsNotFound { get; private set; }
+    public int ItemsTooExpensive { get; private set; }
+    public IReadOnlyList<ProductSales> Sales => _sales.Values.ToList();
+
     internal void AddLoss(long cents) => LossCents += cents;
+
+    internal void AddSale(string productId, int units, long revenueCents)
+    {
+        RevenueCents += revenueCents;
+        var before = _sales.GetValueOrDefault(productId) ?? new ProductSales(productId, 0, 0);
+        _sales[productId] = before with { Units = before.Units + units, RevenueCents = before.RevenueCents + revenueCents };
+    }
+
+    internal void CountCustomer() => Customers++;
+    internal void CountAngryLeave() => AngryLeaves++;
+    internal void CountItemNotFound() => ItemsNotFound++;
+    internal void CountItemTooExpensive() => ItemsTooExpensive++;
 
     internal DailyReport ToReport(long cashEndCents) => new(
         Day,
@@ -40,5 +56,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents,
         Customers,
         AngryLeaves,
+        ItemsNotFound,
+        ItemsTooExpensive,
         _sales.Values.ToList());
 }

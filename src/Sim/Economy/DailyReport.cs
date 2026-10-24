@@ -16,4 +16,6 @@ public sealed record DailyReport(
     long ProfitCents,
     int Customers,
     int AngryLeaves,
+    int ItemsNotFound,
+    int ItemsTooExpensive,
     IReadOnlyList<ProductSales> Sales);

@@ -24,8 +24,12 @@ public class DailyReportTests
         Assert.Equal(0, report.WagesCents);
         Assert.Equal(0, report.FixtureSpendCents);
         Assert.Equal(-spent, report.ProfitCents);
-        Assert.Equal(0, report.Customers);
         Assert.Empty(report.Sales);
+
+        // Customers still come in, find empty shelves and leave.
+        Assert.True(report.Customers > 0);
+        Assert.Equal(report.Customers, report.ItemsNotFound);
+        Assert.Equal(0, report.AngryLeaves);
     }
 
     [Fact]

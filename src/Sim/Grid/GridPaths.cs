@@ -34,6 +34,25 @@ public static class GridPaths
         return path;
     }
 
+    /// <summary>Walking distance from <paramref name="start"/> to every reachable cell.</summary>
+    public static Dictionary<GridPoint, int> Distances(Func<GridPoint, bool> walkable, GridPoint start)
+    {
+        var dist = new Dictionary<GridPoint, int> { [start] = 0 };
+        var queue = new Queue<GridPoint>();
+        queue.Enqueue(start);
+        while (queue.Count > 0)
+        {
+            var c = queue.Dequeue();
+            foreach (var step in Steps)
+            {
+                var n = new GridPoint(c.X + step.X, c.Y + step.Y);
+                if (walkable(n) && dist.TryAdd(n, dist[c] + 1)) queue.Enqueue(n);
+            }
+        }
+
+        return dist;
+    }
+
     public static HashSet<GridPoint> Reachable(Func<GridPoint, bool> walkable, IEnumerable<GridPoint> starts)
     {
         var seen = new HashSet<GridPoint>();

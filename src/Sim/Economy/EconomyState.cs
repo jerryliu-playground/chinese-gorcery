@@ -34,6 +34,15 @@ public sealed class EconomyState
         Today.AddExpense(category, -cents);
     }
 
+    /// <summary>Takes payment for <paramref name="units"/> of a product.</summary>
+    internal void Earn(string productId, int units, long revenueCents)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(revenueCents);
+        CashCents += revenueCents;
+        CumulativeRevenueCents += revenueCents;
+        Today.AddSale(productId, units, revenueCents);
+    }
+
     internal void RecordLoss(long cents)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(cents);

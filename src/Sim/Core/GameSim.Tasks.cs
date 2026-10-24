@@ -1,3 +1,4 @@
+using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
@@ -8,7 +9,28 @@ namespace ChineseGrocery.Sim.Core;
 /// <summary>Generating tasks and running workers through them. Shared by the player and staff.</summary>
 public sealed partial class GameSim
 {
-    private void RefreshTasks() => RefreshRestockTasks();
+    private void RefreshTasks()
+    {
+        RefreshRestockTasks();
+        RefreshCheckoutTasks();
+    }
+
+    /// <summary>One task per checkout with someone waiting; finishing it serves one customer.</summary>
+    private void RefreshCheckoutTasks()
+    {
+        Tasks.RemoveOpen(t => t is CheckoutTask c && !HasQueue(c.CheckoutInstanceId));
+
+        foreach (var checkout in Layout.Fixtures.Where(f => _fixtures[f.FixtureId].Kind == FixtureKind.Checkout))
+        {
+            if (!HasQueue(checkout.InstanceId)) continue;
+            if (Tasks.Tasks.Any(t => t is CheckoutTask c && c.CheckoutInstanceId == checkout.InstanceId)) continue;
+
+            Tasks.Add(id => new CheckoutTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Checkout), checkout.InstanceId));
+        }
+    }
+
+    private bool HasQueue(int checkoutInstanceId) =>
+        _customers.Any(c => c.State == CustomerState.Queued && c.CheckoutInstanceId == checkoutInstanceId);
 
     private void RefreshRestockTasks()
     {
@@ -46,6 +68,7 @@ public sealed partial class GameSim
     private static bool Involves(SimTask task, int instanceId) => task switch
     {
         RestockTask r => r.Source.FixtureInstanceId == instanceId || r.Target.FixtureInstanceId == instanceId,
+        CheckoutTask c => c.CheckoutInstanceId == instanceId,
         _ => false,
     };
 
@@ -57,6 +80,23 @@ public sealed partial class GameSim
             if (Tasks.Find(worker.TaskId!.Value) is not RestockTask carrying || carrying.Target.FixtureInstanceId != placed.InstanceId) return false;
 
             BeginStep(worker, WorkStep.Shelving, Data.Economy.Tasks.RestockShelveMinutes);
+            return true;
+        }
+
+        if (_fixtures[placed.FixtureId].Kind == FixtureKind.Checkout)
+        {
+            var task = Tasks.OpenTasks.OfType<CheckoutTask>().FirstOrDefault(t => t.CheckoutInstanceId == placed.InstanceId);
+            if (task is null || !Tasks.TryClaim(task.Id, worker.Id)) return false;
+
+            var customer = _customers
+                .Where(c => c.State == CustomerState.Queued && c.CheckoutInstanceId == placed.InstanceId)
+                .MinBy(c => c.QueueNumber)!;
+            customer.State = CustomerState.BeingServed;
+            worker.TaskId = task.Id;
+            worker.ServingCustomerId = customer.Id;
+            var settings = Data.Economy.Tasks;
+            BeginStep(worker, WorkStep.Serving, settings.CheckoutBaseMinutes + settings.CheckoutMinutesPerItem * customer.Basket.Sum(i => i.Lot.Quantity));
+            _events.Add(new TaskStarted(task.Id, task.Type, worker.Id));
             return true;
         }
 
@@ -137,6 +177,14 @@ public sealed partial class GameSim
             case (WorkStep.Shelving, RestockTask r):
                 var shelf = Inventory.GetOrCreate(r.Target);
                 foreach (var lot in worker.DropAll()) shelf.Add(lot);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Serving, CheckoutTask):
+                var served = _customers.Single(c => c.Id == worker.ServingCustomerId);
+                var revenue = CheckOut(served);
+                worker.ServingCustomerId = null;
+                _events.Add(new CheckoutCompleted(served.Id, revenue, worker.Id));
                 FinishTask(worker, completed: true);
                 break;
 
