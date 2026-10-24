@@ -8,11 +8,13 @@ script = ExtResource("1_main")
 [node name="Background" type="ColorRect" parent="."]
 offset_right = 640.0
 offset_bottom = 360.0
-color = Color(0.13, 0.15, 0.18, 1)
+mouse_filter = 2
+color = Color(0.1, 0.11, 0.13, 1)
 
-[node name="Title" type="Label" parent="."]
+[node name="Error" type="Label" parent="."]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 624.0
-offset_bottom = 40.0
-text = "ui.main.title"
+offset_bottom = 344.0
+mouse_filter = 2
+autowrap_mode = 3
