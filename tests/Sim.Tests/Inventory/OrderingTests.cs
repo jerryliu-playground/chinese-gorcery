@@ -20,7 +20,7 @@ public class OrderingTests
         sim.Run(new PlaceOrder(Rice, 10));
 
         Assert.Equal(SimTestKit.Data.Economy.StartingCashCents - 10 * RiceDef.CostCents, sim.Economy.CashCents);
-        Assert.Equal(new PendingOrder(Rice, 10, RiceDef.CostCents, 1), Assert.Single(sim.PendingOrders));
+        Assert.Equal(new PendingOrder(Rice, 10, RiceDef.CostCents, 1, sim.InstanceOf("backroom")), Assert.Single(sim.PendingOrders));
         Assert.Equal(new OrderPlaced(1, Rice, 10, 10 * RiceDef.CostCents), sim.DrainEvents().Single<OrderPlaced>());
     }
 

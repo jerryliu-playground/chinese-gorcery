@@ -15,27 +15,70 @@ public sealed partial class GameSim
         if (order.Quantity <= 0) return Reject(RejectReason.InvalidQuantity);
         if (!_products.TryGetValue(order.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
         if (!product.Orderable) return Reject(RejectReason.NotOrderable);
-        if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is not { } destination) return Reject(RejectReason.NoStorageForProduct);
+        if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is null) return Reject(RejectReason.NoStorageForProduct);
 
         var cost = checked(order.Quantity * product.CostCents);
         if (!Economy.CanAfford(cost)) return Reject(RejectReason.InsufficientCash);
-        if (!FitsInStorage(destination, product, order.Quantity)) return Reject(RejectReason.StorageFull);
+        if (AllocateStorage(product, order.Quantity) is not { } parts) return Reject(RejectReason.StorageFull);
 
         Economy.Spend(ExpenseCategory.Purchases, cost);
-        _orders.Add(new PendingOrder(product.Id, order.Quantity, product.CostCents, Clock.Day));
+        foreach (var (storage, units) in parts)
+        {
+            _orders.Add(new PendingOrder(product.Id, units, product.CostCents, Clock.Day, storage));
+        }
+
         _events.Add(new OrderPlaced(Clock.Day, product.Id, order.Quantity, cost));
         return null;
     }
 
-    /// <summary>Whether the destination can hold what it has, what is already on order for it, and this order.</summary>
-    private bool FitsInStorage(PlacedFixture destination, ProductDef product, int quantity)
+    /// <summary>
+    /// Splits an order over the storage areas that can keep the product, filling each in turn (lowest id first).
+    /// Null if all of them together cannot take it.
+    /// </summary>
+    private List<(int Storage, int Units)>? AllocateStorage(ProductDef product, int quantity)
     {
-        var held = Inventory.TryGet(StockLocation.Storage(destination.InstanceId))?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
-        var pending = _orders.Pending
-            .Where(o => StorageRouting.FindDestination(Data, Layout.Fixtures, _products[o.ProductId])?.InstanceId == destination.InstanceId)
+        var parts = new List<(int, int)>();
+        var left = quantity;
+        foreach (var storage in Layout.Fixtures.Where(f => CanStore(f, product)))
+        {
+            var take = Math.Min(left, FreeUnits(storage, product));
+            if (take <= 0) continue;
+
+            parts.Add((storage.InstanceId, take));
+            left -= take;
+            if (left == 0) return parts;
+        }
+
+        return null;
+    }
+
+    private bool CanStore(PlacedFixture fixture, ProductDef product)
+    {
+        var def = _fixtures[fixture.FixtureId];
+        return DataValidator.IsStorageArea(def.Kind) && def.Storage.Contains(product.Storage);
+    }
+
+    /// <summary>How many more units of the product this storage area can take, counting stock and orders already headed there.</summary>
+    private int FreeUnits(PlacedFixture storage, ProductDef product)
+    {
+        var held = Inventory.TryGet(StockLocation.Storage(storage.InstanceId))?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
+        var incoming = _orders.Pending
+            .Where(o => DeliveryTarget(o)?.InstanceId == storage.InstanceId)
             .Select(o => (_products[o.ProductId], o.Quantity));
-        var slots = StorageCapacity.SlotsNeeded(held.Concat(pending).Append((product, quantity)));
-        return slots <= _fixtures[destination.FixtureId].Capacity;
+        var holdings = held.Concat(incoming).ToList();
+
+        var otherSlots = StorageCapacity.SlotsNeeded(holdings.Where(h => h.Item1.Id != product.Id));
+        var mine = holdings.Where(h => h.Item1.Id == product.Id).Sum(h => h.Quantity);
+        return Math.Max(0, (_fixtures[storage.FixtureId].Capacity - otherSlots) * product.UnitsPerStorageSlot - mine);
+    }
+
+    /// <summary>Where an order part will be delivered: its own storage area if it still stands, else the first that can keep it.</summary>
+    private PlacedFixture? DeliveryTarget(PendingOrder order)
+    {
+        var product = _products[order.ProductId];
+        return order.DestinationInstanceId is { } id && Layout.Find(id) is { } own && CanStore(own, product)
+            ? own
+            : StorageRouting.FindDestination(Data, Layout.Fixtures, product);
     }
 
     private void DeliverOrders()
@@ -43,7 +86,7 @@ public sealed partial class GameSim
         foreach (var order in _orders.TakeAll())
         {
             var product = _products[order.ProductId];
-            var destination = StorageRouting.FindDestination(Data, Layout.Fixtures, product)
+            var destination = DeliveryTarget(order)
                 ?? throw new InvalidOperationException($"No storage for delivered '{order.ProductId}'; selling should have been blocked.");
             var bestBefore = Clock.Day + product.ShelfLifeDays - 1;
             Inventory.GetOrCreate(StockLocation.Storage(destination.InstanceId)).Add(new StockLot(order.ProductId, order.Quantity, bestBefore, order.UnitCostCents));
