@@ -28,14 +28,19 @@
       { "taskType": "tidy", "priority": 8 },
       { "taskType": "kill_fish", "priority": 18 },
       { "taskType": "clean_tank", "priority": 9 },
-      { "taskType": "remove_dead", "priority": 12 }
+      { "taskType": "remove_dead", "priority": 12 },
+      { "taskType": "cook", "priority": 11 },
+      { "taskType": "serve_deli", "priority": 19 }
     ],
     "tidyMinutes": 2,
     "killPickupMinutes": 1,
     "killFishMinutes": 4,
     "killSkillSpeedPermille": 150,
     "cleanTankMinutes": 5,
-    "removeDeadMinutes": 2
+    "removeDeadMinutes": 2,
+    "serveDeliMinutes": 1,
+    "cookSkillSpeedPermille": 150,
+    "cookSkillPricePermille": 50
   },
   "freshness": {
     "priceFactorsPermille": { "fresh": 1000, "normal": 850, "ripe": 500 },
@@ -56,6 +61,15 @@
     "deathMultiplierPoints": [
       { "quality": 0, "permille": 15000 }, { "quality": 30, "permille": 6000 },
       { "quality": 60, "permille": 2000 }, { "quality": 100, "permille": 1000 }
+    ]
+  },
+  "deli": {
+    "rushArrivals": [
+      { "startMinuteOfDay": 540, "customersPerHour": 0, "typeWeights": [] },
+      { "startMinuteOfDay": 690, "customersPerHour": 10, "typeWeights": [{ "typeId": "international_student", "weight": 5 }, { "typeId": "bargain_hunter", "weight": 2 }, { "typeId": "chinese_family", "weight": 1 }] },
+      { "startMinuteOfDay": 810, "customersPerHour": 0, "typeWeights": [] },
+      { "startMinuteOfDay": 1050, "customersPerHour": 12, "typeWeights": [{ "typeId": "international_student", "weight": 5 }, { "typeId": "chinese_family", "weight": 4 }, { "typeId": "bargain_hunter", "weight": 1 }] },
+      { "startMinuteOfDay": 1170, "customersPerHour": 0, "typeWeights": [] }
     ]
   },
   "startingLayout": [

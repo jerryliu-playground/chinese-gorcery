@@ -39,6 +39,8 @@ public static partial class DataValidator
         ValidateStartingLayout(data, errors);
         ValidateProduceSettings(data, errors);
         ValidateSeafoodSettings(data, errors);
+        ValidateRecipes(data, products, errors);
+        ValidateDeliSettings(data, errors);
 
         return errors;
     }
@@ -52,7 +54,7 @@ public static partial class DataValidator
         {
             var p = products[i];
             var at = $"{file}: [{i}] '{p.Id}'";
-            CheckNameKey(at, p.NameKey, "product", p.Id, errors);
+            CheckNameKey(at, p.NameKey, p.Department == Department.Deli ? "dish" : "product", p.Id, errors);
             if (p.CostCents < 0) errors.Add($"{at}: costCents must be >= 0");
             if (p.SuggestedPriceCents <= 0) errors.Add($"{at}: suggestedPriceCents must be > 0");
             if (p.ShelfLifeDays <= 0) errors.Add($"{at}: shelfLifeDays must be > 0");
@@ -111,10 +113,11 @@ public static partial class DataValidator
             if (f.CustomerCells.Distinct().Count() != f.CustomerCells.Count) errors.Add($"{at}: customerCells has duplicates");
 
             var needsWorkerCell = f.Kind is not FixtureKind.Entrance;
-            var needsCustomerCell = f.Kind is FixtureKind.Entrance or FixtureKind.Checkout or FixtureKind.SeafoodCounter || IsDisplay(f.Kind);
+            var needsCustomerCell = f.Kind is FixtureKind.Entrance or FixtureKind.Checkout or FixtureKind.SeafoodCounter || IsDisplay(f.Kind) || IsDeliStation(f.Kind);
             if (needsWorkerCell && f.InteractionCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one interaction cell");
             if (needsCustomerCell && f.CustomerCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one customer cell");
-            if ((IsDisplay(f.Kind) || IsStorageArea(f.Kind)) && f.Capacity <= 0) errors.Add($"{at}: {f.Kind} needs capacity > 0");
+            if ((IsDisplay(f.Kind) || IsStorageArea(f.Kind) || IsDeliStation(f.Kind)) && f.Capacity <= 0) errors.Add($"{at}: {f.Kind} needs capacity > 0");
+            if (IsDeliStation(f.Kind) && !f.Storage.Contains(StorageType.Hot)) errors.Add($"{at}: deli stations must store 'hot' food");
             if (IsDisplay(f.Kind) && f.Storage.Count == 0) errors.Add($"{at}: displays must list at least one storage type");
         }
 
@@ -130,6 +133,9 @@ public static partial class DataValidator
     /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
     public static bool IsDisplay(FixtureKind kind) =>
         kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.FishTank or FixtureKind.IceTable;
+
+    /// <summary>Fixture kinds that sell the kitchen's dishes, served by a worker; the daily menu sets what is in each slot.</summary>
+    public static bool IsDeliStation(FixtureKind kind) => kind is FixtureKind.SteamTable or FixtureKind.RoastStation;
 
     /// <summary>Fixture kinds that receive deliveries.</summary>
     public static bool IsStorageArea(FixtureKind kind) => kind is FixtureKind.Backroom or FixtureKind.ColdStorage;
@@ -317,7 +323,10 @@ public static partial class DataValidator
         }
 
         CheckPermille(file, "fixtureSellRefundPermille", e.FixtureSellRefundPermille, errors);
-        if (e.Tasks.KillSkillSpeedPermille < 0) errors.Add($"{file}: tasks.killSkillSpeedPermille must be >= 0");
+        if (e.Tasks.KillSkillSpeedPermille < 0 || e.Tasks.CookSkillSpeedPermille < 0 || e.Tasks.CookSkillPricePermille < 0)
+        {
+            errors.Add($"{file}: tasks skill permilles must be >= 0");
+        }
 
         var t = e.Tasks;
         CheckPermille(file, "tasks.restockBelowPermille", t.RestockBelowPermille, errors);
@@ -328,6 +337,7 @@ public static partial class DataValidator
                      ("cutPickupMinutes", t.CutPickupMinutes), ("cutMeatMinutes", t.CutMeatMinutes), ("tidyMinutes", t.TidyMinutes),
                      ("killPickupMinutes", t.KillPickupMinutes), ("killFishMinutes", t.KillFishMinutes),
                      ("cleanTankMinutes", t.CleanTankMinutes), ("removeDeadMinutes", t.RemoveDeadMinutes),
+                     ("serveDeliMinutes", t.ServeDeliMinutes),
                  })
         {
             if (minutes < 0) errors.Add($"{file}: tasks.{name} must be >= 0");
@@ -468,6 +478,52 @@ public static partial class DataValidator
         if (points.Count < 2 || points[0].Quality != 0 || points[^1].Quality != 100 || points.Zip(points.Skip(1)).Any(p => p.First.Quality >= p.Second.Quality) || points.Any(p => p.Permille < 0))
         {
             errors.Add($"{file}: seafood.deathMultiplierPoints must run from quality 0 to 100 in rising order");
+        }
+    }
+
+    private static void ValidateRecipes(GameData data, Dictionary<string, ProductDef> products, List<string> errors)
+    {
+        const string file = DataFiles.Recipes;
+        for (var i = 0; i < data.Recipes.Count; i++)
+        {
+            var r = data.Recipes[i];
+            var at = $"{file}: [{i}] '{r.Id}'";
+            if (r.Ingredients.Count == 0) errors.Add($"{at}: ingredients must not be empty");
+            if (r.Ingredients.Select(x => x.ProductId).Distinct().Count() != r.Ingredients.Count) errors.Add($"{at}: ingredients list a product more than once");
+            foreach (var x in r.Ingredients)
+            {
+                if (!products.TryGetValue(x.ProductId, out var p)) errors.Add($"{at}: ingredient '{x.ProductId}' does not exist in {DataFiles.Products}");
+                else if (p.Department == Department.Deli) errors.Add($"{at}: ingredient '{x.ProductId}' is itself a dish");
+                if (x.Quantity <= 0) errors.Add($"{at}: ingredient quantities must be > 0");
+            }
+
+            if (r.Portions <= 0) errors.Add($"{at}: portions must be > 0");
+            if (r.CookMinutes < 0) errors.Add($"{at}: cookMinutes must be >= 0");
+            if (!IsDeliStation(r.Station)) errors.Add($"{at}: station must be a deli station (steam_table or roast_station)");
+            else if (!data.Fixtures.Any(f => f.Kind == r.Station)) errors.Add($"{at}: no fixture of kind '{r.Station}' exists");
+            if (r.UnitsPerSlot < r.Portions) errors.Add($"{at}: unitsPerSlot must hold at least one cooking's portions");
+        }
+    }
+
+    private static void ValidateDeliSettings(GameData data, List<string> errors)
+    {
+        const string file = DataFiles.Economy;
+        if (data.Economy.Deli is not { } d) return;
+
+        var types = data.CustomerTypes.Select(t => t.Id).ToHashSet();
+        var buckets = d.RushArrivals;
+        if (buckets.Count == 0 || buckets[0].StartMinuteOfDay != data.Economy.OpenMinuteOfDay) errors.Add($"{file}: deli.rushArrivals must start at openMinuteOfDay");
+        for (var i = 0; i < buckets.Count; i++)
+        {
+            var b = buckets[i];
+            if (i > 0 && b.StartMinuteOfDay <= buckets[i - 1].StartMinuteOfDay) errors.Add($"{file}: deli.rushArrivals must be strictly ascending by startMinuteOfDay");
+            if (b.CustomersPerHour < 0) errors.Add($"{file}: deli.rushArrivals[{i}]: customersPerHour must be >= 0");
+            if (b.CustomersPerHour > 0 && b.TypeWeights.Sum(w => w.Weight) <= 0) errors.Add($"{file}: deli.rushArrivals[{i}]: typeWeights must sum to > 0");
+            foreach (var w in b.TypeWeights)
+            {
+                if (!types.Contains(w.TypeId)) errors.Add($"{file}: deli.rushArrivals[{i}]: customer type '{w.TypeId}' does not exist");
+                if (w.Weight < 0) errors.Add($"{file}: deli.rushArrivals[{i}]: weights must be >= 0");
+            }
         }
     }
 

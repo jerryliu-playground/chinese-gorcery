@@ -9,4 +9,6 @@ public enum TaskType
     KillFish,
     CleanTank,
     RemoveDead,
+    Cook,
+    ServeDeli,
 }

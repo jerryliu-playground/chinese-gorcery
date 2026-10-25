@@ -9,4 +9,5 @@ public enum Department
     Meat,
     Produce,
     Seafood,
+    Deli,
 }

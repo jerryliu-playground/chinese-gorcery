@@ -7,7 +7,7 @@
       "moveCellsPerMinute": 3,
       "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
       "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
-      "sprite": { "main": "char_butcher" },
+      "sprite": { "main": "char_butcher" }, "skillNameKey": "ui.staff.skill.knife",
       "_tbd": true
     },
     {
@@ -17,7 +17,17 @@
       "moveCellsPerMinute": 3,
       "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
       "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
-      "sprite": { "main": "char_fishmonger" },
+      "sprite": { "main": "char_fishmonger" }, "skillNameKey": "ui.staff.skill.knife",
+      "_tbd": true
+    },
+    {
+      "id": "chef", "nameKey": "role.chef.name", "unlockStage": 4, "maxCount": 1,
+      "taskTypes": ["cook", "serve_deli"], "marketWageCentsPerDay": 14000,
+      "knifeSkill": { "min": 1, "max": 5 }, "speedPermille": { "min": 800, "max": 1200 },
+      "moveCellsPerMinute": 3,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 50,
+      "sprite": { "main": "char_chef" }, "skillNameKey": "ui.staff.skill.cooking",
       "_tbd": true
     }
   ],

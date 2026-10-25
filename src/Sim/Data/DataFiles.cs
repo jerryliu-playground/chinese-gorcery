@@ -10,7 +10,8 @@ public static class DataFiles
     public const string MeatCuts = "meat_cuts.json";
     public const string Stages = "stages.json";
     public const string Economy = "economy.json";
+    public const string Recipes = "recipes.json";
 
     public static readonly IReadOnlyList<string> All =
-        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy];
+        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy, Recipes];
 }

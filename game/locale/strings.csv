@@ -59,7 +59,7 @@ ui.staff.title,Staff,员工
 ui.staff.none_unlocked,No staff can be hired yet.,现在还不能雇人。
 ui.staff.market_wage,market {wage}/day,市场工资 {wage}/天
 ui.staff.hire,Hire,雇用
-ui.staff.stats,{role} Lv{level}  knife {knife}  speed {speed}%  morale {morale}%,{role} {level} 级  刀工 {knife}  速度 {speed}%  士气 {morale}%
+ui.staff.stats,{role} Lv{level}  {skill_name} {knife}  speed {speed}%  morale {morale}%,{role} {level} 级  {skill_name} {knife}  速度 {speed}%  士气 {morale}%
 ui.staff.wage,Wage/day,日薪
 ui.staff.set_wage,Set,确定
 ui.build.title,Build,摆放设施
@@ -209,3 +209,22 @@ ui.water.dead,{count} dead,死鱼 {count}
 ui.water.risk,Death risk {risk}%,死亡风险 {risk}%
 ui.report.seafood_loss,Seafood waste,海鲜损耗
 ui.report.seafood_deaths,Seafood deaths,海鲜死亡
+stage.4.name,Supermarket,大型超市
+product.whole_duck.name,Whole duck,整鸭
+product.pork_shoulder.name,Pork shoulder,猪梅肉
+dish.braised_pork.name,Braised pork belly,红烧肉
+dish.sweet_sour_ribs.name,Sweet and sour ribs,糖醋排骨
+dish.dumplings.name,Pork and cabbage dumplings,白菜猪肉饺子
+dish.stir_fried_bok_choy.name,Stir-fried bok choy,清炒小白菜
+dish.steamed_fish.name,Steamed fish with ginger and scallion,葱姜蒸鱼
+dish.salt_pepper_shrimp.name,Salt and pepper shrimp,椒盐虾
+dish.roast_duck.name,Roast duck,烧鸭
+dish.char_siu.name,Char siu,叉烧
+fixture.wok_stove.name,Wok Stove,炉灶
+fixture.steam_table.name,Steam Table,打菜台
+fixture.roast_station.name,Roast Station,烧腊档
+role.chef.name,Chef,厨师
+ui.staff.skill.knife,knife,刀工
+ui.staff.skill.cooking,cooking,厨艺
+ui.report.deli_loss,Deli waste,熟食损耗
+ui.report.kitchen_rescued,Near-expiry food cooked,进厨房的临期食材

@@ -76,5 +76,28 @@
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 0, "storage": [], "priceCents": 10000, "unlockStage": 3, "sprite": { "main": "seafood_counter" },
     "_tbd": true
+  },
+  {
+    "id": "wok_stove", "nameKey": "fixture.wok_stove.name", "kind": "wok_stove",
+    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
+    "customerCells": [],
+    "capacity": 0, "storage": [], "priceCents": 20000, "unlockStage": 4, "sprite": { "main": "wok_stove" },
+    "_tbd": true
+  },
+  {
+    "id": "steam_table", "nameKey": "fixture.steam_table.name", "kind": "steam_table",
+    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
+    "customerCells": [{ "x": 0, "y": 1 }],
+    "capacity": 4, "storage": ["hot"], "priceCents": 20000, "unlockStage": 4,
+    "sprite": { "main": "steam_table", "empty": "steam_table_empty" },
+    "_tbd": true
+  },
+  {
+    "id": "roast_station", "nameKey": "fixture.roast_station.name", "kind": "roast_station",
+    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
+    "customerCells": [{ "x": 0, "y": 1 }],
+    "capacity": 1, "storage": ["hot"], "priceCents": 20000, "unlockStage": 4,
+    "sprite": { "main": "roast_station", "empty": "roast_station_empty" },
+    "_tbd": true
   }
 ]

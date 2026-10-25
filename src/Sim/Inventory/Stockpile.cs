@@ -15,7 +15,7 @@ public sealed class Stockpile(StockLocation location)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(lot.Quantity);
 
-        var same = _lots.FindIndex(l => l.ProductId == lot.ProductId && l.BestBeforeDay == lot.BestBeforeDay && l.UnitCostCents == lot.UnitCostCents);
+        var same = _lots.FindIndex(l => l.SameBatch(lot));
         if (same >= 0)
         {
             _lots[same] = _lots[same] with { Quantity = _lots[same].Quantity + lot.Quantity };
@@ -58,11 +58,11 @@ public sealed class Stockpile(StockLocation location)
         return taken;
     }
 
-    /// <summary>Removes units from one particular batch (same product, expiry and cost). Throws if it does not hold them.</summary>
+    /// <summary>Removes units from one particular batch (see <see cref="StockLot.SameBatch"/>). Throws if it does not hold them.</summary>
     internal StockLot TakeFrom(StockLot batch, int quantity)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-        var i = _lots.FindIndex(l => l.ProductId == batch.ProductId && l.BestBeforeDay == batch.BestBeforeDay && l.UnitCostCents == batch.UnitCostCents);
+        var i = _lots.FindIndex(l => l.SameBatch(batch));
         if (i < 0 || _lots[i].Quantity < quantity) throw new InvalidOperationException($"Stockpile at {Location} does not hold {quantity} of that batch.");
 
         var lot = _lots[i];

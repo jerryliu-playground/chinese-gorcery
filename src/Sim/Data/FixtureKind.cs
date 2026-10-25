@@ -13,4 +13,7 @@ public enum FixtureKind
     FishTank,
     IceTable,
     SeafoodCounter,
+    WokStove,
+    SteamTable,
+    RoastStation,
 }

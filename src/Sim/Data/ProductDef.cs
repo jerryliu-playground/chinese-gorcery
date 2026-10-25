@@ -8,6 +8,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="WeightGrams">Weight of one unit (a whole primal, or one packaged box of cut meat); required for meat.</param>
 /// <param name="FreshnessDays">Produce: days spent in each freshness tier from arrival; they add up to shelfLifeDays.</param>
 /// <param name="Live">Live seafood: how it dies and how it is sold.</param>
+/// <param name="IngredientOnly">Bought only for the kitchen: never put out for sale or wanted by shoppers.</param>
 /// <param name="Orderable">False for goods that only come from in-store processing (e.g. meat cuts).</param>
 public sealed record ProductDef(
     string Id,
@@ -26,4 +27,5 @@ public sealed record ProductDef(
     ProduceCategory? Category = null,
     ProduceColor? Color = null,
     LiveSeafoodDef? Live = null,
+    bool IngredientOnly = false,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

@@ -31,7 +31,8 @@ public partial class StaffPanel : PanelBase
         {
             var role = roles.Single(r => r.Id == worker.RoleId);
             Body.AddChild(Text(UiText.F("ui.staff.stats",
-                ("role", UiText.T(role.NameKey)), ("level", worker.Level), ("knife", worker.KnifeSkill),
+                ("role", UiText.T(role.NameKey)), ("level", worker.Level),
+                ("skill_name", UiText.T(role.SkillNameKey ?? "ui.staff.skill.knife")), ("knife", worker.KnifeSkill),
                 ("speed", worker.WorkSpeedPermille / 10), ("morale", worker.MoralePermille / 10))));
 
             var wage = new SpinBox { MinValue = 0, MaxValue = 9999, Step = 1, Prefix = "$", Value = worker.WageCentsPerDay / 100.0, CustomMinimumSize = new Vector2(80, 0) };

@@ -5,4 +5,5 @@ public enum StorageType
     Ambient,
     Chilled,
     Live,
+    Hot,
 }

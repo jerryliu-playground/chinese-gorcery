@@ -43,7 +43,7 @@ public class SaveGameTests
         Assert.True(checks > 50);
         Assert.Contains(sim.Reports.SelectMany(r => r.Sales), s => s.ProductId == "pork_belly");
         Assert.Contains(sim.Reports.SelectMany(r => r.Sales), s => s.ProductId == "live_fish");
-        Assert.Equal(3, sim.Economy.Stage);
+        Assert.True(sim.Economy.Stage >= 3);
         Assert.Contains(sim.Workers, w => w.RoleId == "fishmonger");
     }
 
