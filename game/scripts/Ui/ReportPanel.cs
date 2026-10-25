@@ -80,17 +80,20 @@ public partial class ReportPanel : PanelBase
 
         Footer.AddChild(Row(
             ActionButton("ui.report.order", () => OrderRequested?.Invoke(), isLatest),
-            ActionButton("ui.report.next_day", () =>
-            {
-                if (Host.Sim.PendingOrders.Count > 0)
-                {
-                    StartNextDay();
-                    return;
-                }
+            ActionButton("ui.report.next_day", RequestNextDay, isLatest)));
+    }
 
-                _askingAboutOrders = true;
-                Rebuild();
-            }, isLatest)));
+    /// <summary>What "next day" does: starts it, or first asks if nothing is on order.</summary>
+    public void RequestNextDay()
+    {
+        if (Host.Sim.PendingOrders.Count > 0)
+        {
+            StartNextDay();
+            return;
+        }
+
+        _askingAboutOrders = true;
+        Rebuild();
     }
 
     private void StartNextDay()

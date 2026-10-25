@@ -239,6 +239,8 @@ public partial class Hud : Control
 
     public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 
+    public T Panel<T>() where T : PanelBase => _panels.OfType<T>().Single();
+
     public void CloseAllPanels()
     {
         foreach (var p in _panels.Where(p => p.Visible)) p.Close();

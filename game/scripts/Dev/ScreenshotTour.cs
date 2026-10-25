@@ -23,7 +23,8 @@ namespace ChineseGrocery.Game.Dev;
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
 /// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
 /// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> or
-/// <c>--tour=m9</c> or <c>--tour=m10</c> for the produce, seafood or deli department scenes instead of the M7 ones.
+/// <c>--tour=m9</c>, <c>--tour=m10</c> or <c>--tour=fixes</c> for the produce, seafood or deli department scenes, or
+/// the playtest fixes of 2026-10-25, instead of the M7 ones.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
@@ -85,6 +86,12 @@ public partial class ScreenshotTour : Node
         if (OS.GetCmdlineUserArgs().Contains("--tour=m10"))
         {
             PlanDeli();
+            return;
+        }
+
+        if (OS.GetCmdlineUserArgs().Contains("--tour=fixes"))
+        {
+            PlanFixes();
             return;
         }
 
@@ -270,10 +277,11 @@ public partial class ScreenshotTour : Node
 
     // ---------- M9: seafood ----------
 
-    private static readonly GridPoint[] TankCells = [new(12, 6), new(13, 6)];
-    private static readonly GridPoint CounterCell = new(11, 6);
-    private static readonly GridPoint IceCell = new(15, 6);
-    private static readonly GridPoint CounterWorkCell = new(11, 5);
+    // Tanks against the back wall, the counter against the right wall.
+    private static readonly GridPoint[] TankCells = [new(19, 0), new(20, 0)];
+    private static readonly GridPoint CounterCell = new(23, 4);
+    private static readonly GridPoint IceCell = new(21, 4);
+    private static readonly GridPoint CounterWorkCell = new(23, 3);
     private static readonly GridPoint CashierCell = new(2, 4);
     private static readonly string[][] TankProducts = [["live_fish", "live_shrimp"], ["crab", "lobster"]];
 
@@ -526,6 +534,40 @@ public partial class ScreenshotTour : Node
         });
     }
 
+    // ---------- playtest fixes, 2026-10-25 ----------
+
+    private void PlanFixes()
+    {
+        Step("01-order-screen-storage-and-slots", () =>
+        {
+            RunToNextDay();
+            Hud.ShowPanel<OrderPanel>();
+        });
+        Step("02-backroom-shows-its-goods", () =>
+        {
+            Send(new PlaceOrder("noodles_instant", 30));
+            Store.DebugHover = Sim.Layout.Find(FirstOf("backroom"))!.Origin;
+        });
+        Step("03-next-day-reminder-without-orders", () =>
+        {
+            Store.DebugHover = null;
+            // Nothing on order at closing: "next day" asks first.
+            RunToNextDay();
+            WalkTo(CashierCell);
+            Send(new OpenStore());
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowReport(Sim.Reports[^1]);
+            Hud.Panel<ReportPanel>().RequestNextDay();
+        });
+        Step("04-meat-counter-must-touch-the-wall", () =>
+        {
+            Send(new StartNextDay());
+            ReachStage(2);
+            Ghost("meat_display", new GridPoint(8, 4));
+        });
+        Step("05-meat-counter-against-the-wall-fits", () => Ghost("meat_display", new GridPoint(16, 4)));
+    }
+
     private GridPoint Above(int instanceId)
     {
         var f = Sim.Layout.Find(instanceId)!;
@@ -695,7 +737,7 @@ public partial class ScreenshotTour : Node
     private void PrepareMeatCorner()
     {
         Send(new PlaceFixture("cold_storage", new GridPoint(16, 0)));
-        Send(new PlaceFixture("meat_display", new GridPoint(13, 4)));
+        Send(new PlaceFixture("meat_display", new GridPoint(16, 4)));
         Send(new PlaceFixture("cutting_table", new GridPoint(16, 7)));
         Send(new HireEmployee("butcher"));
         var display = Sim.Layout.Fixtures.Single(f => f.FixtureId == "meat_display").InstanceId;

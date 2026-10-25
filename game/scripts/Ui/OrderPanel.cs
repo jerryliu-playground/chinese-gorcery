@@ -11,7 +11,7 @@ namespace ChineseGrocery.Game.Ui;
 /// </summary>
 public partial class OrderPanel : PanelBase
 {
-    private readonly Dictionary<string, (Label Have, Label Room)> _rows = [];
+    private readonly Dictionary<string, (Label Facts, int Sold)> _rows = [];
     private readonly List<(int Storage, Label Space)> _spaces = [];
 
     protected override void Rebuild()
@@ -33,19 +33,17 @@ public partial class OrderPanel : PanelBase
         foreach (var product in Host.Data.Products.Where(p => p.Orderable))
         {
             var qty = new SpinBox { MinValue = 1, MaxValue = 999, Value = product.UnitsPerStorageSlot, CustomMinimumSize = new Vector2(64, 0) };
-            var have = Text("", 104);
-            var room = Text("", 70);
-            _rows[product.Id] = (have, room);
-            var sold = lastDay.FirstOrDefault(s => s.ProductId == product.Id)?.Units ?? 0;
             Body.AddChild(Row(
-                Text(UiText.T(product.NameKey), 96),
-                Text(UiText.Money(product.CostCents), 52),
-                Text(UiText.F("ui.order.per_slot", ("n", product.UnitsPerStorageSlot)), 72),
-                have,
-                Text(UiText.F("ui.order.sold_last_day", ("n", sold)), 76),
-                room,
+                Text(UiText.T(product.NameKey), 120),
+                Text(UiText.Money(product.CostCents), 60),
                 qty,
                 ActionButton("ui.order.place", () => Host.Send(new PlaceOrder(product.Id, (int)qty.Value)))));
+
+            // The facts behind the choice, on a line of their own so the columns above stay put.
+            var facts = Text("");
+            facts.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.66f));
+            _rows[product.Id] = (facts, lastDay.FirstOrDefault(s => s.ProductId == product.Id)?.Units ?? 0);
+            Body.AddChild(facts);
         }
 
         Refresh();
@@ -54,10 +52,14 @@ public partial class OrderPanel : PanelBase
     protected override void Refresh()
     {
         var sim = Host.Sim;
-        foreach (var (id, (have, room)) in _rows)
+        foreach (var (id, (facts, sold)) in _rows)
         {
-            have.Text = UiText.F("ui.order.have", ("stock", sim.Inventory.Total(id)), ("pending", sim.PendingOrders.Where(o => o.ProductId == id).Sum(o => o.Quantity)));
-            room.Text = UiText.F("ui.order.room", ("n", sim.RoomFor(id)));
+            var product = Host.Data.Products.Single(p => p.Id == id);
+            facts.Text = "    " + string.Join("  ·  ",
+                UiText.F("ui.order.per_slot", ("n", product.UnitsPerStorageSlot)),
+                UiText.F("ui.order.have", ("stock", sim.Inventory.Total(id)), ("pending", sim.PendingOrders.Where(o => o.ProductId == id).Sum(o => o.Quantity))),
+                UiText.F("ui.order.sold_last_day", ("n", sold)),
+                UiText.F("ui.order.room", ("n", sim.RoomFor(id))));
         }
 
         foreach (var (storage, label) in _spaces)

@@ -261,3 +261,5 @@ ui.order.per_slot,{n} per slot,一格 {n} 个
 ui.order.sold_last_day,last day {n},上一天卖 {n}
 ui.order.room,fits {n} more,还能放 {n}
 ui.order.space,{name}: {used}/{total} slots used (incl. goods on order),{name}：已用 {used}/{total} 格（含待到的货）
+ui.storage.line,{name} {count} ({slots} slots),{name} {count} 个（{slots} 格）
+ui.storage.incoming,+{n} arriving,明早到 +{n}

@@ -262,9 +262,17 @@ public partial class StoreView : Node2D
     /// <summary>Hovering a shelf cell shows its slots' products, prices and stock (names in the UI language).</summary>
     private void DrawPriceTag()
     {
-        if (_hover is not { } cell || FixtureAt(cell) is not { } f || !(DataValidator.IsDisplay(Def(f).Kind) || DataValidator.IsDeliStation(Def(f).Kind))) return;
+        if (_hover is not { } cell || FixtureAt(cell) is not { } f) return;
 
         var def = Def(f);
+        if (DataValidator.IsStorageArea(def.Kind))
+        {
+            DrawTagBox(StorageLines(f, def), cell, lift: 0);
+            return;
+        }
+
+        if (!(DataValidator.IsDisplay(def.Kind) || DataValidator.IsDeliStation(def.Kind))) return;
+
         var cells = CellsOf(def, f).ToList();
         var perCell = (int)Math.Ceiling(def.Capacity / (double)cells.Count);
         var index = cells.First(c => c.Cell == cell).Index;
@@ -290,6 +298,31 @@ public partial class StoreView : Node2D
             }.Select(part => UiText.F("ui.display.part", ("name", UiText.T(part.Item1)), ("value", part.Item2))))));
         }
 
+        // Above the sale card or bad-water icon these may be wearing.
+        DrawTagBox(rows, cell, lift: def.Kind is FixtureKind.ProduceStand or FixtureKind.IceTable || DataValidator.IsTank(def.Kind) ? 14 : 0);
+    }
+
+    /// <summary>A storage area: how full it is, then every product in it with its count and slots, and what arrives next.</summary>
+    private List<(string? Id, string Text)> StorageLines(PlacedFixture storage, FixtureDef def)
+    {
+        var sim = _host.Sim;
+        var rows = new List<(string?, string)> { (null, UiText.F("ui.order.space", ("name", UiText.T(def.NameKey)), ("used", sim.SlotsUsed(storage.InstanceId)), ("total", def.Capacity))) };
+        var held = (sim.Inventory.TryGet(StockLocation.Storage(storage.InstanceId))?.Lots ?? []).GroupBy(l => l.ProductId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
+        var incoming = sim.PendingOrders.Where(o => o.DestinationInstanceId == storage.InstanceId).GroupBy(o => o.ProductId).ToDictionary(g => g.Key, g => g.Sum(o => o.Quantity));
+        foreach (var id in held.Keys.Union(incoming.Keys).Order(StringComparer.Ordinal))
+        {
+            var product = Data.Products.Single(p => p.Id == id);
+            var count = held.GetValueOrDefault(id);
+            var text = UiText.F("ui.storage.line", ("name", UiText.T(product.NameKey)), ("count", count), ("slots", (count + product.UnitsPerStorageSlot - 1) / product.UnitsPerStorageSlot));
+            if (incoming.GetValueOrDefault(id) is > 0 and var n) text += "  " + UiText.F("ui.storage.incoming", ("n", n));
+            rows.Add((id, text));
+        }
+
+        return rows;
+    }
+
+    private void DrawTagBox(List<(string? Id, string Text)> rows, GridPoint cell, int lift)
+    {
         if (rows.Count == 0) return;
 
         var font = UiTheme.Font();
@@ -297,8 +330,6 @@ public partial class StoreView : Node2D
         var width = rows.Max(r => font.GetStringSize(r.Text, HorizontalAlignment.Left, -1, UiTheme.FontSize).X) + 22;
         var height = rows.Count * lineHeight + 4;
         var floor = new Vector2(_host.Sim.Layout.Size.W * Cell, _host.Sim.Layout.Size.H * Cell);
-        // Above the sale card or bad-water icon these may be wearing.
-        var lift = def.Kind is FixtureKind.ProduceStand or FixtureKind.IceTable || DataValidator.IsTank(def.Kind) ? 14 : 0;
         var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2 - lift);
         at = new Vector2(Mathf.Clamp(at.X, 0, floor.X - width), at.Y < 0 ? (cell.Y + 1) * Cell + 2 : at.Y);
 
@@ -308,7 +339,7 @@ public partial class StoreView : Node2D
         for (var i = 0; i < rows.Count; i++)
         {
             var y = at.Y + 2 + i * lineHeight;
-            if (rows[i].Item1 is { } productId) DrawIconAt(this, productId, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
+            if (rows[i].Id is { } productId) DrawIconAt(this, productId, new Vector2(at.X + 9, y + lineHeight / 2f), 12, 1);
             DrawString(font, new Vector2(at.X + 18, y + 11), rows[i].Text, HorizontalAlignment.Left, -1, UiTheme.FontSize, new Color(0.25f, 0.12f, 0.1f));
         }
     }
@@ -702,12 +733,39 @@ public partial class StoreView : Node2D
         if (DataValidator.IsStorageArea(def.Kind)) DrawStorageFill(f, def, rect);
     }
 
+    /// <summary>
+    /// The storage area's slots as a grid of crates: each slot in use shows the product in it (a part-filled last slot
+    /// shows how full it is), empty slots stay dark.
+    /// </summary>
     private void DrawStorageFill(PlacedFixture f, FixtureDef def, Rect2 rect)
     {
-        var lots = _host.Sim.Inventory.TryGet(StockLocation.Storage(f.InstanceId))?.Lots ?? [];
-        var slots = StorageCapacity.SlotsNeeded(lots.Select(l => (Data.Products.Single(p => p.Id == l.ProductId), l.Quantity)));
-        var fill = Math.Min(1f, (float)slots / def.Capacity);
-        DrawRect(new Rect2(rect.Position.X + 3, rect.End.Y - 6, (rect.Size.X - 6) * fill, 3), Palette.Progress);
+        var inner = rect.Grow(-3);
+        var columns = Math.Max(1, (int)Math.Ceiling(Math.Sqrt(def.Capacity * inner.Size.X / inner.Size.Y)));
+        var rows = (def.Capacity + columns - 1) / columns;
+        var box = new Vector2(inner.Size.X / columns, inner.Size.Y / rows);
+
+        var crates = (_host.Sim.Inventory.TryGet(StockLocation.Storage(f.InstanceId))?.Lots ?? [])
+            .GroupBy(l => l.ProductId)
+            .OrderBy(g => g.Key, StringComparer.Ordinal)
+            .SelectMany(g =>
+            {
+                var perSlot = Data.Products.Single(p => p.Id == g.Key).UnitsPerStorageSlot;
+                var units = g.Sum(l => l.Quantity);
+                return Enumerable.Range(0, (units + perSlot - 1) / perSlot)
+                    .Select(i => (Id: g.Key, Fill: Math.Min(1f, (units - i * perSlot) / (float)perSlot)));
+            })
+            .ToList();
+
+        for (var i = 0; i < def.Capacity; i++)
+        {
+            var cellRect = new Rect2(inner.Position + new Vector2(i % columns * box.X, i / columns * box.Y), box).Grow(-1);
+            DrawRect(cellRect, new Color(0, 0, 0, 0.25f));
+            if (i >= crates.Count) continue;
+
+            var (id, fill) = crates[i];
+            DrawRect(new Rect2(cellRect.Position.X, cellRect.End.Y - cellRect.Size.Y * fill, cellRect.Size.X, cellRect.Size.Y * fill), new Color(0.78f, 0.62f, 0.38f));
+            DrawIconAt(this, id, cellRect.GetCenter(), Mathf.Min(cellRect.Size.X, cellRect.Size.Y) - 2, 1);
+        }
     }
 
     private void DrawUseCells()
