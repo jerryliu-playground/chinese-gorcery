@@ -1,0 +1,14 @@
+SimRunner deli comparison (M10): with the deli vs --no-deli. Waste = produce + seafood + meat, at purchase cost.
+
+30 days, seed 1, deli on    Deli: units=161 revenue=1109.96 loss=49.70 nearExpiryCooked=15.00 Waste by department: produce=0.00 seafood=107.00 meat=91.50 (together 198.50) 
+30 days, seed 1, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=5.90 seafood=87.00 meat=102.00 (together 194.90) 
+30 days, seed 2, deli on    Deli: units=128 revenue=972.74 loss=39.27 nearExpiryCooked=6.00 Waste by department: produce=0.00 seafood=93.50 meat=61.50 (together 155.00) 
+30 days, seed 2, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=21.40 seafood=147.50 meat=73.50 (together 242.40) 
+30 days, seed 3, deli on    Deli: units=76 revenue=511.23 loss=44.05 nearExpiryCooked=12.00 Waste by department: produce=0.00 seafood=136.00 meat=70.50 (together 206.50) 
+30 days, seed 3, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=1.90 seafood=136.00 meat=67.50 (together 205.40) 
+60 days, seed 1, deli on    Deli: units=889 revenue=6742.86 loss=673.38 nearExpiryCooked=159.50 Waste by department: produce=97.80 seafood=560.00 meat=271.50 (together 929.30) 
+60 days, seed 1, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=133.70 seafood=780.00 meat=288.00 (together 1201.70) 
+60 days, seed 2, deli on    Deli: units=767 revenue=6065.04 loss=815.85 nearExpiryCooked=174.40 Waste by department: produce=127.90 seafood=662.00 meat=231.00 (together 1020.90) 
+60 days, seed 2, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=209.90 seafood=690.50 meat=283.50 (together 1183.90) 
+60 days, seed 3, deli on    Deli: units=789 revenue=5977.71 loss=673.60 nearExpiryCooked=137.00 Waste by department: produce=107.90 seafood=745.50 meat=259.50 (together 1112.90) 
+60 days, seed 3, --no-deli  Deli: units=0 revenue=0.00 loss=0.00 nearExpiryCooked=0.00 Waste by department: produce=166.30 seafood=952.00 meat=283.50 (together 1401.80) 

@@ -1,0 +1,121 @@
+Data OK (/Users/jerryliu/工作/chinese-grocery/data)
+  products=37 fixtures=14 customerTypes=3 roles=3 meatCuts=1 stages=4
+Run: days=30 seed=1 stockTarget=40
+
+ Day   CashStart    Revenue  Purchases     Wages  Fixtures      Loss      Profit     CashEnd  Cust Angry NotFound  TooExp
+   1     2000.00     708.83     274.40      0.00      0.00      0.00      434.43     2434.43    78    16        5      46
+      sold: chili_crisp 19, jasmine_tea 10, milk_candy 13, noodles_instant 40, rice_jasmine 20, shrimp_chips 25, soy_milk 20, soy_sauce_light 20
+   2     2434.43     718.18     376.50      0.00      0.00      0.00      341.68     2776.11    70     9       16      32
+      sold: chili_crisp 21, jasmine_tea 30, milk_candy 27, rice_jasmine 20, shrimp_chips 15, soy_milk 19, soy_sauce_light 20
+   3     2776.11     568.93     360.60      0.00      0.00      0.00      208.33     2984.44    56     8        4      38
+      sold: chili_crisp 16, jasmine_tea 10, milk_candy 9, noodles_instant 25, rice_jasmine 17, shrimp_chips 13, soy_milk 19, soy_sauce_light 18
+   4     2984.44     785.35     295.90      0.00      0.00      0.00      489.45     3473.89    71    12       21      47
+      sold: chili_crisp 24, jasmine_tea 24, milk_candy 30, noodles_instant 15, rice_jasmine 23, shrimp_chips 17, soy_milk 20, soy_sauce_light 12
+   5     3473.89     594.59     417.60      0.00      0.00      0.00      176.99     3650.88    65     3       25      32
+      sold: chili_crisp 16, jasmine_tea 16, milk_candy 10, noodles_instant 25, rice_jasmine 17, shrimp_chips 23, soy_milk 20, soy_sauce_light 14
+   6     3650.88     713.00     313.20      0.00      0.00      0.00      399.80     4050.68    69     7       12      45
+      sold: chili_crisp 24, jasmine_tea 24, milk_candy 15, noodles_instant 15, rice_jasmine 22, shrimp_chips 17, soy_milk 20, soy_sauce_light 13
+   7     4050.68     630.04     378.60      0.00      0.00      0.00      251.44     4302.12    61     2        9      37
+      sold: chili_crisp 16, jasmine_tea 16, milk_candy 17, noodles_instant 25, rice_jasmine 18, shrimp_chips 21, soy_milk 20, soy_sauce_light 13
+   8     4302.12     749.90     333.80      0.00      0.00      0.00      416.10     4718.22    77     7       49      40
+      sold: chili_crisp 24, jasmine_tea 24, milk_candy 23, noodles_instant 15, rice_jasmine 22, shrimp_chips 19, soy_milk 20, soy_sauce_light 13
+   9     4718.22     630.04     397.00      0.00   4200.00      0.00    -3966.96      751.26    75    11       41      52
+      sold: chili_crisp 16, jasmine_tea 16, milk_candy 17, noodles_instant 25, rice_jasmine 18, shrimp_chips 21, soy_milk 20, soy_sauce_light 13
+      * upgraded to stage 2
+      * placed meat_display at 17,0
+  10      751.26     749.90     333.80      0.00      0.00      0.00      416.10     1167.36    81    14       49      48
+      sold: chili_crisp 24, jasmine_tea 24, milk_candy 23, noodles_instant 15, rice_jasmine 22, shrimp_chips 19, soy_milk 20, soy_sauce_light 13
+  11     1167.36     477.26     397.00      0.00    600.00      0.00     -519.74      647.62    58     5       12      34
+      sold: chili_crisp 16, jasmine_tea 15, milk_candy 11, noodles_instant 24, rice_jasmine 11, shrimp_chips 19, soy_milk 15, soy_sauce_light 13
+      * placed cutting_table at 17,2
+  12      647.62     863.43     250.40      0.00      0.00      0.00      613.03     1260.65    82    16       24      51
+      sold: chili_crisp 24, jasmine_tea 24, milk_candy 28, noodles_instant 16, rice_jasmine 27, shrimp_chips 21, soy_milk 24, soy_sauce_light 13
+  13     1260.65     516.51     458.80      0.00      0.00      0.00       57.71     1318.36    63     6       33      21
+      sold: chili_crisp 16, jasmine_tea 16, milk_candy 12, noodles_instant 24, rice_jasmine 13, shrimp_chips 19, soy_milk 16, soy_sauce_light 13
+  14     1318.36     845.54     272.00      0.00      0.00      0.00      573.54     1891.90    81    16       24      53
+      sold: chili_crisp 24, jasmine_tea 18, milk_candy 28, noodles_instant 16, rice_jasmine 27, shrimp_chips 21, soy_milk 19, soy_sauce_light 13
+  15     1891.90     534.40     450.10      0.00      0.00      0.00       84.30     1976.20    73     8       33      16
+      sold: chili_crisp 16, jasmine_tea 22, milk_candy 12, noodles_instant 24, rice_jasmine 13, shrimp_chips 19, soy_milk 21, soy_sauce_light 13
+  16     1976.20     845.54     280.70      0.00      0.00      0.00      564.84     2541.04    76    12       36      32
+      sold: chili_crisp 24, jasmine_tea 18, milk_candy 28, noodles_instant 16, rice_jasmine 27, shrimp_chips 21, soy_milk 19, soy_sauce_light 13
+  17     2541.04     534.40     358.30    120.00   1750.00      0.00    -1693.90      847.14    56     3       19      39
+      sold: chili_crisp 16, jasmine_tea 22, milk_candy 12, noodles_instant 24, rice_jasmine 13, shrimp_chips 19, soy_milk 21, soy_sauce_light 13
+      * placed cold_storage at 16,4
+      * placed produce_stand at 17,6
+      * hired butcher
+  18      847.14     617.04     494.90    120.00    300.00     10.50     -297.86      549.28    67     9        6      45
+      sold: bok_choy 20, chili_crisp 18, ground_pork 7, jasmine_tea 10, milk_candy 7, napa_cabbage 16, noodles_instant 16, pork_belly 4, pork_loin 8, pork_ribs 8, rice_jasmine 6, shrimp_chips 11, soy_milk 12, soy_sauce_light 13
+      produce: units 36, revenue 79.64, loss 0.00
+      * upgraded to stage 3
+      * placed backroom at 22,0
+  19      549.28     729.40     277.40    120.00      0.00      0.00      332.00      881.28    75    13       15      49
+      sold: chili_crisp 22, jasmine_tea 17, milk_candy 22, noodles_instant 24, pork_belly 6, rice_jasmine 18, shrimp_chips 15, soy_milk 20, soy_sauce_light 16
+  20      881.28     612.32     356.90    120.00    300.00     15.00     -164.58      716.70    71    16        0      59
+      sold: bok_choy 12, chili_crisp 13, ground_pork 4, jasmine_tea 8, milk_candy 9, napa_cabbage 8, noodles_instant 13, pork_belly 6, pork_loin 6, pork_ribs 5, rice_jasmine 12, shrimp_chips 11, soy_milk 7, soy_sauce_light 14
+      produce: units 20, revenue 43.80, loss 0.00
+      * upgraded to stage 4
+  21      716.70     738.84     299.60    120.00    100.00      0.00      219.24      935.94    76    24       22      27
+      sold: bok_choy 8, chili_crisp 27, jasmine_tea 17, milk_candy 14, napa_cabbage 8, noodles_instant 22, pork_belly 4, pork_loin 2, pork_ribs 3, rice_jasmine 16, shrimp_chips 8, soy_milk 13, soy_sauce_light 24
+      produce: units 16, revenue 33.44, loss 0.00
+      * placed seafood_counter at 27,1
+  22      935.94     608.63     434.30    250.00    150.00      9.00     -225.67      710.27    62    10        4      32
+      sold: bok_choy 12, chili_crisp 12, ground_pork 8, jasmine_tea 14, milk_candy 12, napa_cabbage 8, noodles_instant 15, pork_belly 7, pork_loin 7, pork_ribs 4, rice_jasmine 8, shrimp_chips 17, soy_milk 12, soy_sauce_light 11
+      produce: units 20, revenue 43.80, loss 0.00
+      * placed fish_tank at 27,3
+      * hired fishmonger
+  23      710.27    1007.18     394.20    250.00    150.00      0.00      212.98      923.25    68    17       14      35
+      sold: bok_choy 8, chili_crisp 24, jasmine_tea 12, live_fish 6, live_shrimp 12, milk_candy 18, napa_cabbage 8, noodles_instant 23, pork_belly 3, pork_loin 1, pork_ribs 4, rice_jasmine 19, shrimp_chips 11, soy_milk 8, soy_sauce_light 15
+      produce: units 16, revenue 35.84, loss 0.00
+      seafood: units 18, revenue 263.82, deaths 0, loss 0.00
+      * placed fish_tank at 26,3
+  24      923.25    1003.78     542.00    250.00    300.00     15.00      -88.22      835.03    60    10        6      33
+      sold: bok_choy 12, chili_crisp 8, crab 8, ground_pork 4, jasmine_tea 9, lobster 3, milk_candy 10, napa_cabbage 8, noodles_instant 17, pork_belly 7, pork_loin 4, pork_ribs 4, rice_jasmine 17, shrimp_chips 11, soy_milk 9, soy_sauce_light 11
+      produce: units 20, revenue 43.80, loss 0.00
+      seafood: units 11, revenue 344.89, deaths 0, loss 0.00
+      * placed ice_table at 25,3
+      * placed wok_stove at 27,5
+  25      835.03     810.31     449.40    390.00    200.00     11.85     -229.09      605.94   122    53       20      59
+      sold: bok_choy 2, braised_pork 5, chili_crisp 7, clams 13, jasmine_tea 8, live_fish 4, live_shrimp 8, milk_candy 4, napa_cabbage 8, noodles_instant 16, pork_belly 1, pork_loin 4, pork_ribs 2, rice_jasmine 10, salt_pepper_shrimp 3, shrimp_chips 8, soy_milk 8, soy_sauce_light 10, stir_fried_bok_choy 9, sweet_sour_ribs 6
+      produce: units 10, revenue 23.90, loss 0.00
+      seafood: units 25, revenue 273.25, deaths 0, loss 0.00
+      deli: units 23, revenue 144.54, loss 11.85, near-expiry cooked 6.00
+      * placed steam_table at 26,5
+      * hired chef
+  26      605.94     963.45     302.00    390.00      0.00     13.45      271.45      877.39   120    50       14      47
+      sold: bok_choy 3, braised_pork 10, chili_crisp 6, clams 20, crab 8, ground_pork 6, jasmine_tea 5, lobster 1, milk_candy 12, napa_cabbage 8, noodles_instant 12, pork_belly 6, pork_loin 5, pork_ribs 4, rice_jasmine 8, shrimp_chips 7, soy_milk 11, soy_sauce_light 9, stir_fried_bok_choy 17
+      produce: units 11, revenue 25.89, loss 0.00
+      seafood: units 29, revenue 322.11, deaths 0, loss 0.00
+      deli: units 27, revenue 165.06, loss 1.45, near-expiry cooked 0.00
+  27      877.39     731.98     394.00    390.00    200.00     29.50     -252.02      625.37   103    34       35      40
+      sold: bok_choy 2, chili_crisp 5, clams 5, jasmine_tea 6, live_fish 1, live_shrimp 6, milk_candy 8, napa_cabbage 8, noodles_instant 9, pork_loin 3, pork_ribs 2, rice_jasmine 13, salt_pepper_shrimp 8, shrimp_chips 6, soy_milk 8, soy_sauce_light 8, stir_fried_bok_choy 12, sweet_sour_ribs 6
+      produce: units 10, revenue 23.90, loss 0.00
+      seafood: units 12, revenue 129.38, deaths 0, loss 29.50
+      deli: units 26, revenue 197.48, loss 0.00, near-expiry cooked 3.00
+      * placed roast_station at 27,7
+  28      625.37    1096.17     308.50    390.00      0.00     12.70      397.67     1023.04   124    48       23      35
+      sold: bok_choy 3, char_siu 15, chili_crisp 7, clams 14, crab 8, ground_pork 8, jasmine_tea 5, lobster 2, milk_candy 4, napa_cabbage 8, noodles_instant 13, pork_belly 7, pork_loin 6, pork_ribs 6, rice_jasmine 10, salt_pepper_shrimp 4, shrimp_chips 11, soy_milk 8, soy_sauce_light 6, stir_fried_bok_choy 12
+      produce: units 11, revenue 25.89, loss 0.00
+      seafood: units 24, revenue 369.11, deaths 0, loss 0.00
+      deli: units 31, revenue 208.18, loss 3.70, near-expiry cooked 0.00
+  29     1023.04     870.82     446.20    390.00    450.00     63.15     -415.38      607.66   109    45       10      44
+      sold: bok_choy 2, braised_pork 6, chili_crisp 11, clams 15, jasmine_tea 11, live_fish 5, live_shrimp 6, milk_candy 9, napa_cabbage 8, noodles_instant 19, pork_belly 1, pork_loin 2, rice_jasmine 10, roast_duck 9, salt_pepper_shrimp 3, shrimp_chips 6, soy_milk 10, soy_sauce_light 7, stir_fried_bok_choy 5, sweet_sour_ribs 2
+      produce: units 10, revenue 23.90, loss 0.00
+      seafood: units 26, revenue 279.72, deaths 0, loss 37.50
+      deli: units 25, revenue 191.56, loss 25.65, near-expiry cooked 6.00
+      * placed wok_stove at 27,9
+      * placed produce_stand at 18,6
+  30      607.66     640.59     325.00    390.00      0.00     68.05      -74.41      533.25   125    66        7      81
+      sold: bok_choy 2, char_siu 13, chili_crisp 4, clams 13, crab 3, ginger 3, jasmine_tea 7, milk_candy 3, napa_cabbage 3, noodles_instant 8, pork_belly 2, pork_loin 3, pork_ribs 2, rice_jasmine 7, salt_pepper_shrimp 4, scallion 4, shrimp_chips 6, soy_milk 9, soy_sauce_light 8, steamed_fish 3, stir_fried_bok_choy 9
+      produce: units 12, revenue 19.88, loss 0.00
+      seafood: units 16, revenue 137.46, deaths 0, loss 40.00
+      deli: units 29, revenue 203.14, loss 7.05, near-expiry cooked 0.00
+
+Totals: revenue=21896.35 profit=-1466.75 customers=2374 angry=550 notFound=588 tooExpensive=1249
+Produce: units=192 revenue=423.68 loss=0.00
+Seafood: units=161 revenue=2119.74 deaths=0 loss=107.00
+Deli: units=161 revenue=1109.96 loss=49.70 nearExpiryCooked=15.00
+Waste by department: produce=0.00 seafood=107.00 meat=91.50 (together 198.50)
+Stage: 4  staff: butcher L1 knife 1, fishmonger L4 knife 8, chef L5 knife 5
+Rejected commands: 0  (orders cut for storage space: 19)
+State hash: 2FAE1AB062A15EEB
+No anomalies.
