@@ -259,6 +259,19 @@ public class KitchenTests
     }
 
     [Fact]
+    public void Clams_and_chilled_lobster_the_store_cannot_sell_in_time_can_be_cooked()
+    {
+        var sim = DeliStore();
+        var cold = Place(sim, "cold_storage", 9, 3);
+        Put(sim, StockLocation.Storage(cold), "clams", 3, ageDays: 2);
+        Put(sim, StockLocation.Storage(cold), ChilledLobster, 1, ageDays: 2);
+
+        Assert.Equal(4, sim.PortionsPossible("garlic_clams"));
+        Assert.Equal(3, sim.PortionsPossible("braised_lobster"));
+        Assert.All(sim.IngredientCandidates("clams").Concat(sim.IngredientCandidates(ChilledLobster)), c => Assert.True(sim.IsNearExpiry(c.Lot)));
+    }
+
+    [Fact]
     public void Kitchen_only_goods_cannot_be_put_out_for_sale()
     {
         var sim = DeliStore();

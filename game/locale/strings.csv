@@ -251,3 +251,5 @@ ui.menu.cooked,cooked {cooked}/{target} today,今天已做 {cooked}/{target}
 ui.menu.on_station,{count} on the station,档口上 {count} 份
 ui.tag.portions,{count} portions,{count} 份
 fixture.shellfish_tank.name,Lobster & Crab Tank,龙虾蟹缸
+dish.garlic_clams.name,Garlic steamed clams,蒜蓉蒸蛤蜊
+dish.braised_lobster.name,Lobster in superior broth,上汤焗龙虾
