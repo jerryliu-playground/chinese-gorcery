@@ -10,6 +10,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="Live">Live seafood: how it dies and how it is sold.</param>
 /// <param name="IngredientOnly">Bought only for the kitchen: never put out for sale or wanted by shoppers.</param>
 /// <param name="Import">Bought from the overseas importer too (cheaper, slower), at this cost and minimum order.</param>
+/// <param name="Seasons">If set, the only seasons (0 spring to 3 winter) the product can be ordered in.</param>
 /// <param name="Orderable">False for goods that only come from in-store processing (e.g. meat cuts).</param>
 public sealed record ProductDef(
     string Id,
@@ -30,4 +31,5 @@ public sealed record ProductDef(
     LiveSeafoodDef? Live = null,
     bool IngredientOnly = false,
     ImportDef? Import = null,
+    IReadOnlyList<int>? Seasons = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

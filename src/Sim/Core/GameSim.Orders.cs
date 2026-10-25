@@ -16,6 +16,7 @@ public sealed partial class GameSim
         if (order.Quantity <= 0) return Reject(RejectReason.InvalidQuantity);
         if (!_products.TryGetValue(order.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
         if (!product.Orderable) return Reject(RejectReason.NotOrderable);
+        if (product.Seasons is { } seasons && !seasons.Contains(Season)) return Reject(RejectReason.OutOfSeason);
         if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is null) return Reject(RejectReason.NoStorageForProduct);
 
         var cost = checked(order.Quantity * product.CostCents);
@@ -52,6 +53,12 @@ public sealed partial class GameSim
 
         return null;
     }
+
+    /// <summary>Placeholder calendar until the M12 calendar lands: four seasons of <see cref="DaysPerSeason"/> days.</summary>
+    public int DaysPerSeason => 28;
+
+    /// <summary>The season now, 0 (spring) to 3 (winter).</summary>
+    public int Season => (Clock.Day - 1) / DaysPerSeason % 4;
 
     /// <summary>How many more units of the product could be ordered now, over every storage area that keeps it.</summary>
     public int RoomFor(string productId)

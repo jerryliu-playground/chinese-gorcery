@@ -47,4 +47,5 @@ public enum RejectReason
     NotImportable,
     BelowMinimumOrder,
     NotAStorageArea,
+    OutOfSeason,
 }

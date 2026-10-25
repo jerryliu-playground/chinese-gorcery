@@ -356,3 +356,4 @@ ui.order.more_room,+{slots} slots {cost},扩容 +{slots} 格 {cost}
 ui.storage.pallet,{name} {count} on a pallet (unload first),{name} {count} 个（托盘上，要先卸货）
 ui.hud.ships,Ship x{count}: {days}d,船 {count} 艘：{days} 天后到
 ui.hud.pallets,Pallets x{count},待卸托盘 {count}
+ui.reject.out_of_season,Not in season.,现在不是这个的季节。
