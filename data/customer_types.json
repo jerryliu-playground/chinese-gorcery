@@ -50,5 +50,54 @@
       { "productId": "roast_duck", "weight": 40 }, { "productId": "char_siu", "weight": 40 }
     ],
     "_tbd": true
+  },
+  {
+    "id": "abc_teen", "nameKey": "customer_type.abc_teen.name",
+    "preferences": [
+      { "department": "snacks", "weight": 5 }, { "department": "drinks", "weight": 5 },
+      { "department": "deli", "weight": 3 }, { "department": "frozen", "weight": 1 }, { "department": "dry_goods", "weight": 1 }
+    ],
+    "arrivalWeight": 2, "priceComfortRatioPermille": 1000, "priceCeilingRatioPermille": 1300, "minBuyChancePermille": 250,
+    "moveCellsPerMinute": 4, "browseMinutesPerItem": 1, "patienceMinutes": 10, "shoppingListSize": { "min": 1, "max": 3 }, "sprite": { "main": "char_abc_teen" },
+    "lineKeys": ["customer.teen.line.trend", "customer.teen.line.boba", "customer.teen.line.mom"],
+    "minStars": 2, "arrivalWeightPerStar": 1, "seeksTrends": true,
+    "_tbd": true
+  },
+  {
+    "id": "local_a", "nameKey": "customer_type.local_a.name",
+    "preferences": [
+      { "department": "deli", "weight": 4 }, { "department": "sauces", "weight": 3 },
+      { "department": "snacks", "weight": 3 }, { "department": "produce", "weight": 2 }, { "department": "drinks", "weight": 1 }
+    ],
+    "arrivalWeight": 2, "priceComfortRatioPermille": 1050, "priceCeilingRatioPermille": 1350, "minBuyChancePermille": 300,
+    "moveCellsPerMinute": 3, "browseMinutesPerItem": 2, "patienceMinutes": 12, "shoppingListSize": { "min": 2, "max": 4 }, "sprite": { "main": "char_local_a" },
+    "lineKeys": ["customer.local.line.what", "customer.local.line.sauce", "customer.local.line.recipe"],
+    "produceCategories": ["fruit"],
+    "minStars": 3, "arrivalWeightPerStar": 1, "wantsEnglishLabels": true,
+    "_tbd": true
+  },
+  {
+    "id": "local_b", "nameKey": "customer_type.local_b.name",
+    "preferences": [
+      { "department": "deli", "weight": 3 }, { "department": "sauces", "weight": 4 },
+      { "department": "snacks", "weight": 2 }, { "department": "produce", "weight": 3 }, { "department": "frozen", "weight": 1 }
+    ],
+    "arrivalWeight": 1, "priceComfortRatioPermille": 1050, "priceCeilingRatioPermille": 1350, "minBuyChancePermille": 300,
+    "moveCellsPerMinute": 3, "browseMinutesPerItem": 2, "patienceMinutes": 12, "shoppingListSize": { "min": 2, "max": 4 }, "sprite": { "main": "char_local_b" },
+    "lineKeys": ["customer.local_b.line.dumplings", "customer.local_b.line.spicy", "customer.local_b.line.friend"],
+    "minStars": 3, "arrivalWeightPerStar": 1, "wantsEnglishLabels": true,
+    "_tbd": true
+  },
+  {
+    "id": "restaurant_buyer", "nameKey": "customer_type.restaurant_buyer.name",
+    "preferences": [
+      { "department": "meat", "weight": 5 }, { "department": "seafood", "weight": 4 },
+      { "department": "dry_goods", "weight": 3 }, { "department": "sauces", "weight": 2 }
+    ],
+    "arrivalWeight": 1, "priceComfortRatioPermille": 950, "priceCeilingRatioPermille": 1150, "minBuyChancePermille": 150,
+    "moveCellsPerMinute": 3, "browseMinutesPerItem": 1, "patienceMinutes": 20, "shoppingListSize": { "min": 5, "max": 9 }, "sprite": { "main": "char_restaurant_buyer" },
+    "lineKeys": ["customer.restaurant.line.bulk", "customer.restaurant.line.kitchen", "customer.restaurant.line.price"],
+    "minStars": 3, "requiresDepartments": ["meat", "seafood"], "offersGroupOrders": true,
+    "_tbd": true
   }
 ]

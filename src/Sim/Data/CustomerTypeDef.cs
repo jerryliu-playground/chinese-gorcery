@@ -14,6 +14,12 @@ namespace ChineseGrocery.Sim.Data;
 /// <see cref="DefaultProductWeight"/>.
 /// </param>
 /// <param name="LineKeys">Display only: translation keys of things this type sometimes says while shopping.</param>
+/// <param name="MinStars">The type only comes in once the store has this many stars (reputation.json).</param>
+/// <param name="RequiresDepartments">The type only comes in once the store has a fixture selling each of these departments.</param>
+/// <param name="ArrivalWeightPerStar">Added to the arrival weight for each star above <paramref name="MinStars"/> (a weight of 0 stays 0).</param>
+/// <param name="SeeksTrends">Comes in looking for this season's trending products.</param>
+/// <param name="WantsEnglishLabels">Shops more happily with bilingual price labels; sometimes puzzled without them.</param>
+/// <param name="OffersGroupOrders">Restaurant buyers: after paying, may propose a group order.</param>
 public sealed record CustomerTypeDef(
     string Id,
     string NameKey,
@@ -31,7 +37,13 @@ public sealed record CustomerTypeDef(
     bool PrefersDiscount = false,
     IReadOnlyList<ProduceCategory>? ProduceCategories = null,
     IReadOnlyList<ProductWeight>? ProductWeights = null,
-    [property: JsonPropertyName("_tbd")] bool Tbd = false)
+    [property: JsonPropertyName("_tbd")] bool Tbd = false,
+    int MinStars = 1,
+    IReadOnlyList<Department>? RequiresDepartments = null,
+    int ArrivalWeightPerStar = 0,
+    bool SeeksTrends = false,
+    bool WantsEnglishLabels = false,
+    bool OffersGroupOrders = false)
 {
     public const int DefaultProductWeight = 10;
 

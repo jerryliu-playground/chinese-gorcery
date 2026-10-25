@@ -43,4 +43,7 @@ namespace ChineseGrocery.Sim.Core;
 [JsonDerivedType(typeof(Story.ReportViewed), "report_viewed")]
 [JsonDerivedType(typeof(Story.SetStoryPrompts), "set_story_prompts")]
 [JsonDerivedType(typeof(Story.PayLoan), "pay_loan")]
+[JsonDerivedType(typeof(Reputation.AcceptGroupOrder), "accept_group_order")]
+[JsonDerivedType(typeof(Reputation.DeclineGroupOrder), "decline_group_order")]
+[JsonDerivedType(typeof(Reputation.BuyBilingualLabels), "buy_bilingual_labels")]
 public abstract record SimCommand;

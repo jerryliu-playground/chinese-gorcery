@@ -53,13 +53,14 @@ public static class GameDataLoader
         var stages = Parse<List<StageDef>>(DataFiles.Stages);
         var economy = Parse<EconomyDef>(DataFiles.Economy);
         var recipes = Parse<List<RecipeDef>>(DataFiles.Recipes);
+        var reputation = Parse<ReputationDef>(DataFiles.Reputation);
 
         if (errors.Count > 0)
         {
             throw new DataValidationException(errors);
         }
 
-        var data = new GameData([.. products!, .. recipes!.Select(r => r.ToProduct())], fixtures!, customerTypes!, employees!, meatCuts!, stages!, economy!, recipes!);
+        var data = new GameData([.. products!, .. recipes!.Select(r => r.ToProduct())], fixtures!, customerTypes!, employees!, meatCuts!, stages!, economy!, recipes!, Reputation: reputation);
         DataValidator.ThrowIfInvalid(data);
         return data;
     }

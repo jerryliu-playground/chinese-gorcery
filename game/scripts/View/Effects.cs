@@ -124,12 +124,15 @@ public partial class Effects : Node2D
                 case CustomerReaction r:
                     var kind = r.Kind switch
                     {
-                        CustomerReactionKind.NotFound => BubbleKind.Question,
+                        CustomerReactionKind.NotFound or CustomerReactionKind.Confused => BubbleKind.Question,
                         CustomerReactionKind.TooExpensive => BubbleKind.Frown,
                         CustomerReactionKind.GaveUp => BubbleKind.Angry,
                         _ => BubbleKind.Heart,
                     };
-                    if (kind == BubbleKind.Heart && (!MinorEffectsOn || GD.Randf() >= _feel.HeartChance)) break;
+
+                    // Picking something up only sometimes shows a heart (cosmetic); a Sim heart (a trend found) always does.
+                    // It never covers a bubble that says something (a question mark about the labels, say).
+                    if (r.Kind == CustomerReactionKind.TookItem && (!MinorEffectsOn || GD.Randf() >= _feel.HeartChance || _pops.Any(p => p is Bubble b && b.CustomerId == r.CustomerId))) break;
 
                     _pops.RemoveAll(p => p is Bubble b && b.CustomerId == r.CustomerId);
                     _pops.Add(new Bubble(r.CustomerId, kind, null, _feel.BubbleSeconds));

@@ -60,8 +60,9 @@ public sealed partial class GameSim
             if (open.Count == 0) return;
 
             var role = open[_staffRng.NextInt(0, open.Count)];
-            var skill = _staffRng.NextInt(role.KnifeSkill.Min, role.KnifeSkill.Max + 1);
-            var speed = _staffRng.NextInt(role.SpeedPermille.Min, role.SpeedPermille.Max + 1);
+            // A well-reviewed store draws slightly better applicants: the low end of each roll rises with reputation.
+            var skill = _staffRng.NextInt(ApplicantFloor(role.KnifeSkill), role.KnifeSkill.Max + 1);
+            var speed = _staffRng.NextInt(ApplicantFloor(role.SpeedPermille), role.SpeedPermille.Max + 1);
             _applicants.Add(new Applicant(_nextApplicantId++, role.Id, skill, speed, AskingWage(role, skill, speed)));
         }
     }

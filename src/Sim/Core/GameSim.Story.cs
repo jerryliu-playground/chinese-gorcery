@@ -319,7 +319,7 @@ public sealed partial class GameSim
     /// The store's reputation as the competition sees it. A placeholder from story.json until the reputation system
     /// exists: this is the one place to rewire.
     /// </summary>
-    public int CurrentReputation() => Data.Story?.Settings.Competition.PlaceholderReputation ?? 0;
+    public int CurrentReputation() => Data.Reputation is not null ? Reputation : Data.Story?.Settings.Competition.PlaceholderReputation ?? 0;
 
     /// <summary>Share (per mille) of regular customers still coming once the chain supermarket has opened.</summary>
     public int CompetitionArrivalPermille() =>

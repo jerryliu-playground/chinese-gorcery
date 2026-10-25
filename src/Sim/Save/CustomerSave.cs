@@ -22,4 +22,11 @@ public sealed record CustomerSave(
     CustomerExit? Exit,
     int ItemsNotFound,
     int ItemsTooExpensive,
-    string? WaitingFor = null);
+    string? WaitingFor = null,
+    int ItemsBought = 0,
+    int Hearts = 0,
+    string? SeekingTrend = null,
+    bool? TrendFound = null,
+    bool Confused = false,
+    int LongestWaitSeconds = 0,
+    int? Satisfaction = null);

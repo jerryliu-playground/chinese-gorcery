@@ -9,6 +9,7 @@ using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Produce;
+using ChineseGrocery.Sim.Reputation;
 using ChineseGrocery.Sim.Save;
 using ChineseGrocery.Sim.Seafood;
 using ChineseGrocery.Sim.Staff;
@@ -99,6 +100,12 @@ public partial class ScreenshotTour : Node
         if (OS.GetCmdlineUserArgs().Contains("--tour=m11"))
         {
             PlanStaff();
+            return;
+        }
+
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m13"))
+        {
+            PlanReputation();
             return;
         }
 
@@ -761,6 +768,161 @@ public partial class ScreenshotTour : Node
             Host.Send(new OpenStore());
             for (var i = 0; i < 2000; i++) Sim.Tick();
         }, () => Sim.Workers.Count(w => w.IsPresent && w.RoleId is not null) >= 2, frames: 40);
+    }
+
+    // ---------- M13: reputation and more customers ----------
+
+    /// <summary>
+    /// Spec 16.7 item 4: stars and the season's trend in the HUD, reviews after a day, a teen's heart for the trend,
+    /// three stars bringing locals (puzzled without English labels), a restaurant buyer's group order accepted, set
+    /// aside and delivered, and the bilingual labels bought.
+    /// </summary>
+    private void PlanReputation()
+    {
+        Step("01-hud-stars-and-season-trend", () => { });
+        Step("02-reviews-after-the-first-day", () =>
+        {
+            WalkTo(CashierCell);
+            Send(new OpenStore());
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowPanel<ReviewsPanel>();
+        });
+        Live("03-teen-finds-the-trend-heart", () =>
+        {
+            Send(new StartNextDay());
+            Send(new RestockAll());
+            WalkTo(CashierCell);
+            Send(new OpenStore());
+            SkipToJustBefore(e => e is CustomerReaction { Kind: CustomerReactionKind.Heart });
+        }, () => Seen<CustomerReaction>(r => r.Kind == CustomerReactionKind.Heart), frames: 8);
+        Live("04-three-stars-locals-puzzled-by-labels", () =>
+        {
+            RunToNextDayStocked();
+            SetReputation(55);
+            Send(new RestockAll());
+            WalkTo(CashierCell);
+            Send(new OpenStore());
+            SkipToJustBefore(e => e is CustomerReaction { Kind: CustomerReactionKind.Confused });
+        }, () => Seen<CustomerReaction>(r => r.Kind == CustomerReactionKind.Confused), frames: 8);
+        Step("05-restaurant-buyer-offers-a-group-order", () =>
+        {
+            RunToNextDay();
+            ReachStage(2);
+            PrepareMeatCorner();
+            ReachStage(3);
+            Send(new PlaceFixture("fish_tank", TankCells[0]));
+            SetReputation(60);
+            WaitForOrderableOffer();
+            Hud.ShowPanel<GroupOrderPanel>();
+        });
+        Step("06-accepted-goods-set-aside", () =>
+        {
+            // Goods can only be ordered once the doors close; the offer holds until the next morning.
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            var offer = Sim.GroupOrders.Single(o => o.Status == GroupOrderStatus.Offered);
+            Send(new AcceptGroupOrder(offer.Id));
+            foreach (var line in offer.Lines) Send(new PlaceOrder(line.ProductId, line.Units));
+            Send(new StartNextDay());
+            Hud.ShowPanel<GroupOrderPanel>();
+        });
+        Live("07-group-order-delivered-at-closing", () =>
+        {
+            Send(new RestockAll());
+            WalkTo(CashierCell);
+            Send(new OpenStore());
+            for (var i = 0; i < 100_000 && Sim.Clock.MinuteOfDay < Sim.Data.Economy.CloseMinuteOfDay - 1; i++) Sim.Tick();
+        }, () => Seen<GroupOrderClosed>(c => c.Outcome == GroupOrderOutcome.Delivered), frames: 10);
+        Step("08-upgrade-panel-bilingual-labels", () =>
+        {
+            Send(new StartNextDay());
+            Hud.ShowPanel<UpgradePanel>();
+        });
+        Step("09-labels-up-reviews-and-trend-chart", () =>
+        {
+            Send(new BuyBilingualLabels());
+            for (var day = 0; day < 4; day++)
+            {
+                Send(new RestockAll());
+                WalkTo(CashierCell);
+                RunToNextDayStocked();
+            }
+
+            Hud.ShowPanel<ReviewsPanel>();
+        });
+    }
+
+    /// <summary>Plays to closing, orders what the shelves sell for tomorrow, and starts the next day with the shelves filled.</summary>
+    private void RunToNextDayStocked()
+    {
+        if (Sim.Clock.Phase == DayPhase.PreOpen) Send(new OpenStore());
+        for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+        OrderShelfGoods();
+        Send(new StartNextDay());
+        Send(new RestockAll());
+    }
+
+    /// <summary>After closing: a slot's worth of every orderable product assigned to a display, delivered next morning.</summary>
+    private void OrderShelfGoods()
+    {
+        foreach (var id in Sim.Shelves.Assigned.Values.Distinct().Order(StringComparer.Ordinal))
+        {
+            var product = Sim.Data.Products.Single(p => p.Id == id);
+            if (product.Orderable && Sim.Inventory.Total(id) < product.UnitsPerShelfSlot) Send(new PlaceOrder(id, product.UnitsPerShelfSlot));
+        }
+    }
+
+    /// <summary>Sets reputation by editing a save (a developer shortcut, like <see cref="ReachStage"/>).</summary>
+    private void SetReputation(int value)
+    {
+        var json = System.Text.RegularExpressions.Regex.Replace(SaveGame.Write(Sim), "\"reputationMilli\":\\d+", $"\"reputationMilli\":{value * 1000}");
+        Host.LoadFromJson(json);
+    }
+
+    /// <summary>
+    /// Plays a copy of the game ahead to find when an event happens, then ticks the real game to a few ticks before it,
+    /// so a live shot catches the moment.
+    /// </summary>
+    private void SkipToJustBefore(Func<SimEvent, bool> match, int lead = 6)
+    {
+        var copy = SaveGame.Read(Sim.Data, SaveGame.Write(Sim));
+        var ticks = 0;
+        for (; ticks < 200_000; ticks++)
+        {
+            copy.Tick();
+            if (copy.DrainEvents().Any(match)) break;
+        }
+
+        for (var i = 0; i < ticks - lead; i++) Sim.Tick();
+    }
+
+    /// <summary>Plays days until a restaurant buyer offers an order for goods the wholesaler sells; other offers are declined.</summary>
+    private void WaitForOrderableOffer()
+    {
+        for (var i = 0; i < 2_000_000; i++)
+        {
+            if (Sim.GroupOrders.FirstOrDefault(o => o.Status == GroupOrderStatus.Offered) is { } offer)
+            {
+                if (offer.Lines.All(l => Sim.Data.Products.Single(p => p.Id == l.ProductId).Orderable)) return;
+                Send(new DeclineGroupOrder(offer.Id));
+            }
+
+            if (Sim.Clock.Phase == DayPhase.Closed)
+            {
+                OrderShelfGoods();
+                Send(new StartNextDay());
+            }
+
+            if (Sim.Clock.Phase == DayPhase.PreOpen)
+            {
+                // Keep the store at three stars while waiting (each closing pulls reputation toward the day's average).
+                if (Sim.Stars < 3) SetReputation(60);
+                Send(new RestockAll());
+                WalkTo(CashierCell);
+                Send(new OpenStore());
+            }
+
+            Sim.Tick();
+        }
     }
 
     // ---------- M14: imports and new goods ----------

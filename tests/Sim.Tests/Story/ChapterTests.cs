@@ -67,7 +67,8 @@ public class ChapterTests
         Assert.Equal(1000, sim.CompetitionArrivalPermille());
         sim.Run(new UpgradeStage());
 
-        Assert.Equal(850, sim.CompetitionArrivalPermille());
+        // The competition reads the store's reputation (M13).
+        Assert.Equal(GameSim.CompetitionFactor(sim.Data.Story!.Settings.Competition, sim.Reputation), sim.CompetitionArrivalPermille());
 
         var curve = sim.Data.Story!.Settings.Competition;
         Assert.Equal(700, GameSim.CompetitionFactor(curve, 0));
@@ -79,10 +80,12 @@ public class ChapterTests
     [Fact]
     public void The_reputation_the_competition_reads_comes_from_one_place()
     {
-        var good = UpgradeReady(StoryKit.WithSettings(s => s with { Competition = s.Competition with { PlaceholderReputation = 100 } }));
+        var good = UpgradeReady();
         good.Run(new UpgradeStage());
         good.Run(new UpgradeStage());
+        good.NudgeReputation(100, "reputation.reason.customers");
 
+        Assert.Equal(good.Reputation, good.CurrentReputation());
         Assert.Equal(100, good.CurrentReputation());
         Assert.Equal(1000, good.CompetitionArrivalPermille());
     }

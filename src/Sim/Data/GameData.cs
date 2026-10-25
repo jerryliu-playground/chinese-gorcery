@@ -14,4 +14,5 @@ public sealed record GameData(
     IReadOnlyList<StageDef> Stages,
     EconomyDef Economy,
     IReadOnlyList<RecipeDef> Recipes,
-    StoryData? Story = null);
+    StoryData? Story = null,
+    ReputationDef? Reputation = null);

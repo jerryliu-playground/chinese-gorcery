@@ -51,4 +51,7 @@ public enum RejectReason
     DialogueNotShowing,
     UnknownChoice,
     InvalidName,
+    AlreadyOwned,
+    UnknownGroupOrder,
+    GroupOrderLimit,
 }

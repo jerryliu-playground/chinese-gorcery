@@ -5,7 +5,7 @@ namespace ChineseGrocery.Sim.Customers;
 
 /// <summary>
 /// A shopper: walks to shelves for each item on the list, takes it if the price is acceptable, queues at a checkout,
-/// pays when served and walks out. Satisfaction counters are recorded but not used yet (no reputation in the MVP).
+/// pays when served and walks out. What happens on the way adds up to a satisfaction score as they leave (reputation).
 /// </summary>
 public sealed class Customer(int id, string typeId, GridPoint position, IEnumerable<string> shoppingList)
 {
@@ -40,6 +40,27 @@ public sealed class Customer(int id, string typeId, GridPoint position, IEnumera
     public int ItemsNotFound { get; internal set; }
     public int ItemsTooExpensive { get; internal set; }
 
+    /// <summary>Units paid for at the checkout.</summary>
+    public int ItemsBought { get; internal set; }
+
+    /// <summary>Hearts shown (finding a trending product).</summary>
+    public int Hearts { get; internal set; }
+
+    /// <summary>The trending product this customer came in for, if any.</summary>
+    public string? SeekingTrend { get; internal set; }
+
+    /// <summary>Whether they found the trending product they came for (null: not decided yet, or not seeking one).</summary>
+    public bool? TrendFound { get; internal set; }
+
+    /// <summary>Puzzled by price labels without English (shown once as a question mark).</summary>
+    public bool Confused { get; internal set; }
+
+    /// <summary>The longest they stood in any line (seconds).</summary>
+    public int LongestWaitSeconds { get; internal set; }
+
+    /// <summary>Satisfaction (0-100), set as they leave.</summary>
+    public int? Satisfaction { get; internal set; }
+
     internal void SetPath(IEnumerable<GridPoint> path)
     {
         _path.Clear();
@@ -55,6 +76,9 @@ public sealed class Customer(int id, string typeId, GridPoint position, IEnumera
         _shoppingList.RemoveAt(0);
         return item;
     }
+
+    /// <summary>Puts an item at the top of the list (what they came in for).</summary>
+    internal void PutFirstOnList(string productId) => _shoppingList.Insert(0, productId);
 
     internal void AddToBasket(BasketItem item) => _basket.Add(item);
 

@@ -43,4 +43,5 @@ public sealed record SaveFile(
     IReadOnlyList<MenuSave>? Menu = null,
     StaffSave? Staff = null,
     ImportSave? Imports = null,
-    StorySave? Story = null);
+    StorySave? Story = null,
+    ReputationSave? Reputation = null);

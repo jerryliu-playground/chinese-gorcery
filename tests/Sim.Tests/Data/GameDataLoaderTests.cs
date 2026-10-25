@@ -12,7 +12,7 @@ public class GameDataLoaderTests
 
         Assert.NotEmpty(data.Products);
         Assert.NotEmpty(data.Fixtures);
-        Assert.Equal(3, data.CustomerTypes.Count);
+        Assert.Equal(7, data.CustomerTypes.Count);
         Assert.NotEmpty(data.Stages);
         Assert.Empty(DataValidator.Validate(data));
     }

@@ -56,6 +56,7 @@ public partial class ReportPanel : PanelBase
         ];
         foreach (var (key, value) in lines) Body.AddChild(Row(Text(UiText.T(key), 150), Text(value)));
         if (r.LoanPaymentCents > 0) Body.AddChild(Row(Text(UiText.T("ui.report.loan"), 150), Text(UiText.Money(r.LoanPaymentCents))));
+        if (ReputationLine(r.Day) is { } reputation) Body.AddChild(Row(Text(UiText.T("ui.report.reputation"), 150), Text(reputation)));
 
         Body.AddChild(Text(UiText.T("ui.report.sales")));
         if (r.Sales.Count == 0) Body.AddChild(Text(UiText.T("ui.report.no_sales")));
@@ -82,6 +83,17 @@ public partial class ReportPanel : PanelBase
         Footer.AddChild(Row(
             ActionButton("ui.report.order", () => OrderRequested?.Invoke(), isLatest),
             ActionButton("ui.report.next_day", RequestNextDay, isLatest)));
+    }
+
+    /// <summary>Reputation before and after that day's closing, e.g. "40 → 42".</summary>
+    private string? ReputationLine(int day)
+    {
+        var history = Host.Sim.ReputationHistory;
+        var at = history.ToList().FindIndex(h => h.Day == day);
+        if (at < 0) return null;
+
+        var before = at > 0 ? history[at - 1].Reputation : Host.Data.Reputation?.StartReputation ?? history[at].Reputation;
+        return UiText.F("ui.report.reputation_change", ("before", before), ("after", history[at].Reputation));
     }
 
     /// <summary>What "next day" does: starts it, or first asks if nothing is on order.</summary>

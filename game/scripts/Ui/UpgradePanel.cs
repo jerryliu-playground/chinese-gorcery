@@ -1,14 +1,24 @@
 using ChineseGrocery.Sim.Economy;
+using ChineseGrocery.Sim.Reputation;
 
 namespace ChineseGrocery.Game.Ui;
 
-/// <summary>Shows what the next stage needs (lifetime revenue and cash) and lets the player upgrade before opening.</summary>
+/// <summary>
+/// Shows what the next stage needs (lifetime revenue and cash) and lets the player upgrade before opening; below it,
+/// one-off store upgrades (the bilingual price labels).
+/// </summary>
 public partial class UpgradePanel : PanelBase
 {
     protected override void Rebuild()
     {
         SetTitle(UiText.T("ui.upgrade.title"));
         ClearBody();
+        AddStage();
+        AddLabels();
+    }
+
+    private void AddStage()
+    {
         var sim = Host.Sim;
         var stages = Host.Data.Stages;
 
@@ -27,6 +37,30 @@ public partial class UpgradePanel : PanelBase
         Body.AddChild(ActionButton("ui.upgrade.confirm", () =>
         {
             Host.Send(new UpgradeStage());
+            Close();
+        }, ready));
+    }
+
+    /// <summary>The bilingual price labels: what they do, what they cost, and a buy button (or that they are up).</summary>
+    private void AddLabels()
+    {
+        if (Host.Data.Reputation?.BilingualLabels is not { } labels) return;
+
+        var sim = Host.Sim;
+        Body.AddChild(Text(" "));
+        Body.AddChild(Text(UiText.T("ui.labels.title")));
+        Body.AddChild(Text("  " + UiText.T("ui.labels.desc")));
+        if (sim.HasBilingualLabels)
+        {
+            Body.AddChild(Text("  " + UiText.T("ui.labels.owned")));
+            return;
+        }
+
+        Body.AddChild(Text("  " + UiText.F("ui.labels.cost", ("cost", UiText.Money(labels.CostCents)))));
+        var ready = sim.Economy.Stage >= labels.UnlockStage && sim.Economy.CashCents >= labels.CostCents;
+        Body.AddChild(ActionButton("ui.labels.buy", () =>
+        {
+            Host.Send(new BuyBilingualLabels());
             Close();
         }, ready));
     }

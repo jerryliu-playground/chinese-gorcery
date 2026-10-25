@@ -19,9 +19,11 @@ namespace ChineseGrocery.SimRunner;
 /// seafood to one since it dies in storage), keeps a primal on hand per cutting recipe, fills the shelves in one go, and
 /// does any work left. With <c>runDeli</c> it also builds a deli corner once the seafood corner is done, plans the
 /// menu each morning and keeps ducks and pork shoulder on hand. While open it works the highest-priority open task.
+/// Service comparisons: <c>frontStaff</c> hires a cashier and a stocker as soon as they are unlocked;
+/// <c>checkoutLast</c> leaves the register until nothing else is waiting (long lines).
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false, bool imports = false)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false, bool imports = false, bool frontStaff = false, bool checkoutLast = false)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
@@ -78,6 +80,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
+        if (frontStaff && !autoStaff) HireFrontStaff(sim);
         if (autoStaff)
         {
             StaffTheStore(sim);
@@ -295,12 +298,20 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     /// --auto: a cashier and a stocker from the start, then once managers unlock, one per area with automatic ordering
     /// and pricing, ordering up to the same targets the bot would use.
     /// </summary>
-    private void StaffTheStore(GameSim sim)
+    /// <summary>One cashier and one stocker, once each is unlocked.</summary>
+    private void HireFrontStaff(GameSim sim)
     {
         foreach (var roleId in new[] { "cashier", "stocker" })
         {
+            var role = sim.Data.Employees.Roles.FirstOrDefault(r => r.Id == roleId);
+            if (role is null || role.UnlockStage > sim.Economy.Stage) continue;
             if (!sim.Workers.Any(w => w.RoleId == roleId) && Send(sim, new HireEmployee(roleId)) is null) _notes.Add($"hired {roleId}");
         }
+    }
+
+    private void StaffTheStore(GameSim sim)
+    {
+        HireFrontStaff(sim);
 
         foreach (var area in ManagedAreas)
         {
@@ -443,7 +454,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 CookTask c => c.Target.FixtureInstanceId,
                 _ => null,
             }
-            : sim.Tasks.OpenTasks.FirstOrDefault() switch
+            : (checkoutLast ? sim.Tasks.OpenTasks.FirstOrDefault(t => t.Type != TaskType.Checkout) ?? sim.Tasks.OpenTasks.FirstOrDefault() : sim.Tasks.OpenTasks.FirstOrDefault()) switch
             {
                 CheckoutTask c => c.CheckoutInstanceId,
                 RestockTask r => r.Source.FixtureInstanceId,

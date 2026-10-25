@@ -24,7 +24,7 @@ public sealed partial class GameSim
         if (!StationStock().Any()) return;
 
         var bucket = deli.RushArrivals.Last(b => b.StartMinuteOfDay <= Clock.MinuteOfDay);
-        var perHourTimesSeconds = bucket.CustomersPerHour * Data.Economy.SecondsPerTick;
+        var perHourTimesSeconds = bucket.CustomersPerHour * Data.Economy.SecondsPerTick * ArrivalPermille() / 1000;
         if (perHourTimesSeconds == 0) return;
 
         var count = perHourTimesSeconds / SecondsPerHour;
@@ -76,9 +76,7 @@ public sealed partial class GameSim
         var reference = Prices.ReferenceOf(dishId) * (1000 + lot.PriceBonusPermille) / 1000;
         if (Rng.NextInt(0, 1000) >= PriceAcceptance.BuyChancePermille(type, EffectivePrice(lot), reference))
         {
-            customer.ItemsTooExpensive++;
-            Economy.Today.CountItemTooExpensive();
-            _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, dishId));
+            NoteTooExpensive(customer, dishId);
             return false;
         }
 
