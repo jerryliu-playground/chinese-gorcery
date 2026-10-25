@@ -38,4 +38,7 @@ public enum RejectReason
     RoleFull,
     UnknownWorker,
     InvalidWage,
+    NotADeliStation,
+    WrongStation,
+    NotForSale,
 }

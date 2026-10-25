@@ -228,3 +228,6 @@ ui.staff.skill.knife,knife,刀工
 ui.staff.skill.cooking,cooking,厨艺
 ui.report.deli_loss,Deli waste,熟食损耗
 ui.report.kitchen_rescued,Near-expiry food cooked,进厨房的临期食材
+ui.reject.not_a_deli_station,That doesn't sell hot food.,这里不卖熟食。
+ui.reject.wrong_station,That dish is sold at a different station.,这道菜要在另一种档口卖。
+ui.reject.not_for_sale,That is only for the kitchen.,这个只给厨房用。

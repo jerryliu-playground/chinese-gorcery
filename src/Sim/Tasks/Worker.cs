@@ -37,7 +37,8 @@ public sealed class Worker(int id, bool isPlayer, GridPoint position, int moveCe
 
     /// <summary>In a timed step (picking, shelving, serving) and unable to walk away.</summary>
     public bool IsWorking => Step is WorkStep.Picking or WorkStep.Shelving or WorkStep.Serving or WorkStep.Cutting or WorkStep.Tidying
-        or WorkStep.Cleaning or WorkStep.RemovingDead or WorkStep.Killing;
+        or WorkStep.Cleaning or WorkStep.RemovingDead or WorkStep.Killing
+        or WorkStep.Cooking or WorkStep.Packing;
 
     internal void SetPath(IEnumerable<GridPoint> path)
     {

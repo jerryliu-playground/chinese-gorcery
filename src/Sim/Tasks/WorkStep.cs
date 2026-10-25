@@ -13,4 +13,6 @@ public enum WorkStep
     Cleaning,
     RemovingDead,
     Killing,
+    Cooking,
+    Packing,
 }

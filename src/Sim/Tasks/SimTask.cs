@@ -11,4 +11,5 @@ namespace ChineseGrocery.Sim.Tasks;
 [JsonDerivedType(typeof(CleanTankTask), "clean_tank")]
 [JsonDerivedType(typeof(RemoveDeadTask), "remove_dead")]
 [JsonDerivedType(typeof(KillFishTask), "kill_fish")]
+[JsonDerivedType(typeof(CookTask), "cook")]
 public abstract record SimTask(int Id, TaskType Type, int Priority);

@@ -22,6 +22,7 @@ public sealed partial class GameSim
         RefreshTidyTasks();
         RefreshTankTasks();
         RefreshKillTasks();
+        RefreshCookTasks();
     }
 
     private void RefreshRestockTasks()
@@ -127,6 +128,7 @@ public sealed partial class GameSim
         CleanTankTask c => c.TankInstanceId,
         RemoveDeadTask r => r.TankInstanceId,
         KillFishTask k => k.Source.FixtureInstanceId,
+        CookTask c => c.StoveInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -136,6 +138,7 @@ public sealed partial class GameSim
         RestockTask r => r.Target.FixtureInstanceId,
         CutMeatTask c => c.CuttingTableInstanceId,
         KillFishTask k => k.CounterInstanceId,
+        CookTask c => c.Target.FixtureInstanceId,
         _ => null,
     };
 
@@ -214,6 +217,16 @@ public sealed partial class GameSim
                 BeginStep(worker, WorkStep.RemovingDead, settings.RemoveDeadMinutes);
                 break;
 
+            case CookTask c:
+                if (!StartCooking(worker, c))
+                {
+                    // The ingredients went (sold or used) before the cook got to the stove.
+                    FinishTask(worker, completed: false);
+                    return;
+                }
+
+                break;
+
             case KillFishTask k:
                 if (!StartKill(worker, k))
                 {
@@ -251,6 +264,10 @@ public sealed partial class GameSim
 
             case KillFishTask:
                 StartKilling(worker);
+                break;
+
+            case CookTask:
+                BeginStep(worker, WorkStep.Shelving, Data.Economy.Tasks.RestockShelveMinutes);
                 break;
         }
     }
@@ -446,6 +463,15 @@ public sealed partial class GameSim
                 FinishTask(worker, completed: true);
                 break;
 
+            case (WorkStep.Cooking, CookTask c):
+                FinishCooking(worker, c);
+                break;
+
+            case (WorkStep.Shelving, CookTask c):
+                PutOutDish(worker, c);
+                FinishTask(worker, completed: true);
+                break;
+
             case (WorkStep.Picking, KillFishTask k):
                 PickUpForKill(worker, k);
                 break;
@@ -485,7 +511,7 @@ public sealed partial class GameSim
             else lostCents += output.Packages * output.UnitCostCents;
         }
 
-        Economy.RecordLoss(lostCents);
+        Economy.RecordLoss(lostCents, Department.Meat);
         _events.Add(new MeatCut(task.Id, worker.Id, task.CuttingTableInstanceId, task.PrimalId, result.Outputs, lostCents));
     }
 

@@ -23,4 +23,7 @@ public sealed record DailyReport(
     int ItemsTooExpensive,
     IReadOnlyList<ProductSales> Sales,
     int SeafoodDeaths = 0,
-    long SeafoodLossCents = 0);
+    long SeafoodLossCents = 0,
+    long MeatLossCents = 0,
+    long DeliLossCents = 0,
+    long KitchenRescuedCents = 0);

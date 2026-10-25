@@ -16,6 +16,11 @@ public sealed class DayLedger(int day, long cashStartCents)
     public long ProduceLossCents { get; internal set; }
     public long SeafoodLossCents { get; internal set; }
     public int SeafoodDeaths { get; internal set; }
+    public long MeatLossCents { get; internal set; }
+    public long DeliLossCents { get; internal set; }
+
+    /// <summary>Cost of near-expiry ingredients the kitchen cooked (waste avoided).</summary>
+    public long KitchenRescuedCents { get; internal set; }
     public int Customers { get; internal set; }
     public int AngryLeaves { get; internal set; }
 
@@ -39,6 +44,8 @@ public sealed class DayLedger(int day, long cashStartCents)
         LossCents += cents;
         if (department == Data.Department.Produce) ProduceLossCents += cents;
         if (department == Data.Department.Seafood) SeafoodLossCents += cents;
+        if (department == Data.Department.Meat) MeatLossCents += cents;
+        if (department == Data.Department.Deli) DeliLossCents += cents;
     }
 
     internal void AddSale(string productId, int units, long revenueCents, long costCents)
@@ -61,6 +68,7 @@ public sealed class DayLedger(int day, long cashStartCents)
     internal void CountItemNotFound() => ItemsNotFound++;
     internal void CountItemTooExpensive() => ItemsTooExpensive++;
     internal void CountSeafoodDeaths(int count) => SeafoodDeaths += count;
+    internal void AddKitchenRescued(long cents) => KitchenRescuedCents += cents;
 
     internal DailyReport ToReport(long cashEndCents) => new(
         Day,
@@ -80,5 +88,8 @@ public sealed class DayLedger(int day, long cashStartCents)
         ItemsTooExpensive,
         _sales.Values.ToList(),
         SeafoodDeaths,
-        SeafoodLossCents);
+        SeafoodLossCents,
+        MeatLossCents,
+        DeliLossCents,
+        KitchenRescuedCents);
 }

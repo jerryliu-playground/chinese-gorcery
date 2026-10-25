@@ -69,6 +69,7 @@ public sealed partial class GameSim
         if (assign.ProductId is not null)
         {
             if (!_products.TryGetValue(assign.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
+            if (product.IngredientOnly) return Reject(RejectReason.NotForSale);
             if (!def.Storage.Contains(product.Storage)) return Reject(RejectReason.WrongStorageType);
         }
 

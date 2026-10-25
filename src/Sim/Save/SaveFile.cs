@@ -39,4 +39,5 @@ public sealed record SaveFile(
     long NextQueueNumber,
     IReadOnlyList<SimCommand> QueuedCommands,
     IReadOnlyList<TidinessSave>? Tidiness = null,
-    IReadOnlyList<TankSave>? Tanks = null);
+    IReadOnlyList<TankSave>? Tanks = null,
+    IReadOnlyList<MenuSave>? Menu = null);

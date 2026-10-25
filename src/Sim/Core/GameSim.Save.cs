@@ -28,7 +28,8 @@ public sealed partial class GameSim
             new LedgerSave(
                 today.Day, today.CashStartCents, today.RevenueCents, today.CostOfGoodsSoldCents, today.PurchaseCostCents,
                 today.WagesCents, today.FixtureSpendCents, today.LossCents, today.Customers, today.AngryLeaves,
-                today.ItemsNotFound, today.ItemsTooExpensive, today.Sales, today.ProduceLossCents, today.SeafoodLossCents, today.SeafoodDeaths),
+                today.ItemsNotFound, today.ItemsTooExpensive, today.Sales, today.ProduceLossCents, today.SeafoodLossCents, today.SeafoodDeaths, today.MeatLossCents, today.DeliLossCents,
+                today.KitchenRescuedCents),
             _reports.ToList(),
             Layout.Size,
             Layout.Fixtures.ToList(),
@@ -52,7 +53,8 @@ public sealed partial class GameSim
             _nextQueueNumber,
             _queue.ToList(),
             _tidiness.Select(kv => new TidinessSave(kv.Key, kv.Value)).ToList(),
-            TankSaves());
+            TankSaves(),
+            _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -75,6 +77,7 @@ public sealed partial class GameSim
             WagesCents = t.WagesCents, FixtureSpendCents = t.FixtureSpendCents, LossCents = t.LossCents, Customers = t.Customers,
             AngryLeaves = t.AngryLeaves, ItemsNotFound = t.ItemsNotFound, ItemsTooExpensive = t.ItemsTooExpensive,
             ProduceLossCents = t.ProduceLossCents, SeafoodLossCents = t.SeafoodLossCents, SeafoodDeaths = t.SeafoodDeaths,
+            MeatLossCents = t.MeatLossCents, DeliLossCents = t.DeliLossCents, KitchenRescuedCents = t.KitchenRescuedCents,
         };
         ledger.RestoreSales(t.Sales);
         Economy = new EconomyState(save.CashCents)
@@ -136,5 +139,10 @@ public sealed partial class GameSim
         _queue.AddRange(save.QueuedCommands);
         foreach (var stand in save.Tidiness ?? []) _tidiness[stand.StandInstanceId] = stand.Tidiness;
         RestoreTanks(save.Tanks ?? []);
+        foreach (var m in save.Menu ?? [])
+        {
+            _menu[m.Slot] = m.Item;
+            if (m.CookedToday > 0) _cookedToday[m.Slot] = m.CookedToday;
+        }
     }
 }

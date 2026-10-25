@@ -117,6 +117,7 @@ public sealed partial class GameSim
             PlayerInteract interact => HandlePlayerInteract(interact),
             UpgradeStage => HandleUpgradeStage(),
             HireEmployee hire => HandleHireEmployee(hire),
+            Deli.SetMenuItem menu => HandleSetMenuItem(menu),
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
@@ -144,6 +145,7 @@ public sealed partial class GameSim
         if (Clock.Phase != DayPhase.Closed) return Reject(RejectReason.WrongPhase);
 
         Clock.StartNextDay(Data.Economy.OpenMinuteOfDay);
+        _cookedToday.Clear();
         _events.Add(new DayStarted(Clock.Day));
         DeliverOrders();
         return null;
@@ -214,11 +216,14 @@ public sealed partial class GameSim
 
     private bool IsProduce(string productId) => _products[productId].Department == Department.Produce;
 
-    /// <summary>What one unit of this batch sells for today: the set price, marked down by the batch's freshness tier.</summary>
+    /// <summary>
+    /// What one unit of this batch sells for today: the set price, raised by a skilled cook's bonus and marked down by
+    /// the batch's freshness tier.
+    /// </summary>
     public long EffectivePrice(StockLot lot)
     {
         var product = _products[lot.ProductId];
-        var price = Prices.PriceOf(lot.ProductId);
+        var price = Prices.PriceOf(lot.ProductId) * (1000 + lot.PriceBonusPermille) / 1000;
         if (product.FreshnessDays is null || Data.Economy.Freshness is not { } f) return price;
 
         return price * f.PriceFactorsPermille.Of(Produce.Freshness.TierOf(product, lot, Clock.Day)) / 1000;

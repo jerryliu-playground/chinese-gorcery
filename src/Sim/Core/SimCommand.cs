@@ -24,4 +24,5 @@ namespace ChineseGrocery.Sim.Core;
 [JsonDerivedType(typeof(HireEmployee), "hire_employee")]
 [JsonDerivedType(typeof(SetWage), "set_wage")]
 [JsonDerivedType(typeof(RestockAll), "restock_all")]
+[JsonDerivedType(typeof(Deli.SetMenuItem), "set_menu_item")]
 public abstract record SimCommand;
