@@ -1,5 +1,6 @@
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Deli;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
@@ -16,10 +17,11 @@ namespace ChineseGrocery.SimRunner;
 /// assigns empty display slots round-robin (produce only on produce stands, seafood only on tanks and ice tables), tops
 /// each shelved product up to a stock target (fresh goods first: produce and clams to two fills of their slots, live
 /// seafood to one since it dies in storage), keeps a primal on hand per cutting recipe, fills the shelves in one go, and
-/// does any work left. While open it works the highest-priority open task.
+/// does any work left. With <c>runDeli</c> it also builds a deli corner once the seafood corner is done, plans the
+/// menu each morning and keeps ducks and pork shoulder on hand. While open it works the highest-priority open task.
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
@@ -29,11 +31,18 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     /// <summary>The seafood corner, in the order the bot buys it.</summary>
     private static readonly FixtureKind[] SeafoodFixtures = [FixtureKind.SeafoodCounter, FixtureKind.FishTank, FixtureKind.FishTank, FixtureKind.IceTable];
 
+    /// <summary>The deli corner, in the order the bot buys it.</summary>
+    private static readonly FixtureKind[] DeliFixtures = [FixtureKind.WokStove, FixtureKind.SteamTable, FixtureKind.RoastStation, FixtureKind.WokStove];
+
+    /// <summary>Kitchen-only goods kept on hand for the roast station.</summary>
+    private const int RoastStockTarget = 2;
+
     /// <summary>Which fixtures a role needs before the bot hires it.</summary>
     private static readonly Dictionary<string, FixtureKind[]> RoleNeeds = new()
     {
         ["butcher"] = MeatFixtures,
         ["fishmonger"] = [FixtureKind.FishTank, FixtureKind.SeafoodCounter],
+        ["chef"] = [FixtureKind.WokStove, FixtureKind.SteamTable],
     };
 
     private readonly List<string> _notes = [];
@@ -65,10 +74,12 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         TryUpgrade(sim);
         PlaceMissingMeatFixtures(sim);
         PlaceSeafoodCorner(sim);
+        if (runDeli && IsComplete(sim, SeafoodFixtures)) PlaceCorner(sim, DeliFixtures, besideKind: FixtureKind.WokStove);
         PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
         PlaceOrders(sim);
+        PlanMenu(sim);
         Send(sim, new RestockAll());
         for (var i = 0; i < MaxPreOpenTicks && HasWork(sim); i++) Step(sim);
 
@@ -120,8 +131,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private void PlaceProduceStands(GameSim sim)
     {
         if (!MeatFixtures.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) return;
-        if (SeafoodFixtures.GroupBy(k => k).Any(g => sim.Data.Fixtures.Any(f => f.Kind == g.Key && f.UnlockStage <= sim.Economy.Stage)
-                                                     && sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == g.Key) < g.Count())) return;
+        if (!IsComplete(sim, SeafoodFixtures) || (runDeli && !IsComplete(sim, DeliFixtures))) return;
         if (sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == FixtureKind.ProduceStand) >= produceStands) return;
         if (sim.Data.Fixtures.FirstOrDefault(f => f.Kind == FixtureKind.ProduceStand && f.UnlockStage <= sim.Economy.Stage) is not { } def) return;
         if (sim.Economy.CashCents < def.PriceCents + cashReserveCents) return;
@@ -144,16 +154,57 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             if (Send(sim, new PlaceFixture(backroom.Id, room.Origin, room.Rotation)) is null) _notes.Add($"placed {backroom.Id} at {room.Origin.X},{room.Origin.Y}");
         }
 
-        var missing = SeafoodFixtures
-            .Where((kind, i) => sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == kind) < SeafoodFixtures.Take(i + 1).Count(k => k == kind))
+        PlaceCorner(sim, SeafoodFixtures, besideKind: FixtureKind.FishTank);
+    }
+
+    /// <summary>Whether every unlocked fixture of a corner is placed (as many of each kind as the list names).</summary>
+    private static bool IsComplete(GameSim sim, FixtureKind[] corner) =>
+        corner.GroupBy(k => k).All(g => !sim.Data.Fixtures.Any(f => f.Kind == g.Key && f.UnlockStage <= sim.Economy.Stage)
+                                        || sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == g.Key) >= g.Count());
+
+    /// <summary>Buys the next missing fixture of a corner (one a day), next to the corner's anchor kind if possible.</summary>
+    private void PlaceCorner(GameSim sim, FixtureKind[] corner, FixtureKind besideKind)
+    {
+        var missing = corner
+            .Where((kind, i) => sim.Layout.Fixtures.Count(f => Def(sim.Data, f).Kind == kind) < corner.Take(i + 1).Count(k => k == kind))
             .Select(kind => (FixtureKind?)kind)
             .FirstOrDefault();
         if (missing is not { } next) return;
         if (sim.Data.Fixtures.FirstOrDefault(f => f.Kind == next && f.UnlockStage <= sim.Economy.Stage) is not { } def) return;
         if (sim.Economy.CashCents < def.PriceCents + cashReserveCents) return;
-        if (FindSpot(sim, def, besideKind: FixtureKind.FishTank) is not { } spot) return;
+        if (FindSpot(sim, def, besideKind) is not { } spot) return;
 
         if (Send(sim, new PlaceFixture(def.Id, spot.Origin, spot.Rotation)) is null) _notes.Add($"placed {def.Id} at {spot.Origin.X},{spot.Origin.Y}");
+    }
+
+    /// <summary>
+    /// Each morning: every steam table slot gets a different dish, preferring the one that would cook the most
+    /// near-expiry stock (then the one with the most ingredients); the roast station roasts duck, or char siu without
+    /// ducks. Targets are two cookings.
+    /// </summary>
+    private void PlanMenu(GameSim sim)
+    {
+        var chosen = new HashSet<string>();
+        foreach (var station in sim.Layout.Fixtures.Where(f => DataValidator.IsDeliStation(Def(sim.Data, f).Kind)).ToList())
+        {
+            var def = Def(sim.Data, station);
+            for (var slot = 0; slot < def.Capacity; slot++)
+            {
+                var recipe = sim.Data.Recipes
+                    .Where(r => r.Station == def.Kind && !chosen.Contains(r.Id) && sim.PortionsPossible(r.Id) > 0)
+                    .OrderByDescending(r => r.Ingredients.Sum(x => sim.IngredientCandidates(x.ProductId).Where(c => sim.IsNearExpiry(c.Lot)).Sum(c => c.Lot.Quantity * c.Lot.UnitCostCents)))
+                    .ThenByDescending(r => sim.PortionsPossible(r.Id))
+                    .ThenBy(r => r.Id, StringComparer.Ordinal)
+                    .FirstOrDefault();
+                if (recipe is null) continue;
+
+                chosen.Add(recipe.Id);
+                if (sim.Menu.GetValueOrDefault(new StockLocation(station.InstanceId, slot))?.DishId != recipe.Id)
+                {
+                    Send(sim, new SetMenuItem(station.InstanceId, slot, recipe.Id, 2 * recipe.Portions));
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -245,6 +296,14 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             TopUp(sim, product.Id, target);
         }
 
+        if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.RoastStation))
+        {
+            foreach (var recipe in sim.Data.Recipes.Where(r => r.Station == FixtureKind.RoastStation))
+            {
+                foreach (var x in recipe.Ingredients) TopUp(sim, x.ProductId, RoastStockTarget * x.Quantity);
+            }
+        }
+
         if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.CuttingTable))
         {
             foreach (var cut in sim.Data.MeatCuts)
@@ -283,6 +342,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 RestockTask r => r.Target.FixtureInstanceId,
                 CutMeatTask c => c.CuttingTableInstanceId,
                 KillFishTask k => k.CounterInstanceId,
+                CookTask c => c.Target.FixtureInstanceId,
                 _ => null,
             }
             : sim.Tasks.OpenTasks.FirstOrDefault() switch
@@ -294,6 +354,8 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 CleanTankTask c => c.TankInstanceId,
                 RemoveDeadTask r => r.TankInstanceId,
                 KillFishTask k => k.Source.FixtureInstanceId,
+                CookTask c => c.StoveInstanceId,
+                ServeDeliTask s => s.StationInstanceId,
                 _ => null,
             };
         if (fixtureId is null)

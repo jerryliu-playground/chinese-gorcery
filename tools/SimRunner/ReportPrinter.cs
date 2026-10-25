@@ -14,7 +14,7 @@ public static class ReportPrinter
             "Day", "CashStart", "Revenue", "Purchases", "Wages", "Fixtures", "Loss", "Profit", "CashEnd", "Cust", "Angry", "NotFound", "TooExp"));
     }
 
-    public static void PrintRow(DailyReport r, ISet<string> produce, ISet<string> seafood)
+    public static void PrintRow(DailyReport r, ISet<string> produce, ISet<string> seafood, ISet<string> deli)
     {
         Console.WriteLine(string.Format(CultureInfo.InvariantCulture, Format,
             r.Day, Money(r.CashStartCents), Money(r.RevenueCents), Money(r.PurchaseCostCents), Money(r.WagesCents),
@@ -37,6 +37,13 @@ public static class ReportPrinter
         {
             Console.WriteLine($"      seafood: units {seafoodSales.Sum(s => s.Units)}, revenue {Money(seafoodSales.Sum(s => s.RevenueCents))}, " +
                               $"deaths {r.SeafoodDeaths}, loss {Money(r.SeafoodLossCents)}");
+        }
+
+        var deliSales = r.Sales.Where(s => deli.Contains(s.ProductId)).ToList();
+        if (deliSales.Count > 0 || r.DeliLossCents > 0 || r.KitchenRescuedCents > 0)
+        {
+            Console.WriteLine($"      deli: units {deliSales.Sum(s => s.Units)}, revenue {Money(deliSales.Sum(s => s.RevenueCents))}, " +
+                              $"loss {Money(r.DeliLossCents)}, near-expiry cooked {Money(r.KitchenRescuedCents)}");
         }
     }
 

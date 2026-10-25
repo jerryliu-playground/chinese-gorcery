@@ -67,23 +67,25 @@ public class SaveGameTests
     [Fact]
     public void Loading_with_produce_batches_and_messy_stands_matches_never_stopping()
     {
-        var straight = SimTestKit.NewSim(2);
-        var bot = new PlayerBot(stockTarget: 40);
-        for (var day = 0; day < 32; day++) bot.PlayDay(straight);
-
+        // Play until a produce stand is messy and produce sits in several batches, so both have to survive the save.
         var first = SimTestKit.NewSim(2);
         var firstBot = new PlayerBot(stockTarget: 40);
-        for (var day = 0; day < 29; day++) firstBot.PlayDay(first);
+        bool Interesting() =>
+            first.Layout.Fixtures.Any(f => f.FixtureId == "produce_stand" && first.TidinessOf(f.InstanceId) < 100)
+            && first.Inventory.Locations.Any(p => p.Lots.Count(l => first.Data.Products.Single(x => x.Id == l.ProductId).Department == Department.Produce) > 1);
+        var days = 0;
+        for (; days < 60 && !Interesting(); days++) firstBot.PlayDay(first);
+        Assert.True(Interesting(), "no messy stand with several produce batches within 60 days");
 
-        // Produce in several batches and a stand that is not perfectly tidy, so both have to survive the save.
         var stands = first.Layout.Fixtures.Where(f => f.FixtureId == "produce_stand").Select(f => f.InstanceId).ToList();
-        Assert.Contains(stands, s => first.TidinessOf(s) < 100);
-        Assert.Contains(first.Inventory.Locations, p => p.Lots.Count(l => first.Data.Products.Single(x => x.Id == l.ProductId).Department == Department.Produce) > 1);
-
         var resumed = Reload(first);
         Assert.All(stands, s => Assert.Equal(first.TidinessOf(s), resumed.TidinessOf(s)));
         var secondBot = new PlayerBot(stockTarget: 40);
-        for (var day = 29; day < 32; day++) secondBot.PlayDay(resumed);
+        for (var day = 0; day < 3; day++) secondBot.PlayDay(resumed);
+
+        var straight = SimTestKit.NewSim(2);
+        var bot = new PlayerBot(stockTarget: 40);
+        for (var day = 0; day < days + 3; day++) bot.PlayDay(straight);
 
         Assert.Equal(SaveGame.Write(straight), SaveGame.Write(resumed));
     }

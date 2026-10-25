@@ -17,7 +17,7 @@ public static class Program
         if (!TryParseArgs(args, out var options, out var usageError))
         {
             Console.Error.WriteLine(usageError);
-            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--data DIR]");
+            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--no-deli] [--data DIR]");
             return ExitUsageError;
         }
 
@@ -44,13 +44,14 @@ public static class Program
                           $"roles={data.Employees.Roles.Count} meatCuts={data.MeatCuts.Count} stages={data.Stages.Count}");
         Console.WriteLine($"Run: days={options.Days} seed={options.Seed} stockTarget={options.StockTarget}" +
                           (options.DisplayScore is { } fixedScore ? $" displayScore={fixedScore} (fixed)" : "") +
-                          (options.NoTankCleaning ? " tankCleaning=off" : ""));
+                          (options.NoTankCleaning ? " tankCleaning=off" : "") + (options.NoDeli ? " deli=off" : ""));
         Console.WriteLine();
 
         var sim = new GameSim(data, options.Seed) { DisplayScoreOverride = options.DisplayScore, TankCleaningDisabled = options.NoTankCleaning };
         var produce = data.Products.Where(p => p.Department == Department.Produce).Select(p => p.Id).ToHashSet();
         var seafood = data.Products.Where(p => p.Department == Department.Seafood).Select(p => p.Id).ToHashSet();
-        var bot = new PlayerBot(options.StockTarget);
+        var deli = data.Products.Where(p => p.Department == Department.Deli).Select(p => p.Id).ToHashSet();
+        var bot = new PlayerBot(options.StockTarget, runDeli: !options.NoDeli);
         var anomalies = new List<string>();
         ReportPrinter.PrintHeader();
 
@@ -58,7 +59,7 @@ public static class Program
         {
             bot.PlayDay(sim);
             var report = sim.Reports[^1];
-            ReportPrinter.PrintRow(report, produce, seafood);
+            ReportPrinter.PrintRow(report, produce, seafood, deli);
             foreach (var note in bot.TakeNotes()) Console.WriteLine("      * " + note);
             anomalies.AddRange(AnomalyCheck.Check(sim, report));
         }
@@ -74,6 +75,12 @@ public static class Program
         var seafoodSales = reports.SelectMany(r => r.Sales).Where(s => seafood.Contains(s.ProductId)).ToList();
         Console.WriteLine($"Seafood: units={seafoodSales.Sum(s => s.Units)} revenue={ReportPrinter.Money(seafoodSales.Sum(s => s.RevenueCents))} " +
                           $"deaths={reports.Sum(r => r.SeafoodDeaths)} loss={ReportPrinter.Money(reports.Sum(r => r.SeafoodLossCents))}");
+        var deliSales = reports.SelectMany(r => r.Sales).Where(s => deli.Contains(s.ProductId)).ToList();
+        Console.WriteLine($"Deli: units={deliSales.Sum(s => s.Units)} revenue={ReportPrinter.Money(deliSales.Sum(s => s.RevenueCents))} " +
+                          $"loss={ReportPrinter.Money(reports.Sum(r => r.DeliLossCents))} nearExpiryCooked={ReportPrinter.Money(reports.Sum(r => r.KitchenRescuedCents))}");
+        Console.WriteLine($"Waste by department: produce={ReportPrinter.Money(reports.Sum(r => r.ProduceLossCents))} " +
+                          $"seafood={ReportPrinter.Money(reports.Sum(r => r.SeafoodLossCents))} meat={ReportPrinter.Money(reports.Sum(r => r.MeatLossCents))} " +
+                          $"(together {ReportPrinter.Money(reports.Sum(r => r.ProduceLossCents + r.SeafoodLossCents + r.MeatLossCents))})");
         Console.WriteLine($"Stage: {sim.Economy.Stage}  staff: {string.Join(", ", sim.Workers.Where(w => w.RoleId is not null).Select(w => $"{w.RoleId} L{w.Level} knife {w.KnifeSkill}"))}");
         Console.WriteLine($"Rejected commands: {bot.RejectedCommands} {string.Join(", ", bot.Rejections.Select(kv => $"{kv.Key} x{kv.Value}"))}" +
                           $" (orders cut for storage space: {bot.OrdersCutForSpace})");
@@ -90,7 +97,7 @@ public static class Program
         return ExitOk;
     }
 
-    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false);
+    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false, bool NoDeli = false);
 
     private static bool TryParseArgs(string[] args, out Options options, out string error)
     {
@@ -103,6 +110,12 @@ public static class Program
             if (flag == "--no-tank-cleaning")
             {
                 options = options with { NoTankCleaning = true };
+                continue;
+            }
+
+            if (flag == "--no-deli")
+            {
+                options = options with { NoDeli = true };
                 continue;
             }
 

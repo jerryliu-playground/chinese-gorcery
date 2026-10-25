@@ -28,7 +28,7 @@
   },
   {
     "id": 4, "nameKey": "stage.4.name", "storeSize": { "w": 28, "h": 14 },
-    "requiredCumulativeRevenueCents": 1400000, "upgradeCostCents": 50000,
+    "requiredCumulativeRevenueCents": 1100000, "upgradeCostCents": 30000,
     "floorSprite": "tile_floor", "wallSprite": "tile_wall",
     "decorations": [
       { "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 8, "y": -1 } },
