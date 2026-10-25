@@ -44,4 +44,7 @@ public enum RejectReason
     NotAgainstWall,
     UnknownApplicant,
     NotAManager,
+    NotImportable,
+    BelowMinimumOrder,
+    NotAStorageArea,
 }

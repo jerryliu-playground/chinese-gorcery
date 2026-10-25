@@ -75,7 +75,7 @@ public sealed partial class GameSim
         var holdings = Holdings(storage.InstanceId);
         var otherSlots = StorageCapacity.SlotsNeeded(holdings.Where(h => h.Product.Id != product.Id));
         var mine = holdings.Where(h => h.Product.Id == product.Id).Sum(h => h.Quantity);
-        return Math.Max(0, (_fixtures[storage.FixtureId].Capacity - otherSlots) * product.UnitsPerStorageSlot - mine);
+        return Math.Max(0, (StorageCapacityOf(storage.InstanceId) - otherSlots) * product.UnitsPerStorageSlot - mine);
     }
 
     private List<(ProductDef Product, int Quantity)> Holdings(int storageInstanceId)
@@ -84,7 +84,7 @@ public sealed partial class GameSim
         var incoming = _orders.Pending
             .Where(o => DeliveryTarget(o)?.InstanceId == storageInstanceId)
             .Select(o => (_products[o.ProductId], o.Quantity));
-        return held.Concat(incoming).ToList();
+        return held.Concat(incoming).Concat(PalletsIn(storageInstanceId)).ToList();
     }
 
     /// <summary>Where an order part will be delivered: its own storage area if it still stands, else the first that can keep it.</summary>

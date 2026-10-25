@@ -30,7 +30,8 @@
       { "taskType": "clean_tank", "priority": 9 },
       { "taskType": "remove_dead", "priority": 12 },
       { "taskType": "cook", "priority": 11 },
-      { "taskType": "serve_deli", "priority": 19 }
+      { "taskType": "serve_deli", "priority": 19 },
+      { "taskType": "unload", "priority": 9 }
     ],
     "tidyMinutes": 2,
     "killPickupMinutes": 1,
@@ -62,6 +63,10 @@
       { "quality": 0, "permille": 15000 }, { "quality": 30, "permille": 6000 },
       { "quality": 60, "permille": 2000 }, { "quality": 100, "permille": 1000 }
     ]
+  },
+  "imports": {
+    "unlockStage": 2, "minDays": 7, "maxDays": 14, "unloadMinutes": 10,
+    "storageUpgradeSlots": 4, "storageUpgradeCostCents": 50000
   },
   "shifts": { "morningEndMinuteOfDay": 840, "eveningStartMinuteOfDay": 840, "halfShiftWagePermille": 550 },
   "deli": {

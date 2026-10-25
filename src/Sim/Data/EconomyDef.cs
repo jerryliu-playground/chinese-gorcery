@@ -27,6 +27,7 @@ public sealed record EconomyDef(
     SeafoodSettingsDef? Seafood = null,
     DeliSettingsDef? Deli = null,
     ShiftSettingsDef? Shifts = null,
+    ImportSettingsDef? Imports = null,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);
 
 /// <summary>From <paramref name="StartMinuteOfDay"/> until the next bucket (or closing), customers arrive at this rate.</summary>

@@ -56,7 +56,8 @@ public sealed partial class GameSim
             _tidiness.Select(kv => new TidinessSave(kv.Key, kv.Value)).ToList(),
             TankSaves(),
             _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList(),
-            StaffSave());
+            StaffSave(),
+            ImportSave());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -144,6 +145,8 @@ public sealed partial class GameSim
         foreach (var stand in save.Tidiness ?? []) _tidiness[stand.StandInstanceId] = stand.Tidiness;
         RestoreTanks(save.Tanks ?? []);
         RestoreStaff(save.Staff, (ulong)save.TickCount);
+        RestoreImports(save.Imports, (ulong)save.TickCount);
+        RebuildOccupancy();
         foreach (var m in save.Menu ?? [])
         {
             _menu[m.Slot] = m.Item;

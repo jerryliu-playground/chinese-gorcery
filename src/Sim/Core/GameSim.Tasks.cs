@@ -24,6 +24,7 @@ public sealed partial class GameSim
         RefreshKillTasks();
         RefreshCookTasks();
         RefreshServeTasks();
+        RefreshUnloadTasks();
     }
 
     private void RefreshRestockTasks()
@@ -131,6 +132,7 @@ public sealed partial class GameSim
         KillFishTask k => k.Source.FixtureInstanceId,
         CookTask c => c.StoveInstanceId,
         ServeDeliTask s => s.StationInstanceId,
+        UnloadTask u => u.StorageInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -228,6 +230,10 @@ public sealed partial class GameSim
                     return;
                 }
 
+                break;
+
+            case UnloadTask:
+                BeginStep(worker, WorkStep.Unloading, Data.Economy.Imports?.UnloadMinutes ?? 0);
                 break;
 
             case ServeDeliTask s:
@@ -475,6 +481,11 @@ public sealed partial class GameSim
 
             case (WorkStep.Cleaning, CleanTankTask c):
                 CleanTank(worker, c.TankInstanceId);
+                FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Unloading, UnloadTask u):
+                UnloadPallet(worker, u);
                 FinishTask(worker, completed: true);
                 break;
 

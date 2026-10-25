@@ -53,7 +53,10 @@ public sealed partial class GameSim
             return Reject(RejectReason.LastEntrance);
         }
 
-        if (Inventory.Holds(sell.InstanceId) || DeadIn(sell.InstanceId).Count > 0) return Reject(RejectReason.FixtureNotEmpty);
+        if (Inventory.Holds(sell.InstanceId) || DeadIn(sell.InstanceId).Count > 0 || _pallets.Any(p => p.FloorCell is null && p.StorageInstanceId == sell.InstanceId))
+        {
+            return Reject(RejectReason.FixtureNotEmpty);
+        }
         if (IsFixtureInUse(sell.InstanceId)) return Reject(RejectReason.FixtureInUse);
         if (_orders.Pending.Any(o => StorageRouting.FindDestination(Data, remaining, _products[o.ProductId]) is null))
         {
@@ -79,6 +82,15 @@ public sealed partial class GameSim
     private bool CoversWorker(PlacedFixture fixture) =>
         LayoutRules.Footprint(_fixtures[fixture.FixtureId], fixture.Origin, fixture.Rotation).Any(c => _workers.Any(w => w.IsPresent && w.Position == c));
 
-    private Rejection? CheckLayout(IReadOnlyList<PlacedFixture> fixtures, int focusId) =>
-        LayoutRules.Check(Layout.Size, fixtures, id => _fixtures[id], focusId);
+    /// <summary>The layout rules, plus: nothing may stand on a pallet left on the floor.</summary>
+    private Rejection? CheckLayout(IReadOnlyList<PlacedFixture> fixtures, int focusId)
+    {
+        if (fixtures.FirstOrDefault(f => f.InstanceId == focusId) is { } focus
+            && LayoutRules.Footprint(_fixtures[focus.FixtureId], focus.Origin, focus.Rotation).Any(c => _pallets.Any(p => p.FloorCell == c)))
+        {
+            return new Rejection(RejectReason.Overlap, focusId);
+        }
+
+        return LayoutRules.Check(Layout.Size, fixtures, id => _fixtures[id], focusId);
+    }
 }

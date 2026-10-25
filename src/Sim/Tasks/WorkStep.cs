@@ -15,4 +15,5 @@ public enum WorkStep
     Killing,
     Cooking,
     Packing,
+    Unloading,
 }

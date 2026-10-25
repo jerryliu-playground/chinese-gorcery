@@ -44,6 +44,7 @@ public sealed partial class GameSim
         Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerMinute, player.WorkSpeedPermille, player.KnifeSkill);
         _workers.Add(Player);
         StartStaffStream(seed);
+        StartImportStream(seed);
         RefreshApplicants();
 
         _events.Add(new DayStarted(Clock.Day));
@@ -129,6 +130,8 @@ public sealed partial class GameSim
             AssignManager assign => HandleAssignManager(assign),
             SetAutomation automation => HandleSetAutomation(automation),
             SetOrderTarget target => HandleSetOrderTarget(target),
+            Imports.PlaceImportOrder order => HandlePlaceImportOrder(order),
+            Imports.UpgradeStorage upgrade => HandleUpgradeStorage(upgrade),
             Deli.SetMenuItem menu => HandleSetMenuItem(menu),
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
@@ -161,6 +164,7 @@ public sealed partial class GameSim
         foreach (var worker in _workers) worker.TasksToday = 0;
         _events.Add(new DayStarted(Clock.Day));
         DeliverOrders();
+        DeliverShipments();
         RefreshApplicants();
         RunManagers();
         return null;
@@ -255,6 +259,8 @@ public sealed partial class GameSim
         {
             _occupied.UnionWith(LayoutRules.Footprint(_fixtures[f.FixtureId], f.Origin, f.Rotation));
         }
+
+        foreach (var pallet in _pallets.Where(p => p.FloorCell is not null)) _occupied.Add(pallet.FloorCell!.Value);
     }
 
     private GridPoint PlayerStartCell()

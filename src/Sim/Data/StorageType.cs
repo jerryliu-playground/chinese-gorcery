@@ -7,4 +7,5 @@ public enum StorageType
     Live,
     LiveShellfish,
     Hot,
+    Frozen,
 }

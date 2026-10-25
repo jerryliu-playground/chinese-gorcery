@@ -44,7 +44,7 @@
     "id": "cold_storage", "nameKey": "fixture.cold_storage.name", "kind": "cold_storage",
     "size": { "w": 2, "h": 2 }, "interactionCells": [{ "x": 0, "y": 2 }],
     "customerCells": [],
-    "capacity": 6, "storage": ["chilled"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
+    "capacity": 6, "storage": ["chilled", "frozen"], "priceCents": 150000, "unlockStage": 2, "_tbd": true
   },
   {
     "id": "produce_stand", "nameKey": "fixture.produce_stand.name", "kind": "produce_stand",
@@ -106,6 +106,13 @@
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 2, "storage": ["hot"], "priceCents": 20000, "unlockStage": 4,
     "sprite": { "main": "roast_station", "empty": "roast_station_empty" },
+    "_tbd": true
+  },
+  {
+    "id": "freezer", "nameKey": "fixture.freezer.name", "kind": "freezer",
+    "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
+    "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
+    "capacity": 4, "storage": ["frozen"], "priceCents": 80000, "unlockStage": 2, "sprite": { "main": "freezer" },
     "_tbd": true
   }
 ]

@@ -11,4 +11,5 @@ public enum TaskType
     RemoveDead,
     Cook,
     ServeDeli,
+    Unload,
 }

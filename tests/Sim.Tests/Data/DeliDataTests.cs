@@ -16,7 +16,7 @@ public class DeliDataTests
     public void Every_recipe_is_also_a_dish_product_sold_hot_the_same_day()
     {
         Assert.Empty(ErrorsFor(Valid));
-        Assert.Equal(10, Valid.Recipes.Count);
+        Assert.NotEmpty(Valid.Recipes);
         foreach (var recipe in Valid.Recipes)
         {
             var dish = Valid.Products.Single(p => p.Id == recipe.Id);

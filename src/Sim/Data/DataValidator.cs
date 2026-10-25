@@ -61,6 +61,7 @@ public static partial class DataValidator
             if (p.UnitsPerShelfSlot <= 0) errors.Add($"{at}: unitsPerShelfSlot must be > 0");
             if (p.UnitsPerStorageSlot <= 0) errors.Add($"{at}: unitsPerStorageSlot must be > 0");
             if (p.Orderable && p.CostCents <= 0) errors.Add($"{at}: orderable products need costCents > 0");
+            if (p.Import is { } import && (import.CostCents <= 0 || import.MinUnits <= 0)) errors.Add($"{at}: import costCents and minUnits must be > 0");
             if (p.Department == Department.Produce && (p.FreshnessDays is null || p.Category is null || p.Color is null))
             {
                 errors.Add($"{at}: produce needs freshnessDays, category and color");
@@ -133,7 +134,7 @@ public static partial class DataValidator
 
     /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
     public static bool IsDisplay(FixtureKind kind) =>
-        kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.IceTable || IsTank(kind);
+        kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.IceTable or FixtureKind.Freezer || IsTank(kind);
 
     /// <summary>Fixture kinds that keep live seafood in water.</summary>
     public static bool IsTank(FixtureKind kind) => kind is FixtureKind.FishTank or FixtureKind.ShellfishTank;
@@ -147,7 +148,7 @@ public static partial class DataValidator
     private static void ValidateStorageCoverage(IReadOnlyList<ProductDef> products, IReadOnlyList<FixtureDef> fixtures, List<string> errors)
     {
         var storable = fixtures.Where(f => IsStorageArea(f.Kind)).SelectMany(f => f.Storage).ToHashSet();
-        foreach (var p in products.Where(p => p.Orderable && !storable.Contains(p.Storage)))
+        foreach (var p in products.Where(p => (p.Orderable || p.Import is not null) && !storable.Contains(p.Storage)))
         {
             errors.Add($"{DataFiles.Products}: '{p.Id}' is orderable but no backroom/cold storage fixture stores '{p.Storage}'");
         }

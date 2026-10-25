@@ -41,4 +41,5 @@ public sealed record SaveFile(
     IReadOnlyList<TidinessSave>? Tidiness = null,
     IReadOnlyList<TankSave>? Tanks = null,
     IReadOnlyList<MenuSave>? Menu = null,
-    StaffSave? Staff = null);
+    StaffSave? Staff = null,
+    ImportSave? Imports = null);

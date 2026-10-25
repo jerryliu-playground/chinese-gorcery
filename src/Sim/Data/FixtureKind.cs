@@ -17,4 +17,5 @@ public enum FixtureKind
     WokStove,
     SteamTable,
     RoastStation,
+    Freezer,
 }

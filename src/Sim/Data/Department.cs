@@ -10,4 +10,5 @@ public enum Department
     Produce,
     Seafood,
     Deli,
+    Frozen,
 }
