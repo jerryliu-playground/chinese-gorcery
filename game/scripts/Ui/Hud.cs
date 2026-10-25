@@ -29,10 +29,10 @@ public partial class Hud : Control
     private readonly Button _calendarButton = new() { TooltipText = "ui.hud.calendar", Flat = true };
     private readonly Label _clock = new();
     private readonly Label _cash = new();
-    private readonly Label _stage = new();
     private readonly Label _ships = new();
     private readonly Label _rating = new();
     private readonly Label _trend = new();
+    private PanelContainer _infoPanel = null!;
     private readonly Button _groupOrders = new() { Text = "ui.hud.group_orders" };
     private readonly Label _message = new();
     private readonly Label _shopName = new() { AutoTranslateMode = AutoTranslateModeEnum.Disabled };
@@ -85,7 +85,7 @@ public partial class Hud : Control
         });
         AddChild(_message);
 
-        // Just under the top bar, over the wall: the reputation stars and score, then this season's trend.
+        // Just under the top bar, after the shop name: the reputation stars and score, then this season's trend.
         var info = new PanelContainer { Position = new Vector2(ToolColumnWidth + 4, 19), MouseFilter = MouseFilterEnum.Ignore };
         info.AddThemeStyleboxOverride("panel", new StyleBoxFlat
         {
@@ -110,7 +110,7 @@ public partial class Hud : Control
         }
 
         _rating.AddThemeColorOverride("font_color", new Color(1f, 0.85f, 0.4f));
-        AddChild(info);
+        _infoPanel = info;
 
         AddChild(_celebration);
         BuildStoryCorner();
@@ -128,7 +128,10 @@ public partial class Hud : Control
     /// <summary>The conversation on screen, if any (story, tutorial calls).</summary>
     public DialogueBox Dialogue { get; } = new() { Name = "Dialogue" };
 
-    /// <summary>Under the top bar: the shop's name and the tutorial reminder on the left, the student loan on the right.</summary>
+    /// <summary>
+    /// Under the top bar: the shop's name, the tutorial reminder, reputation and trend, and imports at sea on the left; the
+    /// student loan on the right.
+    /// </summary>
     private void BuildStoryCorner()
     {
         var backdrop = new StyleBoxFlat { BgColor = new Color(0.08f, 0.08f, 0.1f, 0.75f), ContentMarginLeft = 3, ContentMarginRight = 3 };
@@ -140,6 +143,10 @@ public partial class Hud : Control
         _objective.AddThemeStyleboxOverride("normal", backdrop);
         _objective.AddThemeColorOverride("font_color", new Color(0.98f, 0.86f, 0.5f));
         left.AddChild(_objective);
+        left.AddChild(_infoPanel);
+        _ships.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
+        _ships.AddThemeStyleboxOverride("normal", backdrop);
+        left.AddChild(_ships);
         AddChild(left);
 
         _loan.AddThemeStyleboxOverride("normal", backdrop);
@@ -169,7 +176,7 @@ public partial class Hud : Control
         _calendarButton.ExpandIcon = false;
         _calendarButton.Pressed += () => ShowOnly(_calendar);
         bar.AddChild(_calendarButton);
-        foreach (var label in new[] { _date, _day, _clock, _cash, _stage, _ships })
+        foreach (var label in new[] { _date, _day, _clock, _cash })
         {
             label.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
             bar.AddChild(label);
@@ -382,14 +389,15 @@ public partial class Hud : Control
     private void OnTicked()
     {
         var sim = _host.Sim;
-        _day.Text = UiText.F("ui.hud.day", ("day", sim.Clock.Day)) + "  " + UiText.T("ui.phase." + UiText.Snake(sim.Clock.Phase));
+        // With the calendar the date already says which day it is; the bar is too narrow for both.
+        var phase = UiText.T("ui.phase." + UiText.Snake(sim.Clock.Phase));
+        _day.Text = sim.Date is null ? UiText.F("ui.hud.day", ("day", sim.Clock.Day)) + "  " + phase : phase;
         _date.Text = sim.Date is { } date
             ? UiText.F("ui.hud.date", ("season", UiText.T(_host.Data.Calendar!.Seasons[date.SeasonIndex].NameKey)), ("day", date.DayOfSeason),
                 ("weekday", UiText.T("ui.weekday.short." + sim.Clock.Weekday)))
             : "";
         _clock.Text = UiText.ClockTime(sim.Clock.MinuteOfDay);
         UpdateCashLabel(0);
-        _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
         _ships.Visible = sim.Shipments.Count > 0 || sim.Pallets.Count > 0;
         _ships.Text = sim.Shipments.Count > 0
             ? UiText.F("ui.hud.ships", ("count", sim.Shipments.Count), ("days", sim.Shipments.Min(s => s.ArrivalDay) - sim.Clock.Day))
@@ -397,7 +405,8 @@ public partial class Hud : Control
         UpdateStoryCorner();
         _rating.Text = UiText.F("ui.hud.rating", ("stars", ReviewsPanel.StarText(sim.Stars)), ("rep", sim.Reputation));
         _trend.Text = ReviewsPanel.TrendText(_host) ?? "";
-        _trend.Visible = _trend.Text.Length > 0;
+        // The tutorial reminder needs the room while it shows; the trend is also in the reviews panel.
+        _trend.Visible = _trend.Text.Length > 0 && !_objective.Visible;
 
         // A waiting offer lights up the group order button.
         _groupOrders.Modulate = sim.GroupOrders.Any(o => o.Status == GroupOrderStatus.Offered) ? new Color(1f, 0.85f, 0.4f) : Colors.White;
