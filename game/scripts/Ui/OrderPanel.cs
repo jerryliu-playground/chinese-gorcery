@@ -30,12 +30,16 @@ public partial class OrderPanel : PanelBase
         }
 
         var lastDay = Host.Sim.Reports.Count > 0 ? Host.Sim.Reports[^1].Sales : [];
-        foreach (var product in Host.Data.Products.Where(p => p.Orderable))
+        // Festival goods are only listed while the wholesaler has them (the days before their festival).
+        foreach (var product in Host.Data.Products.Where(p => p.Orderable && Host.Sim.InOrderWindow(p.Id)))
         {
             var qty = new SpinBox { MinValue = 1, MaxValue = 999, Value = product.UnitsPerStorageSlot, CustomMinimumSize = new Vector2(64, 0) };
+            var cost = Host.Sim.CostOf(product);
+            var price = Text(UiText.Money(cost), 60);
+            if (cost != product.CostCents) price.AddThemeColorOverride("font_color", new Color(0.95f, 0.55f, 0.4f));
             Body.AddChild(Row(
                 Text(UiText.T(product.NameKey), 120),
-                Text(UiText.Money(product.CostCents), 60),
+                price,
                 qty,
                 ActionButton("ui.order.place", () => Host.Send(new PlaceOrder(product.Id, (int)qty.Value)))));
 
@@ -58,6 +62,9 @@ public partial class OrderPanel : PanelBase
             facts.Text = UiText.F("ui.order.facts",
                 ("per_slot", product.UnitsPerStorageSlot), ("stock", sim.Inventory.Total(id)),
                 ("pending", sim.PendingOrders.Where(o => o.ProductId == id).Sum(o => o.Quantity)), ("sold", sold), ("room", sim.RoomFor(id)));
+            if (sim.IsOutOfStock(id)) facts.Text += " · " + UiText.T("ui.order.out_of_stock");
+            else if (sim.CostOf(product) != product.CostCents) facts.Text += " · " + UiText.T("ui.order.price_up");
+
         }
 
         foreach (var (storage, label) in _spaces)
