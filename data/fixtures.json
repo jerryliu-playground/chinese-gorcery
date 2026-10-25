@@ -96,7 +96,7 @@
     "id": "roast_station", "nameKey": "fixture.roast_station.name", "kind": "roast_station",
     "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
     "customerCells": [{ "x": 0, "y": 1 }],
-    "capacity": 1, "storage": ["hot"], "priceCents": 20000, "unlockStage": 4,
+    "capacity": 2, "storage": ["hot"], "priceCents": 20000, "unlockStage": 4,
     "sprite": { "main": "roast_station", "empty": "roast_station_empty" },
     "_tbd": true
   }
