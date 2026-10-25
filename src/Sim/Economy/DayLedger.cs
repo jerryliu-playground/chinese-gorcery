@@ -12,6 +12,7 @@ public sealed class DayLedger(int day, long cashStartCents)
     public long PurchaseCostCents { get; internal set; }
     public long WagesCents { get; internal set; }
     public long FixtureSpendCents { get; internal set; }
+    public long LoanPaymentCents { get; internal set; }
     public long LossCents { get; internal set; }
     public long ProduceLossCents { get; internal set; }
     public long SeafoodLossCents { get; internal set; }
@@ -31,6 +32,7 @@ public sealed class DayLedger(int day, long cashStartCents)
             case ExpenseCategory.Purchases: PurchaseCostCents += cents; break;
             case ExpenseCategory.Wages: WagesCents += cents; break;
             case ExpenseCategory.Fixtures: FixtureSpendCents += cents; break;
+            case ExpenseCategory.Loan: LoanPaymentCents += cents; break;
             default: throw new ArgumentOutOfRangeException(nameof(category), category, null);
         }
     }
@@ -81,7 +83,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         FixtureSpendCents,
         LossCents,
         ProduceLossCents,
-        RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents,
+        RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents - LoanPaymentCents,
         Customers,
         AngryLeaves,
         ItemsNotFound,
@@ -91,5 +93,6 @@ public sealed class DayLedger(int day, long cashStartCents)
         SeafoodLossCents,
         MeatLossCents,
         DeliLossCents,
-        KitchenRescuedCents);
+        KitchenRescuedCents,
+        LoanPaymentCents);
 }
