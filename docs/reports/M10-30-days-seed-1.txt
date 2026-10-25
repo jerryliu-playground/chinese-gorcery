@@ -1,5 +1,5 @@
 Data OK (/Users/jerryliu/工作/chinese-grocery/data)
-  products=37 fixtures=14 customerTypes=3 roles=3 meatCuts=1 stages=4
+  products=39 fixtures=15 customerTypes=3 roles=3 meatCuts=1 stages=4
 Run: days=30 seed=1 stockTarget=40
 
  Day   CashStart    Revenue  Purchases     Wages  Fixtures      Loss      Profit     CashEnd  Cust Angry NotFound  TooExp
@@ -67,55 +67,55 @@ Run: days=30 seed=1 stockTarget=40
       sold: bok_choy 8, chili_crisp 24, jasmine_tea 12, live_fish 6, live_shrimp 12, milk_candy 18, napa_cabbage 8, noodles_instant 23, pork_belly 3, pork_loin 1, pork_ribs 4, rice_jasmine 19, shrimp_chips 11, soy_milk 8, soy_sauce_light 15
       produce: units 16, revenue 35.84, loss 0.00
       seafood: units 18, revenue 263.82, deaths 0, loss 0.00
-      * placed fish_tank at 26,3
+      * placed shellfish_tank at 26,3
   24      923.25    1003.78     542.00    250.00    300.00     15.00      -88.22      835.03    60    10        6      33
       sold: bok_choy 12, chili_crisp 8, crab 8, ground_pork 4, jasmine_tea 9, lobster 3, milk_candy 10, napa_cabbage 8, noodles_instant 17, pork_belly 7, pork_loin 4, pork_ribs 4, rice_jasmine 17, shrimp_chips 11, soy_milk 9, soy_sauce_light 11
       produce: units 20, revenue 43.80, loss 0.00
       seafood: units 11, revenue 344.89, deaths 0, loss 0.00
-      * placed ice_table at 25,3
-      * placed wok_stove at 27,5
-  25      835.03     810.31     449.40    390.00    200.00     11.85     -229.09      605.94   122    53       20      59
-      sold: bok_choy 2, braised_pork 5, chili_crisp 7, clams 13, jasmine_tea 8, live_fish 4, live_shrimp 8, milk_candy 4, napa_cabbage 8, noodles_instant 16, pork_belly 1, pork_loin 4, pork_ribs 2, rice_jasmine 10, salt_pepper_shrimp 3, shrimp_chips 8, soy_milk 8, soy_sauce_light 10, stir_fried_bok_choy 9, sweet_sour_ribs 6
-      produce: units 10, revenue 23.90, loss 0.00
-      seafood: units 25, revenue 273.25, deaths 0, loss 0.00
-      deli: units 23, revenue 144.54, loss 11.85, near-expiry cooked 6.00
-      * placed steam_table at 26,5
+      * placed ice_table at 27,5
+      * placed wok_stove at 27,7
+  25      835.03     694.51     449.40    390.00    200.00     11.75     -344.89      490.14   115    61       11      42
+      sold: bok_choy 8, braised_pork 4, chili_crisp 8, clams 10, garlic_clams 5, jasmine_tea 6, live_fish 3, live_shrimp 3, milk_candy 6, napa_cabbage 7, noodles_instant 12, pork_belly 1, pork_loin 4, pork_ribs 2, rice_jasmine 10, salt_pepper_shrimp 5, shrimp_chips 8, soy_milk 6, soy_sauce_light 5, sweet_sour_ribs 4
+      produce: units 15, revenue 33.35, loss 0.00
+      seafood: units 16, revenue 170.84, deaths 0, loss 0.00
+      deli: units 18, revenue 138.70, loss 11.75, near-expiry cooked 6.00
+      * placed steam_table at 26,7
       * hired chef
-  26      605.94     963.45     302.00    390.00      0.00     13.45      271.45      877.39   120    50       14      47
-      sold: bok_choy 3, braised_pork 10, chili_crisp 6, clams 20, crab 8, ground_pork 6, jasmine_tea 5, lobster 1, milk_candy 12, napa_cabbage 8, noodles_instant 12, pork_belly 6, pork_loin 5, pork_ribs 4, rice_jasmine 8, shrimp_chips 7, soy_milk 11, soy_sauce_light 9, stir_fried_bok_choy 17
-      produce: units 11, revenue 25.89, loss 0.00
-      seafood: units 29, revenue 322.11, deaths 0, loss 0.00
-      deli: units 27, revenue 165.06, loss 1.45, near-expiry cooked 0.00
-  27      877.39     731.98     394.00    390.00    200.00     29.50     -252.02      625.37   103    34       35      40
-      sold: bok_choy 2, chili_crisp 5, clams 5, jasmine_tea 6, live_fish 1, live_shrimp 6, milk_candy 8, napa_cabbage 8, noodles_instant 9, pork_loin 3, pork_ribs 2, rice_jasmine 13, salt_pepper_shrimp 8, shrimp_chips 6, soy_milk 8, soy_sauce_light 8, stir_fried_bok_choy 12, sweet_sour_ribs 6
-      produce: units 10, revenue 23.90, loss 0.00
-      seafood: units 12, revenue 129.38, deaths 0, loss 29.50
-      deli: units 26, revenue 197.48, loss 0.00, near-expiry cooked 3.00
-      * placed roast_station at 27,7
-  28      625.37    1096.17     308.50    390.00      0.00     12.70      397.67     1023.04   124    48       23      35
-      sold: bok_choy 3, char_siu 15, chili_crisp 7, clams 14, crab 8, ground_pork 8, jasmine_tea 5, lobster 2, milk_candy 4, napa_cabbage 8, noodles_instant 13, pork_belly 7, pork_loin 6, pork_ribs 6, rice_jasmine 10, salt_pepper_shrimp 4, shrimp_chips 11, soy_milk 8, soy_sauce_light 6, stir_fried_bok_choy 12
-      produce: units 11, revenue 25.89, loss 0.00
-      seafood: units 24, revenue 369.11, deaths 0, loss 0.00
-      deli: units 31, revenue 208.18, loss 3.70, near-expiry cooked 0.00
-  29     1023.04     870.82     446.20    390.00    450.00     63.15     -415.38      607.66   109    45       10      44
-      sold: bok_choy 2, braised_pork 6, chili_crisp 11, clams 15, jasmine_tea 11, live_fish 5, live_shrimp 6, milk_candy 9, napa_cabbage 8, noodles_instant 19, pork_belly 1, pork_loin 2, rice_jasmine 10, roast_duck 9, salt_pepper_shrimp 3, shrimp_chips 6, soy_milk 10, soy_sauce_light 7, stir_fried_bok_choy 5, sweet_sour_ribs 2
-      produce: units 10, revenue 23.90, loss 0.00
-      seafood: units 26, revenue 279.72, deaths 0, loss 37.50
-      deli: units 25, revenue 191.56, loss 25.65, near-expiry cooked 6.00
-      * placed wok_stove at 27,9
+  26      490.14    1082.22     274.40    390.00      0.00      9.00      417.82      907.96   117    43       32      40
+      sold: bok_choy 6, chili_crisp 9, clams 19, crab 8, garlic_clams 12, ground_pork 8, jasmine_tea 4, live_shrimp 1, lobster 1, milk_candy 6, napa_cabbage 9, noodles_instant 11, pork_belly 9, pork_loin 4, pork_ribs 8, rice_jasmine 6, salt_pepper_shrimp 8, shrimp_chips 8, soy_milk 8, soy_sauce_light 12, stir_fried_bok_choy 12
+      produce: units 15, revenue 34.35, loss 0.00
+      seafood: units 29, revenue 327.74, deaths 0, loss 0.00
+      deli: units 32, revenue 244.16, loss 0.00, near-expiry cooked 0.00
+  27      907.96     997.31     407.60    390.00    200.00     18.00       -0.29      907.67   108    38       15      49
+      sold: bok_choy 2, chili_crisp 7, clams 11, garlic_clams 8, jasmine_tea 8, live_fish 4, live_shrimp 1, lobster 2, milk_candy 11, napa_cabbage 7, noodles_instant 22, pork_belly 1, pork_loin 4, rice_jasmine 11, salt_pepper_shrimp 12, shrimp_chips 7, soy_milk 9, soy_sauce_light 8, stir_fried_bok_choy 12
+      produce: units 9, revenue 21.41, loss 0.00
+      seafood: units 18, revenue 324.32, deaths 0, loss 18.00
+      deli: units 32, revenue 253.76, loss 0.00, near-expiry cooked 2.50
+      * placed roast_station at 27,9
+  28      907.67     793.90     359.70    390.00    200.00     52.95     -155.80      751.87   120    72       12      29
+      sold: bok_choy 6, char_siu 5, chili_crisp 7, clams 15, crab 8, garlic_clams 4, ground_pork 6, jasmine_tea 4, live_shrimp 1, milk_candy 3, napa_cabbage 8, noodles_instant 1, pork_belly 2, pork_loin 4, pork_ribs 6, rice_jasmine 8, roast_duck 4, salt_pepper_shrimp 7, shrimp_chips 5, soy_milk 7, soy_sauce_light 3, stir_fried_bok_choy 1
+      produce: units 14, revenue 31.86, loss 0.00
+      seafood: units 24, revenue 244.26, deaths 0, loss 0.00
+      deli: units 21, revenue 176.24, loss 40.95, near-expiry cooked 0.00
+      * placed wok_stove at 27,11
+  29      751.87     917.81     324.90    390.00    250.00     21.75      -47.09      704.78   106    37       24      49
+      sold: bok_choy 7, braised_pork 5, chili_crisp 11, clams 8, garlic_clams 9, jasmine_tea 9, live_fish 6, live_shrimp 3, milk_candy 10, napa_cabbage 8, noodles_instant 9, pork_belly 4, pork_loin 4, rice_jasmine 12, salt_pepper_shrimp 7, shrimp_chips 4, soy_milk 7, soy_sauce_light 12, sweet_sour_ribs 5
+      produce: units 15, revenue 33.85, loss 0.00
+      seafood: units 17, revenue 215.83, deaths 0, loss 12.00
+      deli: units 26, revenue 226.35, loss 9.75, near-expiry cooked 9.00
       * placed produce_stand at 18,6
-  30      607.66     640.59     325.00    390.00      0.00     68.05      -74.41      533.25   125    66        7      81
-      sold: bok_choy 2, char_siu 13, chili_crisp 4, clams 13, crab 3, ginger 3, jasmine_tea 7, milk_candy 3, napa_cabbage 3, noodles_instant 8, pork_belly 2, pork_loin 3, pork_ribs 2, rice_jasmine 7, salt_pepper_shrimp 4, scallion 4, shrimp_chips 6, soy_milk 9, soy_sauce_light 8, steamed_fish 3, stir_fried_bok_choy 9
-      produce: units 12, revenue 19.88, loss 0.00
-      seafood: units 16, revenue 137.46, deaths 0, loss 40.00
-      deli: units 29, revenue 203.14, loss 7.05, near-expiry cooked 0.00
+  30      704.78     812.87     442.60    390.00      0.00     53.51      -19.73      685.05   123    60        4      83
+      sold: bok_choy 7, braised_lobster 4, chili_crisp 8, clams 10, crab 8, garlic_clams 3, ginger 6, jasmine_tea 2, live_shrimp 3, lobster 1, milk_candy 4, napa_cabbage 8, noodles_instant 7, rice_jasmine 10, roast_duck 4, salt_pepper_shrimp 2, scallion 7, shrimp_chips 5, soy_milk 5, soy_sauce_light 12, stir_fried_bok_choy 4
+      produce: units 28, revenue 49.72, loss 0.00
+      seafood: units 22, revenue 305.78, deaths 0, loss 0.00
+      deli: units 17, revenue 164.90, loss 53.51, near-expiry cooked 25.00
 
-Totals: revenue=21896.35 profit=-1466.75 customers=2374 angry=550 notFound=588 tooExpensive=1249
-Produce: units=192 revenue=423.68 loss=0.00
-Seafood: units=161 revenue=2119.74 deaths=0 loss=107.00
-Deli: units=161 revenue=1109.96 loss=49.70 nearExpiryCooked=15.00
-Waste by department: produce=0.00 seafood=107.00 meat=91.50 (together 198.50)
+Totals: revenue=22081.65 profit=-1314.95 customers=2360 angry=565 notFound=577 tooExpensive=1235
+Produce: units=224 revenue=484.86 loss=0.00
+Seafood: units=155 revenue=2197.48 deaths=0 loss=30.00
+Deli: units=146 revenue=1204.11 loss=115.96 nearExpiryCooked=42.50
+Waste by department: produce=0.00 seafood=30.00 meat=70.50 (together 100.50)
 Stage: 4  staff: butcher L1 knife 1, fishmonger L4 knife 8, chef L5 knife 5
-Rejected commands: 0  (orders cut for storage space: 19)
-State hash: 2FAE1AB062A15EEB
+Rejected commands: 0  (orders cut for storage space: 20)
+State hash: 3E14873C64851B3B
 No anomalies.
