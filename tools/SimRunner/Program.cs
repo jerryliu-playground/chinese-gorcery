@@ -17,7 +17,7 @@ public static class Program
         if (!TryParseArgs(args, out var options, out var usageError))
         {
             Console.Error.WriteLine(usageError);
-            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--no-deli] [--auto] [--imports] [--data DIR]");
+            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--no-deli] [--auto] [--imports] [--good-service | --poor-service] [--data DIR]");
             return ExitUsageError;
         }
 
@@ -44,14 +44,21 @@ public static class Program
                           $"roles={data.Employees.Roles.Count} meatCuts={data.MeatCuts.Count} stages={data.Stages.Count}");
         Console.WriteLine($"Run: days={options.Days} seed={options.Seed} stockTarget={options.StockTarget}" +
                           (options.DisplayScore is { } fixedScore ? $" displayScore={fixedScore} (fixed)" : "") +
-                          (options.NoTankCleaning ? " tankCleaning=off" : "") + (options.NoDeli ? " deli=off" : "") + (options.Auto ? " staff=auto" : "") + (options.Imports ? " imports=on" : ""));
+                          (options.NoTankCleaning ? " tankCleaning=off" : "") + (options.NoDeli ? " deli=off" : "") + (options.Auto ? " staff=auto" : "") + (options.Imports ? " imports=on" : "") +
+                          (options.Service is { } service ? $" service={service}" : ""));
         Console.WriteLine();
 
         var sim = new GameSim(data, options.Seed) { DisplayScoreOverride = options.DisplayScore, TankCleaningDisabled = options.NoTankCleaning };
         var produce = data.Products.Where(p => p.Department == Department.Produce).Select(p => p.Id).ToHashSet();
         var seafood = data.Products.Where(p => p.Department == Department.Seafood).Select(p => p.Id).ToHashSet();
         var deli = data.Products.Where(p => p.Department == Department.Deli).Select(p => p.Id).ToHashSet();
-        var bot = new PlayerBot(options.StockTarget, runDeli: !options.NoDeli, autoStaff: options.Auto, imports: options.Imports);
+        var bot = new PlayerBot(options.StockTarget, runDeli: !options.NoDeli, autoStaff: options.Auto, imports: options.Imports,
+            frontStaff: options.Service == GoodService, checkoutLast: options.Service == PoorService);
+        var arrivals = new SortedDictionary<string, int>(StringComparer.Ordinal);
+        bot.EventsSeen = events =>
+        {
+            foreach (var e in events.OfType<ChineseGrocery.Sim.Customers.CustomerEntered>()) arrivals[e.TypeId] = arrivals.GetValueOrDefault(e.TypeId) + 1;
+        };
         var anomalies = new List<string>();
         ReportPrinter.PrintHeader();
 
@@ -60,6 +67,8 @@ public static class Program
             bot.PlayDay(sim);
             var report = sim.Reports[^1];
             ReportPrinter.PrintRow(report, produce, seafood, deli);
+            Console.WriteLine($"      reputation {sim.Reputation} ({sim.Stars} stars), arrivals x{sim.ArrivalPermille() / 1000.0:0.00}" +
+                              (sim.Reviews.Count > 0 ? $", reviews: {string.Join(" / ", sim.Reviews.Where(v => v.Day == report.Day).Select(v => $"{v.TemplateId} {v.ProductId}".Trim()))}" : ""));
             foreach (var note in bot.TakeNotes()) Console.WriteLine("      * " + note);
             anomalies.AddRange(AnomalyCheck.Check(sim, report));
         }
@@ -84,6 +93,10 @@ public static class Program
         Console.WriteLine($"Stage: {sim.Economy.Stage}  staff: {string.Join(", ", sim.Workers.Where(w => w.RoleId is not null).Select(w => $"{w.RoleId} L{w.Level} knife {w.KnifeSkill}"))}");
         Console.WriteLine($"Rejected commands: {bot.RejectedCommands} {string.Join(", ", bot.Rejections.Select(kv => $"{kv.Key} x{kv.Value}"))}" +
                           $" (orders cut for storage space: {bot.OrdersCutForSpace})");
+        var lastWeek = reports.TakeLast(7).ToList();
+        Console.WriteLine($"Reputation: {sim.Data.Reputation?.StartReputation} -> {sim.Reputation} ({sim.Stars} stars); last 7 days: " +
+                          $"customers/day={lastWeek.Average(r => r.Customers):0.0} angry/day={lastWeek.Average(r => r.AngryLeaves):0.0} notFound/day={lastWeek.Average(r => r.ItemsNotFound):0.0}");
+        Console.WriteLine($"Customer mix: {string.Join(", ", arrivals.Select(kv => $"{kv.Key} {kv.Value}"))}");
         Console.WriteLine($"State hash: {SimSnapshot.Hash(sim)}");
 
         if (anomalies.Count > 0)
@@ -97,7 +110,14 @@ public static class Program
         return ExitOk;
     }
 
-    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false, bool NoDeli = false, bool Auto = false, bool Imports = false);
+    private const string GoodService = "good";
+    private const string PoorService = "poor";
+
+    /// <summary>Stock targets for the service comparison: well stocked vs. running short.</summary>
+    private const int GoodServiceStockTarget = 60;
+    private const int PoorServiceStockTarget = 8;
+
+    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false, bool NoDeli = false, bool Auto = false, bool Imports = false, string? Service = null);
 
     private static bool TryParseArgs(string[] args, out Options options, out string error)
     {
@@ -122,6 +142,13 @@ public static class Program
             if (flag == "--auto")
             {
                 options = options with { Auto = true };
+                continue;
+            }
+
+            if (flag is "--good-service" or "--poor-service")
+            {
+                var good = flag == "--good-service";
+                options = options with { Service = good ? GoodService : PoorService, StockTarget = good ? GoodServiceStockTarget : PoorServiceStockTarget };
                 continue;
             }
 
