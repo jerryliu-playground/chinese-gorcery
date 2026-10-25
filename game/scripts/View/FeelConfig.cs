@@ -46,6 +46,11 @@ public partial class FeelConfig : Resource
     [Export] public float CelebrationSeconds { get; set; } = 2.0f;
     [Export] public int ConfettiCount { get; set; } = 80;
 
+    [ExportGroup("Dialogue")]
+    [Export] public float DialogueCharsPerSecond { get; set; } = 30f;
+    /// <summary>How long the phone icon rings hard at the start of a call.</summary>
+    [Export] public float PhoneRingSeconds { get; set; } = 0.8f;
+
     [ExportGroup("Speed")]
     /// <summary>Above this speed multiplier, minor effects (hearts, speech, shelf flashes) are skipped.</summary>
     [Export] public int MinorEffectsMaxSpeed { get; set; } = 2;

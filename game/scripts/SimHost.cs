@@ -29,6 +29,14 @@ public partial class SimHost : Node
     /// <summary>Fraction of the way to the next tick, for smoothing movement.</summary>
     public float TickProgress => (float)_pendingTicks;
 
+    /// <summary>
+    /// While the Sim has a dialogue waiting (the dialogue box shows it), time stands still whatever the speed. Developer
+    /// tours that hide dialogues turn this off.
+    /// </summary>
+    public bool PauseForDialogue { get; set; } = true;
+
+    private bool DialogueWaiting => PauseForDialogue && Data.Story is not null && Sim.Story.Current is not null;
+
     public event Action<IReadOnlyList<SimEvent>>? EventsReady;
     public event Action? Ticked;
 
@@ -93,6 +101,19 @@ public partial class SimHost : Node
             return ex.Message;
         }
 
+        // Every portrait and line the dialogues use must exist (spec 18.7.2).
+        if (Data.Story is { } story)
+        {
+            var problems = StoryValidator.CheckAssets(
+                story, s => ResourceLoader.Exists("res://assets/sprites/" + s + ".png"), k => TranslationServer.Translate(k).ToString() != k);
+            if (problems.Count > 0)
+            {
+                var message = string.Join("\n", problems);
+                GD.PushError(message);
+                return message;
+            }
+        }
+
         // The seed only has to differ between games; the Sim itself stays deterministic for a given seed.
         Sim = new GameSim(Data, seed ?? (ulong)Time.GetUnixTimeFromSystem());
         return null;
@@ -100,11 +121,21 @@ public partial class SimHost : Node
 
     public void Send(SimCommand command) => Sim.Enqueue(command);
 
+    /// <summary>Applies a command at once with one tick, even while paused (dialogue answers must not wait for time to run).</summary>
+    public void SendNow(SimCommand command)
+    {
+        Sim.Enqueue(command);
+        Sim.Tick();
+        var events = Sim.DrainEvents();
+        if (events.Count > 0) EventsReady?.Invoke(events);
+        Ticked?.Invoke();
+    }
+
     public void SetSpeedStep(int step) => SpeedStep = Math.Clamp(step, 0, Data.Economy.SpeedMultipliers.Count);
 
     public override void _Process(double delta)
     {
-        if (Sim is null || SpeedStep == 0) return;
+        if (Sim is null || SpeedStep == 0 || DialogueWaiting) return;
 
         var e = Data.Economy;
         var ticksPerDayOpen = (double)(e.CloseMinuteOfDay - e.OpenMinuteOfDay) * 60 / e.SecondsPerTick;
@@ -117,6 +148,7 @@ public partial class SimHost : Node
             var events = Sim.DrainEvents();
             if (events.Count > 0) EventsReady?.Invoke(events);
             Ticked?.Invoke();
+            if (DialogueWaiting) break;
         }
 
         _pendingTicks = Math.Min(_pendingTicks, 1);
