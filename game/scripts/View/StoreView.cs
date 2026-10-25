@@ -888,8 +888,20 @@ public partial class StoreView : Node2D
         if (c.Basket.Count > 0) DrawProductIcon(c.Basket[^1].Lot.ProductId, at + new Vector2(9, 6), 12);
     }
 
+    /// <summary>Every few seconds a staff member shows how they feel for a moment (happy, fine or unhappy).</summary>
+    private void DrawMoraleNow(Worker w, Vector2 at)
+    {
+        var period = Mathf.Max(1f, _feel.MoraleIconPeriodSeconds);
+        if ((_effects.Clock + w.Id * 1.7f) % period >= _feel.MoraleIconSeconds) return;
+
+        var icon = w.MoralePermille >= 600 ? "ui_morale_happy" : w.MoralePermille >= 300 ? "ui_morale_ok" : "ui_morale_sad";
+        if (_art.Get(icon) is { } texture) DrawTextureRect(texture, new Rect2(at + new Vector2(-6, -30), new Vector2(12, 12)), false);
+    }
+
     private void DrawWorker(Worker w)
     {
+        if (!w.IsPresent) return;
+
         var key = "w" + w.Id;
         var at = DrawPosition(key, w.Position);
         var sprite = w.IsPlayer ? Data.Employees.Player.Sprite : Data.Employees.Roles.Single(r => r.Id == w.RoleId).Sprite;
@@ -902,6 +914,7 @@ public partial class StoreView : Node2D
         }
 
         if (w.Carrying.Count > 0) DrawProductIcon(w.Carrying[0].ProductId, at + new Vector2(0, -18), 14);
+        else if (!w.IsPlayer) DrawMoraleNow(w, at);
 
         if (w.IsWorking && w.WorkTicksLeft > 0)
         {

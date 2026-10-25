@@ -92,6 +92,12 @@ public partial class ScreenshotTour : Node
             return;
         }
 
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m11"))
+        {
+            PlanStaff();
+            return;
+        }
+
         if (OS.GetCmdlineUserArgs().Contains("--tour=fixes"))
         {
             PlanFixes();
@@ -537,6 +543,57 @@ public partial class ScreenshotTour : Node
             Hud.Retranslate();
             Hud.ShowPanel<MenuPanel>();
         });
+    }
+
+    // ---------- M11: staff management ----------
+
+    /// <summary>Spec 14.9 item 4: hire a cashier and a stocker, set shifts, hire a manager with auto ordering, and the store runs itself.</summary>
+    private void PlanStaff()
+    {
+        Step("01-staff-panel-applicants", () => Hud.ShowPanel<StaffPanel>());
+        Step("02-cashier-and-stocker-hired-with-shifts", () =>
+        {
+            Send(new HireEmployee("cashier"));
+            Send(new HireEmployee("stocker"));
+            var stocker = Sim.Workers.Last(w => w.RoleId == "stocker");
+            Send(new SetShift(stocker.Id, Shift.Morning));
+            Send(new SetRestDays(stocker.Id, [6]));
+            Hud.ShowPanel<StaffPanel>();
+        });
+        Live("03-store-runs-while-the-player-stands-still", () =>
+        {
+            WalkTo(new GridPoint(10, 6));
+            Host.Send(new OpenStore());
+        }, () => Sim.Workers.Any(w => w.RoleId == "cashier" && w.Step == WorkStep.Serving), frames: 6);
+        Step("04-manager-with-auto-ordering", () =>
+        {
+            RunToNextDay();
+            ReachStage(4);
+            Send(new HireEmployee("manager"));
+            var manager = Sim.Workers.Last(w => w.RoleId == "manager");
+            Send(new AssignManager(manager.Id, Department.DryGoods));
+            Send(new SetAutomation(Department.DryGoods, true, true));
+            foreach (var id in new[] { "rice_jasmine", "noodles_instant", "soy_sauce_light", "chili_crisp", "shrimp_chips", "milk_candy", "soy_milk", "jasmine_tea" })
+            {
+                Send(new SetOrderTarget(id, 40));
+            }
+
+            Hud.ShowPanel<StaffPanel>();
+        });
+        Step("05-manager-ordered-overnight", () =>
+        {
+            RunToNextDay();
+            Hud.ShowPanel<OrderPanel>();
+        });
+        Live("06-hands-off-day-with-morale-icons", () =>
+        {
+            // The manager's orders arrive the morning after they are placed.
+            RunToNextDay();
+            Send(new RestockAll());
+            WalkTo(new GridPoint(10, 6));
+            Host.Send(new OpenStore());
+            for (var i = 0; i < 2000; i++) Sim.Tick();
+        }, () => Sim.Workers.Count(w => w.IsPresent && w.RoleId is not null) >= 2, frames: 40);
     }
 
     // ---------- playtest fixes, 2026-10-25 ----------

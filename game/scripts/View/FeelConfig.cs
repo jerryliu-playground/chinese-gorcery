@@ -36,6 +36,11 @@ public partial class FeelConfig : Resource
     /// <summary>How far (pixels) produce shifts in its crate when the stand is messy.</summary>
     [Export] public int MessJitter { get; set; } = 1;
 
+    [ExportGroup("Staff")]
+    /// <summary>How often staff show a morale icon, and for how long.</summary>
+    [Export] public float MoraleIconPeriodSeconds { get; set; } = 8f;
+    [Export] public float MoraleIconSeconds { get; set; } = 1.5f;
+
     [ExportGroup("Customers")]
     [Export] public float BubbleSeconds { get; set; } = 1.2f;
     [Export(PropertyHint.Range, "0,1,0.01")] public float HeartChance { get; set; } = 0.3f;

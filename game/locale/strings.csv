@@ -267,3 +267,49 @@ ui.staff.skill.none,skill,技能
 ui.staff.skill.management,management,管理能力
 ui.reject.unknown_applicant,That applicant has gone.,这个应聘者已经走了。
 ui.reject.not_a_manager,Only a manager can run a department.,只有店长能管理部门。
+ui.staff.applicants,Applicants today,今天的应聘者
+ui.staff.no_applicants,Nobody today.,今天没人来应聘。
+ui.staff.applicant,{skill_name} {skill}  speed {speed}%  asks {wage}/day,{skill_name} {skill}  速度 {speed}%  要价 {wage}/天
+ui.staff.reject,Turn away,不要
+ui.staff.team,Staff,员工
+ui.staff.timeline,Shifts today (morning | evening),今天的班次（上午 | 下午）
+ui.staff.managers,Managers,店长与自动化
+ui.staff.priorities,Task priorities (higher first),任务优先级（数字大的先做）
+ui.staff.set,Set,设定
+ui.staff.reset,Default,默认
+ui.staff.quit_warning,May quit!,想辞职！
+ui.staff.away,Off,不在班
+ui.staff.fire,Fire,解雇
+ui.staff.morale_why,"Morale: wage {wage}, work {work} (days in a row {streak}, tasks today {tasks})",士气：工资 {wage}，工作 {work}（连续上班 {streak} 天，今天做了 {tasks} 件）
+ui.staff.shift,Shift,班次
+ui.staff.shift.full,Full day,全天
+ui.staff.shift.morning,Morning,早班
+ui.staff.shift.evening,Evening,晚班
+ui.staff.rest_days,Days off,休息日
+ui.staff.only,Does,只做
+ui.staff.tasks_all,Everything,全部
+ui.staff.no_manager,(no manager),（没有店长）
+ui.staff.auto_order,Auto order,自动订货
+ui.staff.auto_price,Auto price,自动定价
+ui.staff.target,Keep,目标
+ui.area.dry_goods,Grocery,干货
+ui.area.produce,Produce,果蔬
+ui.area.meat,Meat,肉类
+ui.area.seafood,Seafood,海鲜
+ui.area.deli,Deli,熟食
+ui.weekday.short.0,Mon,一
+ui.weekday.short.1,Tue,二
+ui.weekday.short.2,Wed,三
+ui.weekday.short.3,Thu,四
+ui.weekday.short.4,Fri,五
+ui.weekday.short.5,Sat,六
+ui.weekday.short.6,Sun,日
+task.restock.name,Restock,补货
+task.checkout.name,Checkout,收银
+task.cut_meat.name,Cut meat,拆肉
+task.tidy.name,Tidy,整理
+task.kill_fish.name,Kill fish,杀鱼
+task.clean_tank.name,Clean tank,清洁鱼池
+task.remove_dead.name,Remove dead,捞死鱼
+task.cook.name,Cook,做菜
+task.serve_deli.name,Pack hot food,熟食打包
