@@ -53,6 +53,16 @@ public sealed partial class GameSim
         return null;
     }
 
+    /// <summary>How many more units of the product could be ordered now, over every storage area that keeps it.</summary>
+    public int RoomFor(string productId)
+    {
+        var product = _products[productId];
+        return Layout.Fixtures.Where(f => CanStore(f, product)).Sum(f => FreeUnits(f, product));
+    }
+
+    /// <summary>Slots a storage area has taken, by stock in it and orders headed for it.</summary>
+    public int SlotsUsed(int storageInstanceId) => StorageCapacity.SlotsNeeded(Holdings(storageInstanceId));
+
     private bool CanStore(PlacedFixture fixture, ProductDef product)
     {
         var def = _fixtures[fixture.FixtureId];
@@ -62,15 +72,19 @@ public sealed partial class GameSim
     /// <summary>How many more units of the product this storage area can take, counting stock and orders already headed there.</summary>
     private int FreeUnits(PlacedFixture storage, ProductDef product)
     {
-        var held = Inventory.TryGet(StockLocation.Storage(storage.InstanceId))?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
-        var incoming = _orders.Pending
-            .Where(o => DeliveryTarget(o)?.InstanceId == storage.InstanceId)
-            .Select(o => (_products[o.ProductId], o.Quantity));
-        var holdings = held.Concat(incoming).ToList();
-
-        var otherSlots = StorageCapacity.SlotsNeeded(holdings.Where(h => h.Item1.Id != product.Id));
-        var mine = holdings.Where(h => h.Item1.Id == product.Id).Sum(h => h.Quantity);
+        var holdings = Holdings(storage.InstanceId);
+        var otherSlots = StorageCapacity.SlotsNeeded(holdings.Where(h => h.Product.Id != product.Id));
+        var mine = holdings.Where(h => h.Product.Id == product.Id).Sum(h => h.Quantity);
         return Math.Max(0, (_fixtures[storage.FixtureId].Capacity - otherSlots) * product.UnitsPerStorageSlot - mine);
+    }
+
+    private List<(ProductDef Product, int Quantity)> Holdings(int storageInstanceId)
+    {
+        var held = Inventory.TryGet(StockLocation.Storage(storageInstanceId))?.Lots.Select(l => (_products[l.ProductId], l.Quantity)) ?? [];
+        var incoming = _orders.Pending
+            .Where(o => DeliveryTarget(o)?.InstanceId == storageInstanceId)
+            .Select(o => (_products[o.ProductId], o.Quantity));
+        return held.Concat(incoming).ToList();
     }
 
     /// <summary>Where an order part will be delivered: its own storage area if it still stands, else the first that can keep it.</summary>

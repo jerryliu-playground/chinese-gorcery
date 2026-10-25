@@ -257,3 +257,7 @@ ui.reject.not_against_wall,That has to go against a wall.,这个要靠墙摆放�
 ui.report.no_orders_yet,Nothing is on order yet. Start the next day anyway?,还没进货，要进入下一天吗？
 ui.report.order_first,Order first,先进货
 ui.report.next_day_anyway,Start the next day,进入下一天
+ui.order.per_slot,{n} per slot,一格 {n} 个
+ui.order.sold_last_day,last day {n},上一天卖 {n}
+ui.order.room,fits {n} more,还能放 {n}
+ui.order.space,{name}: {used}/{total} slots used (incl. goods on order),{name}：已用 {used}/{total} 格（含待到的货）
