@@ -640,6 +640,8 @@ public partial class ScreenshotTour : Node
             Send(new AssignShelfSlot(shelf, 0, "doubanjiang"));
             Send(new AssignShelfSlot(shelf, 1, "seaweed"));
             Send(new RestockAll());
+            // The stocker may have taken the restocking: let them finish.
+            for (var i = 0; i < 1500 && Sim.Inventory.Count(new Sim.Inventory.StockLocation(shelf, 0), "doubanjiang") == 0; i++) Sim.Tick();
             Store.DebugHover = new GridPoint(7, 3);
         });
     }
