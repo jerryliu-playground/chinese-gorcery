@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Reputation;
 using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Sim.Time;
@@ -45,6 +46,7 @@ public sealed partial class GameSim
         _workers.Add(Player);
         StartStaffStream(seed);
         StartImportStream(seed);
+        StartReputation(seed);
         RefreshApplicants();
 
         _events.Add(new DayStarted(Clock.Day));
@@ -132,6 +134,9 @@ public sealed partial class GameSim
             SetOrderTarget target => HandleSetOrderTarget(target),
             Imports.PlaceImportOrder order => HandlePlaceImportOrder(order),
             Imports.UpgradeStorage upgrade => HandleUpgradeStorage(upgrade),
+            AcceptGroupOrder accept => HandleAcceptGroupOrder(accept),
+            DeclineGroupOrder decline => HandleDeclineGroupOrder(decline),
+            BuyBilingualLabels => HandleBuyBilingualLabels(),
             Deli.SetMenuItem menu => HandleSetMenuItem(menu),
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
@@ -165,6 +170,7 @@ public sealed partial class GameSim
         _events.Add(new DayStarted(Clock.Day));
         DeliverOrders();
         DeliverShipments();
+        StartReputationDay();
         RefreshApplicants();
         RunManagers();
         return null;
@@ -202,6 +208,7 @@ public sealed partial class GameSim
             if (worker.Step == WorkStep.Carrying && worker.Carrying.Count == 0) FinishTask(worker, completed: false);
         }
 
+        CloseReputationDay();
         var report = Economy.CloseDay();
 
         // The day's books close now: anything spent after closing (orders for tomorrow) goes on the next day's report.

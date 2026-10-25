@@ -1,0 +1,95 @@
+{
+  "startReputation": 40,
+  "starMinReputation": [0, 25, 50, 70, 85],
+  "dailyPullPermille": 200,
+  "arrivalPoints": [
+    { "reputation": 0, "permille": 600 },
+    { "reputation": 40, "permille": 1000 },
+    { "reputation": 100, "permille": 1600 }
+  ],
+  "applicantQualityPoints": [
+    { "reputation": 0, "permille": 0 },
+    { "reputation": 40, "permille": 0 },
+    { "reputation": 100, "permille": 400 }
+  ],
+  "satisfaction": {
+    "base": 50,
+    "perItemBought": 5,
+    "maxItemBonus": 25,
+    "perNotFound": -15,
+    "perTooExpensive": -6,
+    "gaveUp": -40,
+    "longWait": -10,
+    "longWaitPermilleOfPatience": 500,
+    "perHeart": 10,
+    "trendFound": 15,
+    "trendMissed": -30,
+    "labelsOwned": 10,
+    "labelsConfused": -8
+  },
+  "trends": {
+    "departments": ["snacks", "drinks"],
+    "count": { "min": 1, "max": 2 },
+    "seekPermille": 800,
+    "heartPermille": 300,
+    "wordOfMouthArrivals": 1,
+    "wordOfMouthDelayMinutes": 30
+  },
+  "bilingualLabels": {
+    "costCents": 40000,
+    "unlockStage": 1,
+    "buyChanceBonusPermille": 150,
+    "extraListItems": 1,
+    "confusedPermille": 300
+  },
+  "groupOrders": {
+    "offerPermille": 300,
+    "maxActive": 1,
+    "deadlineDays": { "min": 2, "max": 4 },
+    "wholesalePermille": 800,
+    "lines": { "min": 1, "max": 2 },
+    "candidates": [
+      { "productId": "pork_belly", "units": { "min": 10, "max": 20 } },
+      { "productId": "pork_ribs", "units": { "min": 10, "max": 20 } },
+      { "productId": "pork_shoulder", "units": { "min": 3, "max": 6 } },
+      { "productId": "whole_duck", "units": { "min": 3, "max": 6 } },
+      { "productId": "clams", "units": { "min": 10, "max": 20 } },
+      { "productId": "rice_jasmine", "units": { "min": 10, "max": 20 } },
+      { "productId": "oyster_sauce", "units": { "min": 10, "max": 20 } },
+      { "productId": "soy_sauce_light", "units": { "min": 10, "max": 20 } },
+      { "productId": "vermicelli", "units": { "min": 10, "max": 20 } }
+    ],
+    "deliveredReputation": 4,
+    "failedReputation": -6
+  },
+  "reviews": {
+    "perDay": { "min": 2, "max": 3 },
+    "keep": 30,
+    "longQueueMinutes": 8,
+    "quickCheckoutMinCustomers": 10,
+    "templates": [
+      { "id": "sold_out_1", "fact": "sold_out", "stars": 2 },
+      { "id": "sold_out_2", "fact": "sold_out", "stars": 3 },
+      { "id": "not_found_1", "fact": "not_found", "stars": 2 },
+      { "id": "not_found_2", "fact": "not_found", "stars": 2 },
+      { "id": "too_expensive_1", "fact": "too_expensive", "stars": 2 },
+      { "id": "too_expensive_2", "fact": "too_expensive", "stars": 3 },
+      { "id": "long_queue_1", "fact": "long_queue", "stars": 2 },
+      { "id": "long_queue_2", "fact": "long_queue", "stars": 3 },
+      { "id": "gave_up_1", "fact": "gave_up", "stars": 1 },
+      { "id": "quick_checkout_1", "fact": "quick_checkout", "stars": 5 },
+      { "id": "quick_checkout_2", "fact": "quick_checkout", "stars": 4 },
+      { "id": "fresh_buy_1", "fact": "fresh_buy", "stars": 5 },
+      { "id": "fresh_buy_2", "fact": "fresh_buy", "stars": 4 },
+      { "id": "deli_treat_1", "fact": "deli_treat", "stars": 5 },
+      { "id": "deli_treat_2", "fact": "deli_treat", "stars": 4 },
+      { "id": "trend_found_1", "fact": "trend_found", "stars": 5 },
+      { "id": "trend_missed_1", "fact": "trend_missed", "stars": 1 },
+      { "id": "labels_confused_1", "fact": "labels_confused", "stars": 3 },
+      { "id": "labels_loved_1", "fact": "labels_loved", "stars": 5 },
+      { "id": "group_order_delivered_1", "fact": "group_order_delivered", "stars": 5 },
+      { "id": "group_order_failed_1", "fact": "group_order_failed", "stars": 1 }
+    ]
+  },
+  "_tbd": true
+}

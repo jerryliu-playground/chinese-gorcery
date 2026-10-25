@@ -47,4 +47,7 @@ public enum RejectReason
     NotImportable,
     BelowMinimumOrder,
     NotAStorageArea,
+    AlreadyOwned,
+    UnknownGroupOrder,
+    GroupOrderLimit,
 }

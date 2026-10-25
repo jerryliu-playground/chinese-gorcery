@@ -12,4 +12,5 @@ public sealed record GameData(
     IReadOnlyList<MeatCutDef> MeatCuts,
     IReadOnlyList<StageDef> Stages,
     EconomyDef Economy,
-    IReadOnlyList<RecipeDef> Recipes);
+    IReadOnlyList<RecipeDef> Recipes,
+    ReputationDef? Reputation = null);

@@ -3,6 +3,7 @@ using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Reputation;
 using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Sim.Core;
@@ -22,22 +23,24 @@ public sealed partial class GameSim
     {
         if (Clock.Phase != DayPhase.Open || Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay) return;
 
-        // Expected arrivals this tick = rate per hour x tick length; the fractional part is a seeded roll.
-        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick;
+        // Expected arrivals this tick = rate per hour (scaled by reputation) x tick length; the fractional part is a seeded roll.
+        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick * ArrivalPermille() / 1000;
         var count = perHourTimesSeconds / SecondsPerHour;
         if (Rng.NextInt(0, SecondsPerHour) < perHourTimesSeconds % SecondsPerHour) count++;
 
         for (var i = 0; i < count; i++) SpawnCustomer();
         SpawnRushArrivals();
+        SpawnWordOfMouth();
     }
 
     private int CurrentArrivalRate() =>
         Data.Economy.CustomerArrivals.Last(b => b.StartMinuteOfDay <= Clock.MinuteOfDay).CustomersPerHour;
 
+    /// <summary>The next customer's type, by arrival weights that depend on the store's stars and departments.</summary>
     private void SpawnCustomer()
     {
         var types = Data.CustomerTypes;
-        var type = types[PickWeighted(types.Select(t => t.ArrivalWeight).ToList())];
+        var type = types[PickWeighted(types.Select(ArrivalWeightNow).ToList())];
         SpawnCustomer(type, null);
     }
 
@@ -47,7 +50,8 @@ public sealed partial class GameSim
         var doors = EntranceCells();
         var door = doors[doors.Count == 1 ? 0 : Rng.NextInt(0, doors.Count)];
 
-        var customer = new Customer(_nextCustomerId++, type.Id, door, shoppingList ?? BuildShoppingList(type));
+        var customer = new Customer(_nextCustomerId++, type.Id, door, shoppingList ?? BuildShoppingList(WithLabels(type)));
+        SeekTrend(customer, type);
         _customers.Add(customer);
         Economy.Today.CountCustomer();
         _events.Add(new CustomerEntered(customer.Id, type.Id));
@@ -119,6 +123,7 @@ public sealed partial class GameSim
 
                 case CustomerState.Queued or CustomerState.AtCounter:
                     customer.WaitedSeconds += Data.Economy.SecondsPerTick;
+                    customer.LongestWaitSeconds = Math.Max(customer.LongestWaitSeconds, customer.WaitedSeconds);
                     if (customer.WaitedSeconds > type.PatienceMinutes * 60)
                     {
                         _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.GaveUp));
@@ -206,6 +211,7 @@ public sealed partial class GameSim
 
     private void TryTake(Customer customer, CustomerTypeDef type, StockLocation slot, string productId)
     {
+        MaybePuzzle(customer, type);
         if (Inventory.Count(slot, productId) == 0)
         {
             NoteNotFound(customer, productId);
@@ -214,12 +220,10 @@ public sealed partial class GameSim
 
         var batch = ChooseBatch(Inventory.Get(slot), productId, type);
         var price = EffectivePrice(batch);
-        var chance = ApplyDisplay(PriceAcceptance.BuyChancePermille(type, price, Prices.ReferenceOf(productId)), slot);
+        var chance = ApplyLabels(ApplyDisplay(PriceAcceptance.BuyChancePermille(type, price, Prices.ReferenceOf(productId)), slot), type);
         if (Rng.NextInt(0, 1000) >= chance)
         {
-            customer.ItemsTooExpensive++;
-            Economy.Today.CountItemTooExpensive();
-            _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, productId));
+            NoteTooExpensive(customer, productId);
             return;
         }
 
@@ -227,7 +231,20 @@ public sealed partial class GameSim
         MessUp(slot);
 
         _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TookItem, productId));
-        if (Inventory.Count(slot, productId) == 0) _events.Add(new ProductSoldOut(slot, productId));
+        NoteTaken(customer, type, productId);
+        if (Inventory.Count(slot, productId) == 0)
+        {
+            _events.Add(new ProductSoldOut(slot, productId));
+            NoteFact(ReviewFact.SoldOut, productId, type.Id);
+        }
+    }
+
+    private void NoteTooExpensive(Customer customer, string productId)
+    {
+        customer.ItemsTooExpensive++;
+        Economy.Today.CountItemTooExpensive();
+        _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, productId));
+        NoteFact(ReviewFact.TooExpensive, productId, customer.TypeId);
     }
 
     /// <summary>
@@ -258,9 +275,7 @@ public sealed partial class GameSim
 
         if (Rng.NextInt(0, 1000) >= PriceAcceptance.BuyChancePermille(type, Prices.PriceOf(productId), Prices.ReferenceOf(productId)))
         {
-            customer.ItemsTooExpensive++;
-            Economy.Today.CountItemTooExpensive();
-            _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.TooExpensive, productId));
+            NoteTooExpensive(customer, productId);
             return false;
         }
 
@@ -290,6 +305,7 @@ public sealed partial class GameSim
         customer.ItemsNotFound++;
         Economy.Today.CountItemNotFound();
         _events.Add(new CustomerReaction(customer.Id, CustomerReactionKind.NotFound, productId));
+        if (productId is not null) NoteNotFoundFacts(customer, productId);
     }
 
     /// <summary>The closest display slot holding the product, by walking distance, and the cell to stand on.</summary>
@@ -328,6 +344,7 @@ public sealed partial class GameSim
 
     private void StartLeaving(Customer customer, CustomerExit exit)
     {
+        ScoreCustomer(customer, exit);
         customer.Exit = exit;
         customer.State = CustomerState.Leaving;
         customer.CheckoutInstanceId = null;
@@ -388,7 +405,9 @@ public sealed partial class GameSim
     private long CheckOut(Customer customer)
     {
         long total = 0;
-        foreach (var group in customer.EmptyBasket().GroupBy(i => i.Lot.ProductId).OrderBy(g => g.Key, StringComparer.Ordinal))
+        var items = customer.EmptyBasket();
+        NoteCheckoutFacts(customer, items);
+        foreach (var group in items.GroupBy(i => i.Lot.ProductId).OrderBy(g => g.Key, StringComparer.Ordinal))
         {
             var units = group.Sum(i => i.Lot.Quantity);
             var revenue = checked(group.Sum(i => i.Lot.Quantity * (i.PriceCents >= 0 ? i.PriceCents : Prices.PriceOf(group.Key))));

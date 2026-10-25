@@ -49,7 +49,8 @@ public sealed partial class GameSim
             _customers.Select(c => new CustomerSave(
                 c.Id, c.TypeId, c.Position, c.Path.ToList(), c.MoveProgress, c.State, c.ShoppingList.ToList(), c.Basket.ToList(),
                 c.Target?.Slot, c.Target?.ProductId, c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedSeconds,
-                c.Exit, c.ItemsNotFound, c.ItemsTooExpensive, c.WaitingFor)).ToList(),
+                c.Exit, c.ItemsNotFound, c.ItemsTooExpensive, c.WaitingFor,
+                c.ItemsBought, c.Hearts, c.SeekingTrend, c.TrendFound, c.Confused, c.LongestWaitSeconds, c.Satisfaction)).ToList(),
             _nextCustomerId,
             _nextQueueNumber,
             _queue.ToList(),
@@ -57,7 +58,8 @@ public sealed partial class GameSim
             TankSaves(),
             _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList(),
             StaffSave(),
-            ImportSave());
+            ImportSave(),
+            ReputationSave());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -133,6 +135,8 @@ public sealed partial class GameSim
                 CheckoutInstanceId = c.CheckoutInstanceId, QueueNumber = c.QueueNumber, WaitedSeconds = c.WaitedSeconds,
                 Exit = c.Exit, ItemsNotFound = c.ItemsNotFound, ItemsTooExpensive = c.ItemsTooExpensive, WaitingFor = c.WaitingFor,
                 Target = c.TargetSlot is { } slot ? (slot, c.TargetProductId!) : null,
+                ItemsBought = c.ItemsBought, Hearts = c.Hearts, SeekingTrend = c.SeekingTrend, TrendFound = c.TrendFound,
+                Confused = c.Confused, LongestWaitSeconds = c.LongestWaitSeconds, Satisfaction = c.Satisfaction,
             };
             customer.SetPath(c.Path);
             foreach (var item in c.Basket) customer.AddToBasket(item);
@@ -146,6 +150,7 @@ public sealed partial class GameSim
         RestoreTanks(save.Tanks ?? []);
         RestoreStaff(save.Staff, (ulong)save.TickCount);
         RestoreImports(save.Imports, (ulong)save.TickCount);
+        RestoreReputation(save.Reputation, (ulong)save.TickCount);
         RebuildOccupancy();
         foreach (var m in save.Menu ?? [])
         {

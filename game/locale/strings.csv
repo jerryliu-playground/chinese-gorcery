@@ -356,3 +356,46 @@ ui.order.more_room,+{slots} slots {cost},扩容 +{slots} 格 {cost}
 ui.storage.pallet,{name} {count} on a pallet (unload first),{name} {count} 个（托盘上，要先卸货）
 ui.hud.ships,Ship x{count}: {days}d,船 {count} 艘：{days} 天后到
 ui.hud.pallets,Pallets x{count},待卸托盘 {count}
+ui.reject.already_owned,Already bought.,已经买过了。
+ui.reject.unknown_group_order,That order is no longer open.,这个订单已经不在了。
+ui.reject.group_order_limit,Finish the current group order first.,先完成手上的团购订单。
+customer_type.abc_teen.name,ABC Teen,ABC 青少年
+customer_type.local_a.name,Local Shopper,本地顾客
+customer_type.local_b.name,Local Foodie,本地吃货
+customer_type.restaurant_buyer.name,Restaurant Buyer,餐馆采购
+customer.teen.line.trend,Is this the one from TikTok?,这就是网上很火的那个吧？
+customer.teen.line.boba,Do you have boba drinks?,有奶茶吗？
+customer.teen.line.mom,Mom wants me to grab soy sauce.,妈妈让我买瓶酱油。
+customer.local.line.what,What is this one called?,这个叫什么？
+customer.local.line.sauce,Which sauce goes with dumplings?,饺子配哪种酱？
+customer.local.line.recipe,Trying a new recipe tonight!,今晚试个新菜谱！
+customer.local_b.line.dumplings,Best dumplings in town.,这里的饺子是全城最好的。
+customer.local_b.line.spicy,How spicy is this really?,这个到底有多辣？
+customer.local_b.line.friend,My friend told me about this place.,朋友推荐我来的。
+customer.restaurant.line.bulk,Do you sell by the case?,能整箱买吗？
+customer.restaurant.line.kitchen,The kitchen needs this by Friday.,后厨周五前要用。
+customer.restaurant.line.price,What's your wholesale price?,批发价多少？
+reputation.reason.customers,Customer satisfaction,顾客满意度
+reputation.reason.group_order_delivered,Group order delivered,团购订单按时交付
+reputation.reason.group_order_failed,Group order missed,团购订单没完成
+review.sold_out_1.text,"Wanted {product}, but the shelf was empty.",想买{product}，结果货架上已经空了。
+review.sold_out_2.text,{product} sells out fast here. Come early!,{product}卖得好快，要早点来！
+review.not_found_1.text,Couldn't find any {product}.,找了半天也没找到{product}。
+review.not_found_2.text,No {product} today. Disappointed.,今天没有{product}，有点失望。
+review.too_expensive_1.text,{product} is way too pricey.,{product}太贵了。
+review.too_expensive_2.text,"Nice store, but {product} costs more than elsewhere.",店不错，就是{product}比别家贵。
+review.long_queue_1.text,The checkout line took forever.,收银排队太久了。
+review.long_queue_2.text,Good stuff but the line was slow.,东西不错，就是排队慢。
+review.gave_up_1.text,"Waited and waited, then gave up and left.",等了半天没人结账，干脆走了。
+review.quick_checkout_1.text,In and out in no time. Friendly staff!,结账很快，店员也很热情！
+review.quick_checkout_2.text,"No lines, easy shopping.",不用排队，买东西很顺。
+review.fresh_buy_1.text,The {product} was so fresh!,{product}很新鲜！
+review.fresh_buy_2.text,Got great {product} today.,今天买到的{product}真不错。
+review.deli_treat_1.text,The {product} was delicious.,{product}太好吃了。
+review.deli_treat_2.text,"Grabbed {product} for dinner, tasted like home.",晚饭买了{product}，有家的味道。
+review.trend_found_1.text,They have {product}!! Telling all my friends.,居然有{product}！马上告诉朋友们。
+review.trend_missed_1.text,No {product}? Everyone's talking about it...,竟然没有{product}？大家都在聊它……
+review.labels_confused_1.text,Wish the price tags were in English too.,希望价签也有英文。
+review.labels_loved_1.text,Love the bilingual labels. Easy to shop here.,双语价签很贴心，买东西方便多了。
+review.group_order_delivered_1.text,Our restaurant's order was ready on time. We'll be back.,餐馆订的货按时备齐了，下次还来。
+review.group_order_failed_1.text,They couldn't fill our restaurant's order.,餐馆订的货没备齐，太耽误事了。
