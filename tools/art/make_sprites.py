@@ -775,6 +775,174 @@ SPRITES.update({
 SPRITES.update(character_sprites())
 
 
+# ---------- batch 4: deli ----------
+DUCK, DUCKD, DUCKL = (176, 92, 44), (124, 58, 30), (220, 140, 70)
+CHARSIU, CHARSIUD = (196, 60, 52), (150, 40, 40)
+BRAISE, BRAISED = (150, 64, 40), (104, 40, 30)
+
+def steam_table(full=True):
+    im = new()
+    r(im, 1, 3, 30, 2, "glass"); r(im, 1, 5, 30, 1, "glassd")          # sneeze guard
+    r(im, 1, 8, 30, 10, "gry"); r(im, 1, 8, 30, 1, "wht")
+    foods = [(BRAISE, BRAISED), ("grn", "grnl"), ((236, 120, 60), (196, 80, 40)), ("wht", "fs")]
+    for i, x in enumerate((2, 9, 16, 23)):
+        r(im, x, 10, 6, 6, "gryd")
+        if full:
+            a, b = foods[i]
+            r(im, x + 1, 11, 4, 4, a)
+            p(im, x + 1, 11, b); p(im, x + 3, 13, b); p(im, x + 2, 12, "wht")
+    if full:
+        for x in (5, 19):
+            p(im, x, 7, "wht"); p(im, x + 1, 6, "wht")                     # steam
+    r(im, 1, 18, 30, 12, "gry"); r(im, 1, 18, 30, 1, "wht"); r(im, 1, 29, 30, 1, "gryd")
+    r(im, 1, 22, 30, 2, "red"); r(im, 13, 25, 6, 2, "gold")
+    return outline(im)
+
+def hanging_duck(im, x, y):
+    r(im, x + 2, y, 1, 3, "gryd")                                         # hook
+    r(im, x + 1, y + 3, 3, 2, DUCK)
+    r(im, x, y + 5, 5, 8, DUCK); r(im, x + 1, y + 13, 3, 2, DUCK)
+    r(im, x, y + 5, 1, 7, DUCKL); r(im, x + 4, y + 6, 1, 7, DUCKD)
+    p(im, x + 2, y + 7, "gold")
+
+def hanging_charsiu(im, x, y):
+    r(im, x + 1, y, 1, 3, "gryd")
+    r(im, x, y + 3, 3, 10, CHARSIU); r(im, x + 2, y + 3, 1, 10, CHARSIUD); p(im, x, y + 4, "redl")
+
+def roast_station(full=True):
+    im = new()
+    r(im, 1, 1, 30, 2, "red"); r(im, 1, 1, 30, 1, "gold")
+    r(im, 1, 3, 30, 16, "glass"); r(im, 1, 3, 1, 16, "red"); r(im, 30, 3, 1, 16, "red")
+    r(im, 2, 4, 28, 1, "gryd")                                            # rail
+    if full:
+        hanging_duck(im, 3, 4); hanging_duck(im, 10, 4); hanging_charsiu(im, 18, 4)
+        hanging_charsiu(im, 22, 4); hanging_charsiu(im, 26, 4)
+    else:
+        for x in (5, 12, 19, 23, 27):
+            r(im, x, 5, 1, 3, "gryd")
+    r(im, 1, 19, 30, 3, "wl"); r(im, 4, 19, 8, 2, (176, 120, 70))         # chopping board
+    r(im, 1, 22, 30, 8, "red"); r(im, 1, 22, 30, 1, "redl"); r(im, 1, 29, 30, 1, "redd")
+    r(im, 12, 24, 8, 4, "gold"); r(im, 13, 25, 6, 2, "redd")
+    return outline(im)
+
+def wok_stove():
+    im = new()
+    r(im, 1, 10, 30, 6, "gryd"); r(im, 1, 10, 30, 1, "gry")
+    for cx in (9, 23):
+        r(im, cx - 6, 8, 12, 4, "soy"); r(im, cx - 5, 7, 10, 1, "soy"); r(im, cx - 4, 8, 8, 2, (70, 60, 56))
+        r(im, cx + 6, 9, 4, 1, "wd")                                      # handle
+    r(im, 4, 13, 10, 2, (240, 146, 48)); r(im, 6, 12, 6, 1, "yel")        # flame
+    for x, y in ((7, 4), (9, 2), (11, 4), (21, 5), (23, 3)):
+        p(im, x, y, "wht")
+    r(im, 1, 16, 30, 14, "gry"); r(im, 1, 16, 30, 1, "wht"); r(im, 1, 29, 30, 1, "gryd")
+    for x in (5, 13, 21):
+        r(im, x, 20, 6, 6, "gryd"); r(im, x + 2, 22, 2, 2, "gry")
+    return outline(im)
+
+def plate(food):
+    im = new()
+    r(im, 4, 13, 24, 12, "wht"); r(im, 6, 12, 20, 1, "wht"); r(im, 6, 25, 20, 1, "wht")
+    r(im, 4, 23, 24, 2, "fs")
+    food(im)
+    return shadow(outline(im), rx=12)
+
+def d_braised(im):
+    for x, y in ((8, 15), (13, 14), (18, 15), (10, 19), (16, 19), (21, 19)):
+        r(im, x, y, 4, 4, BRAISE); r(im, x, y, 4, 1, "fat"); p(im, x + 3, y + 3, BRAISED); p(im, x + 1, y + 1, "redl")
+
+def d_ribs(im):
+    for x, y in ((8, 15), (14, 14), (20, 16), (11, 19), (17, 19)):
+        r(im, x, y, 5, 4, (232, 110, 56)); r(im, x + 2, y - 1, 1, 6, "wht"); p(im, x, y, "yel")
+    for x, y in ((10, 18), (19, 21)):
+        p(im, x, y, "wht")
+
+def d_dumplings(im):
+    body, edge = (238, 222, 188), (168, 140, 104)
+    for x, y in ((6, 15), (15, 14), (9, 19), (18, 19)):
+        r(im, x, y, 9, 5, edge)
+        r(im, x + 1, y + 1, 7, 3, body); r(im, x + 2, y, 5, 1, body)
+        for i in range(x + 2, x + 8, 2):
+            p(im, i, y, edge)
+        p(im, x + 2, y + 1, "wht")
+
+def d_bokchoy(im):
+    for x in (7, 12, 17, 22):
+        r(im, x, 15, 4, 5, "grn"); r(im, x + 1, 20, 2, 3, (220, 236, 196)); p(im, x, 15, "grnl")
+    r(im, 6, 22, 20, 1, (200, 170, 100))
+
+def d_fish(im):
+    body = (220, 214, 196)
+    for i in range(16):
+        h = (2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 5, 5, 4, 3, 3, 2)[i]
+        r(im, 8 + i, 18 - h // 2, 1, h, body)
+    r(im, 5, 15, 3, 6, body)
+    r(im, 6, 21, 20, 2, (150, 90, 50))                                    # soy sauce
+    for x in range(10, 22, 3):
+        p(im, x, 16, "grn"); p(im, x + 1, 17, "yel")
+    p(im, 21, 17, "soy")
+
+def d_shrimp(im):
+    for x, y in ((7, 15), (14, 14), (20, 16), (10, 19), (17, 19)):
+        r(im, x, y, 5, 3, (238, 126, 70)); r(im, x + 4, y + 1, 2, 2, (200, 90, 50))
+        p(im, x + 1, y, "soy"); p(im, x + 3, y + 2, "soy")
+    for x, y in ((12, 18), (22, 20), (9, 22)):
+        p(im, x, y, "grn")
+
+def d_duck(im):
+    for x in range(7, 25, 4):
+        r(im, x, 15, 3, 7, DUCK); r(im, x, 15, 3, 1, DUCKL); r(im, x, 21, 3, 1, (240, 220, 200))
+    r(im, 6, 22, 20, 1, DUCKD)
+
+def d_charsiu(im):
+    for x in range(7, 25, 4):
+        r(im, x, 15, 3, 7, (236, 200, 180)); r(im, x, 15, 3, 1, CHARSIU); r(im, x + 2, 15, 1, 7, CHARSIU)
+    r(im, 6, 22, 20, 1, (180, 60, 40))
+
+def whole_duck_raw():
+    im = new()
+    skin, skind = (240, 214, 186), (210, 176, 146)
+    r(im, 8, 12, 16, 12, skin); r(im, 10, 10, 12, 2, skin); r(im, 10, 24, 12, 2, skin)
+    r(im, 23, 9, 3, 6, skin); r(im, 25, 7, 3, 3, skin); r(im, 27, 8, 2, 1, (240, 160, 60))   # neck/head/bill
+    r(im, 8, 21, 16, 3, skind); r(im, 6, 16, 2, 5, skin)
+    p(im, 26, 8, "soy")
+    return shadow(outline(im), rx=11)
+
+def pork_shoulder():
+    im = new()
+    r(im, 6, 10, 20, 14, "meat"); r(im, 8, 8, 16, 2, "meat")
+    for x, y in ((9, 13), (14, 16), (19, 12), (11, 19), (20, 18), (16, 11)):
+        r(im, x, y, 3, 1, "fat")
+    r(im, 6, 21, 20, 3, "meatd")
+    return shadow(outline(im), rx=11)
+
+def takeaway_box():
+    im = new()
+    r(im, 8, 12, 16, 15, "wht"); r(im, 6, 10, 20, 3, "wht"); r(im, 6, 10, 20, 1, "fs")
+    r(im, 12, 6, 8, 1, "red"); r(im, 11, 7, 1, 4, "red"); r(im, 20, 7, 1, 4, "red")     # handle
+    r(im, 12, 17, 8, 5, "red"); r(im, 14, 18, 4, 3, "gold")
+    return shadow(outline(im), rx=8)
+
+CHARACTERS["chef"] = dict(
+    shirt="wht", shirt_d="gry", pants=(70, 70, 76),
+    hat=lambda im, back: (r(im, 11, 0, 10, 5, "wht"), r(im, 10, 1, 12, 2, "wht"), r(im, 10, 4, 12, 1, "gry")),
+    front=lambda im: (p(im, 13, 18, "gryd"), p(im, 13, 21, "gryd"), p(im, 18, 18, "gryd"), p(im, 18, 21, "gryd"),
+                      r(im, 13, 15, 6, 1, "red")),                           # buttons + red neckerchief
+)
+
+SPRITES.update({
+    "steam_table": lambda: steam_table(True), "steam_table_empty": lambda: steam_table(False),
+    "roast_station": lambda: roast_station(True), "roast_station_empty": lambda: roast_station(False),
+    "wok_stove": wok_stove,
+    "dish_braised_pork": lambda: plate(d_braised), "dish_sweet_sour_ribs": lambda: plate(d_ribs),
+    "dish_dumplings": lambda: plate(d_dumplings), "dish_stir_fried_bok_choy": lambda: plate(d_bokchoy),
+    "dish_steamed_fish": lambda: plate(d_fish), "dish_salt_pepper_shrimp": lambda: plate(d_shrimp),
+    "dish_roast_duck": lambda: plate(d_duck), "dish_char_siu": lambda: plate(d_charsiu),
+    "product_whole_duck": whole_duck_raw, "product_pork_shoulder": pork_shoulder,
+    "product_takeaway_box": takeaway_box,
+})
+SPRITES.update(character_sprites())
+
+
 def sheet(imgs, names, cols, path, scale):
     rows = (len(names) + cols - 1) // cols
     sh = Image.new("RGBA", (cols * 32, rows * 32), (0, 0, 0, 0))
@@ -846,6 +1014,23 @@ def main():
     sput("char_family_front_1", 6, 2, dx=6); sput("ui_bubble_frown", 3, 1, dx=12, dy=-6)
     sput("ui_water_bad", 3, 1, dx=-8, dy=-14)
     sea.resize((sea.width * 4, sea.height * 4), Image.NEAREST).save(base / "preview_seafood_4x.png")
+
+    # deli corner preview, 9 x 5 tiles
+    deli = Image.new("RGBA", (9 * 32, 5 * 32), C["fl"] + (255,))
+    def dput(n, x, y, dx=0, dy=0):
+        im = imgs[n]
+        deli.paste(im, (x * 32 + dx, y * 32 + dy), im)
+    for x in range(9):
+        dput("tile_wall", x, 0)
+        for y in range(1, 5):
+            dput("tile_floor", x, y)
+    dput("deco_lantern", 1, 0); dput("deco_lantern", 7, 0); dput("deco_fu_poster", 4, 0, dy=-2)
+    dput("wok_stove", 1, 1); dput("wok_stove", 2, 1)
+    dput("steam_table", 3, 3); dput("steam_table", 4, 3); dput("steam_table_empty", 5, 3)
+    dput("roast_station", 6, 1); dput("roast_station", 7, 1)
+    dput("char_chef_front_0", 2, 2, dx=6); dput("char_student_back_1", 4, 4, dx=-6)
+    dput("char_family_back_0", 6, 2, dx=10); dput("ui_bubble_heart", 4, 3, dx=-6, dy=-22)
+    deli.resize((deli.width * 4, deli.height * 4), Image.NEAREST).save(base / "preview_deli_4x.png")
     print(f"{len(imgs)} sprites written ({len(static)} static, {len(chars)} character frames)")
 
 if __name__ == "__main__":

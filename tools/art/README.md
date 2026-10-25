@@ -42,3 +42,15 @@ python3 make_sprites.py      # 输出到 sprites/，并生成预览图
 **UI 图标**：`ui_water_good` / `ui_water_bad`（鱼池水质）
 
 预览：`preview_seafood_4x.png`
+
+## 新增内容（v4 · 熟食部）
+
+**设施**：`steam_table` / `steam_table_empty`（打菜台，带防喷罩和四格热菜）、`roast_station` / `roast_station_empty`（烧腊档，挂烧鸭和叉烧）、`wok_stove`（厨房炉灶，两口锅）
+
+**菜品图标**（`dish_*`）：`braised_pork` 红烧肉、`sweet_sour_ribs` 糖醋排骨、`dumplings` 饺子、`stir_fried_bok_choy` 清炒小白菜、`steamed_fish` 葱姜蒸鱼、`salt_pepper_shrimp` 椒盐虾、`roast_duck` 烧鸭、`char_siu` 叉烧
+
+**原料**：`product_whole_duck` 整鸭、`product_pork_shoulder` 猪梅肉；`product_takeaway_box` 外卖打包盒
+
+**角色**：`chef` 厨师（高帽、白色厨师服、红领巾），正面、背面各 3 帧
+
+预览：`preview_deli_4x.png`
