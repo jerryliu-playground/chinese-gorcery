@@ -3,6 +3,7 @@ using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Staff;
+using ChineseGrocery.Sim.Story;
 using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Game.View;
 using ChineseGrocery.Sim.Time;
@@ -27,6 +28,10 @@ public partial class Hud : Control
     private readonly Label _cash = new();
     private readonly Label _stage = new();
     private readonly Label _message = new();
+    private readonly Label _shopName = new() { AutoTranslateMode = AutoTranslateModeEnum.Disabled };
+    private readonly Label _objective = new() { AutoTranslateMode = AutoTranslateModeEnum.Disabled };
+    private readonly Label _loan = new() { AutoTranslateMode = AutoTranslateModeEnum.Disabled };
+    private readonly HBoxContainer _loanBox = new();
     private readonly Button _open = new() { Text = "ui.hud.open_store" };
     private readonly Button _restockAll = new() { Text = "ui.hud.restock_all" };
     private readonly Button _mode = new();
@@ -71,11 +76,42 @@ public partial class Hud : Control
         AddChild(_message);
 
         AddChild(_celebration);
+        BuildStoryCorner();
+
+        // Last, so it covers everything else.
+        Dialogue.Init(host, feel, new Art());
+        AddChild(Dialogue);
         host.EventsReady += OnEvents;
         host.Ticked += OnTicked;
         host.GameReplaced += OnGameReplaced;
         ui.Changed += OnUiChanged;
         OnTicked();
+    }
+
+    /// <summary>The conversation on screen, if any (story, tutorial calls).</summary>
+    public DialogueBox Dialogue { get; } = new() { Name = "Dialogue" };
+
+    /// <summary>Under the top bar: the shop's name and the tutorial reminder on the left, the student loan on the right.</summary>
+    private void BuildStoryCorner()
+    {
+        var backdrop = new StyleBoxFlat { BgColor = new Color(0.08f, 0.08f, 0.1f, 0.75f), ContentMarginLeft = 3, ContentMarginRight = 3 };
+        var left = new HBoxContainer { Position = new Vector2(ToolColumnWidth + 4, 20), MouseFilter = MouseFilterEnum.Ignore };
+        left.AddThemeConstantOverride("separation", 6);
+        _shopName.AddThemeStyleboxOverride("normal", backdrop);
+        _shopName.AddThemeColorOverride("font_color", new Color(0.95f, 0.55f, 0.45f));
+        left.AddChild(_shopName);
+        _objective.AddThemeStyleboxOverride("normal", backdrop);
+        _objective.AddThemeColorOverride("font_color", new Color(0.98f, 0.86f, 0.5f));
+        left.AddChild(_objective);
+        AddChild(left);
+
+        _loan.AddThemeStyleboxOverride("normal", backdrop);
+        _loanBox.AddChild(_loan);
+        var loanPanel = AddPanel<LoanPanel>();
+        var pay = new Button { Text = "ui.hud.loan_pay" };
+        pay.Pressed += () => ShowOnly(loanPanel);
+        _loanBox.AddChild(pay);
+        AddChild(_loanBox);
     }
 
     private T AddPanel<T>() where T : PanelBase, new()
@@ -170,6 +206,7 @@ public partial class Hud : Control
         var settings = AddPanel<SettingsPanel>();
         _menu = AddPanel<MenuPanel>();
         _report.OrderRequested += () => ShowOnly(order);
+        _report.Closed += () => _host.Send(new ReportViewed());
 
         _build.Closed += () =>
         {
@@ -227,6 +264,9 @@ public partial class Hud : Control
         panel.Open();
     }
 
+    /// <summary>Refreshes the bars now (the screenshot tour ticks the Sim directly, without the host's tick event).</summary>
+    public void RefreshNow() => OnTicked();
+
     /// <summary>The cash figure as currently shown (it counts toward the real amount).</summary>
     public string CashText => _cash.Text;
 
@@ -278,9 +318,25 @@ public partial class Hud : Control
         _clock.Text = UiText.ClockTime(sim.Clock.MinuteOfDay);
         UpdateCashLabel(0);
         _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
+        UpdateStoryCorner();
         _open.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         _restockAll.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         foreach (var p in _panels) p.RefreshIfOpen();
+    }
+
+    private void UpdateStoryCorner()
+    {
+        _shopName.Visible = _host.Data.Story is not null;
+        if (_host.Data.Story is not null) _shopName.Text = Dialogue.ShopName();
+        var step = _host.Sim.ActiveTutorialStep;
+        _objective.Visible = step is not null;
+        if (step is not null) _objective.Text = UiText.T(step.ObjectiveKey);
+
+        _loanBox.Visible = _host.Sim.Loan is not null;
+        if (_host.Sim.Loan is not { } loan) return;
+        _loan.Text = loan.PaidOff ? UiText.T("ui.hud.loan_paid_off") : UiText.F("ui.hud.loan", ("amount", UiText.Money(loan.BalanceCents)));
+        _loanBox.Size = _loanBox.GetCombinedMinimumSize();
+        _loanBox.Position = new Vector2(640 - 4 - _loanBox.Size.X, 20);
     }
 
     private void OnEvents(IReadOnlyList<SimEvent> events)
@@ -296,6 +352,7 @@ public partial class Hud : Control
             }
 
             if (e is StageUpgraded or EmployeeHired && _build.Visible) _build.Open();
+            if (e is LoanPaidOff) _celebration.Play(UiText.T("ui.celebrate.loan_paid_off"), _feel.CelebrationSeconds, _feel.ConfettiCount);
             if (e is StageUpgraded up)
             {
                 var stage = UiText.T(_host.Data.Stages[up.Stage - 1].NameKey);
@@ -320,6 +377,9 @@ public partial class Hud : Control
             StoreOpened => UiText.T("ui.event.store_opened"),
             ShelvesRestocked s => UiText.F("ui.event.restocked", ("units", s.Units)),
             GoodsReturned g => UiText.F("ui.event.returned", ("product", ProductName(g.ProductId)), ("qty", g.Quantity)),
+            LoanPaymentMade { ArrearsCents: > 0 } l => UiText.F("ui.event.loan_short", ("paid", UiText.Money(l.PaidCents)), ("due", UiText.Money(l.ArrearsCents))),
+            LoanPaymentMade l => UiText.F(l.Scheduled ? "ui.event.loan_paid" : "ui.event.loan_paid_extra", ("paid", UiText.Money(l.PaidCents))),
+            TutorialStepCompleted => UiText.T("ui.event.tutorial_step_done"),
             _ => null,
         };
     }

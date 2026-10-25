@@ -407,3 +407,30 @@ tutorial.step6.objective,Dad's tip: the store can be upgraded (Upgrade),爸爸�
 ui.reject.dialogue_not_showing,That conversation is not on screen.,这段对话没有在显示。
 ui.reject.unknown_choice,Pick one of the answers.,请选择一个回答。
 ui.reject.invalid_name,Enter a name (not too long).,请输入店名（不要太长）。
+ui.dialogue.on_phone,On the phone,通话中
+ui.dialogue.continue,Click to continue,点击继续
+ui.dialogue.skip,Skip,跳过
+ui.dialogue.name_shop_title,Name your shop,给店起个名字
+ui.dialogue.name_shop_hint,Leave it empty to keep the old name.,不填就沿用老店名。
+ui.dialogue.name_shop_ok,OK,确定
+ui.loan.title,Student loan,学生贷款
+ui.loan.balance,Still owed,剩余欠款
+ui.loan.paid_off,All paid off!,已经全部还清！
+ui.loan.minimum,Minimum payment,最低还款
+ui.loan.every_days,{amount} every {days} days,每 {days} 天 {amount}
+ui.loan.next_payment,Next payment,下次还款
+ui.loan.arrears,Overdue,逾期未还
+ui.loan.arrears_note,Overdue amounts are added to the next payment.,逾期的部分会加到下次还款里。
+ui.loan.pay_extra,Pay extra now (from cash):,现在多还一些（从现金扣）：
+ui.loan.pay_all,As much as I can,能还多少还多少
+ui.hud.loan,Loan {amount},贷款 {amount}
+ui.hud.loan_paid_off,Loan paid off,贷款已还清
+ui.hud.loan_pay,Pay,还款
+ui.settings.story_prompts,Story prompts,剧情提示
+ui.settings.story_prompts_hint,Off: no side stories. Dad's tips and the main story still play.,关闭后不再出现支线小故事；爸爸的引导和主线照常。
+ui.report.loan,Loan payment,还贷款
+ui.event.loan_paid,Paid {paid} on the student loan.,学生贷款还了 {paid}。
+ui.event.loan_paid_extra,Paid an extra {paid} on the loan.,多还了 {paid} 贷款。
+ui.event.loan_short,Could only pay {paid} on the loan; {due} still due.,贷款只还了 {paid}，还欠 {due}。
+ui.event.tutorial_step_done,Got it! That's one of Dad's tips done.,学会了！爸爸的这条提示完成。
+ui.celebrate.loan_paid_off,Student loan paid off!,学生贷款还清了！
