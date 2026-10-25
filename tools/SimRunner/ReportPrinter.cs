@@ -21,6 +21,11 @@ public static class ReportPrinter
             Money(r.FixtureSpendCents), Money(r.LossCents), Money(r.ProfitCents), Money(r.CashEndCents), r.Customers, r.AngryLeaves,
             r.ItemsNotFound, r.ItemsTooExpensive));
 
+        if (r.LoanPaymentCents > 0)
+        {
+            Console.WriteLine($"      loan payment: {Money(r.LoanPaymentCents)}");
+        }
+
         if (r.Sales.Count > 0)
         {
             Console.WriteLine("      sold: " + string.Join(", ", r.Sales.Select(s => $"{s.ProductId} {s.Units}")));
