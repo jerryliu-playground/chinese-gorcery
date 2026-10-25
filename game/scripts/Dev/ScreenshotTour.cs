@@ -45,6 +45,9 @@ public partial class ScreenshotTour : Node
     public UiState Ui { get; set; } = null!;
     public StoreView Store { get; set; } = null!;
     public StoreCamera Camera { get; set; } = null!;
+
+    /// <summary>When set, the view stays centred on this cell (for corners a big floor would otherwise scroll past).</summary>
+    private GridPoint? _focus;
     public Hud Hud { get; set; } = null!;
 
     public static string? RequestedDir() =>
@@ -305,6 +308,7 @@ public partial class ScreenshotTour : Node
         });
         Step("02-seafood-corner-placed", () =>
         {
+            _focus = new GridPoint(18, 4);
             // Cold storage for chilled goods and a second backroom so live deliveries fit next to the opening stock.
             Send(new PlaceFixture("cold_storage", new GridPoint(16, 0)));
             Send(new PlaceFixture("backroom", new GridPoint(12, 0)));
@@ -410,6 +414,7 @@ public partial class ScreenshotTour : Node
         });
         Step("17-camera-scrolled-to-far-corner", () =>
         {
+            _focus = null;
             TranslationServer.SetLocale("zh");
             Hud.Retranslate();
             Hud.CloseAllPanels();
@@ -612,6 +617,8 @@ public partial class ScreenshotTour : Node
 
     public override void _Process(double delta)
     {
+        if (_focus is { } focus) Camera.CenterOn(focus);
+
         if (_pending is not null && _until is { } condition)
         {
             if (!condition() && ++_waitedFor < MaxWaitFrames) return;
