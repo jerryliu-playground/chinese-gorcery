@@ -13,16 +13,16 @@ namespace ChineseGrocery.Sim.Tests.Seafood;
 /// <summary>Spec 12.4: live fish and lobster are killed to order at the seafood counter while the customer waits.</summary>
 public class KillFishTests
 {
-    private static readonly GridPoint TankCell = new(7, 4);
-    private static readonly GridPoint CounterWorkCell = new(3, 2);
+    private static readonly GridPoint TankCell = new(7, 1);
+    private static readonly GridPoint CounterWorkCell = new(0, 3);
 
-    /// <summary>One fish-buying customer type, a tank of fish at (7,3) and a seafood counter at (3,3).</summary>
+    /// <summary>One fish-buying customer type, a tank of fish at (7,0) and a seafood counter at (0,4).</summary>
     private static (GameSim Sim, int Tank, int Counter) Shop(int perHour = 60, int patienceMinutes = 30, string product = Fish)
     {
         var sim = Store(ScenarioData(perHour: perHour, wants: Department.Seafood, patienceMinutes: patienceMinutes));
         var tank = product is Lobster or Crab ? ShellfishTank(sim, 7, product) : Tank(sim, 7, product);
         Stock(sim, tank, 0, product, 3);
-        var counter = Place(sim, "seafood_counter", 3, 3);
+        var counter = Counter(sim);
         return (sim, tank, counter);
     }
 

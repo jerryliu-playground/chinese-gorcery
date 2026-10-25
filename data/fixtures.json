@@ -24,21 +24,21 @@
     "size": { "w": 1, "h": 1 }, "interactionCells": [],
     "customerCells": [{ "x": 0, "y": -1 }],
     "capacity": 0, "storage": [], "priceCents": 0, "unlockStage": 1, "sprite": { "main": "door" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "meat_display", "nameKey": "fixture.meat_display.name", "kind": "meat_display",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "customerCells": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }],
     "capacity": 4, "storage": ["chilled"], "priceCents": 120000, "unlockStage": 2, "sprite": { "main": "meat_fridge" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "cutting_table", "nameKey": "fixture.cutting_table.name", "kind": "cutting_table",
     "size": { "w": 2, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
     "customerCells": [],
     "capacity": 0, "storage": [], "priceCents": 60000, "unlockStage": 2, "sprite": { "main": "cutting_table" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "cold_storage", "nameKey": "fixture.cold_storage.name", "kind": "cold_storage",
@@ -60,7 +60,7 @@
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 2, "storage": ["live"], "priceCents": 15000, "unlockStage": 3,
     "sprite": { "main": "fish_tank", "empty": "fish_tank_empty", "dirty": "fish_tank_murky" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "shellfish_tank", "nameKey": "fixture.shellfish_tank.name", "kind": "shellfish_tank",
@@ -68,7 +68,7 @@
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 2, "storage": ["live_shellfish"], "priceCents": 15000, "unlockStage": 3, "waterDropPermille": 500,
     "sprite": { "main": "fish_tank", "empty": "fish_tank_empty", "dirty": "fish_tank_murky" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "ice_table", "nameKey": "fixture.ice_table.name", "kind": "ice_table",
@@ -83,7 +83,7 @@
     "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": -1 }],
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 0, "storage": [], "priceCents": 10000, "unlockStage": 3, "sprite": { "main": "seafood_counter" },
-    "_tbd": true
+    "againstWall": true, "_tbd": true
   },
   {
     "id": "wok_stove", "nameKey": "fixture.wok_stove.name", "kind": "wok_stove",

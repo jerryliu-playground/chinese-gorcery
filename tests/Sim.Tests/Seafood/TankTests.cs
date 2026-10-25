@@ -139,7 +139,7 @@ public class TankTests
         sim.AddDead(tank, DeadLot(sim, Crab, 1));
         sim.Tick();
 
-        sim.WalkPlayerTo(new GridPoint(7, 4));
+        sim.WalkPlayerTo(new GridPoint(7, 1));
         sim.Run(new PlayerInteract(tank));
         TickUntil(sim, () => sim.Player.Step == WorkStep.Idle);
 
@@ -189,7 +189,7 @@ public class TankTests
         var task = Assert.Single(sim.Tasks.Tasks.OfType<CleanTankTask>());
         Assert.Equal(tank, task.TankInstanceId);
 
-        sim.WalkPlayerTo(new GridPoint(7, 4));
+        sim.WalkPlayerTo(new GridPoint(7, 1));
         sim.Run(new PlayerInteract(tank));
         Assert.Equal(sim.Player.Id, sim.Tasks.ClaimedBy(task.Id));
         Assert.False(sim.Tasks.TryClaim(task.Id, 99));
@@ -211,7 +211,7 @@ public class TankTests
         sim.Tick();
         var task = Assert.Single(sim.Tasks.Tasks.OfType<RemoveDeadTask>());
 
-        sim.WalkPlayerTo(new GridPoint(7, 4));
+        sim.WalkPlayerTo(new GridPoint(7, 1));
         sim.Run(new PlayerInteract(tank));
         Assert.Equal(sim.Player.Id, sim.Tasks.ClaimedBy(task.Id));
         Assert.False(sim.Tasks.TryClaim(task.Id, 99));

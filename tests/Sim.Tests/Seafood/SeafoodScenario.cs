@@ -8,8 +8,9 @@ namespace ChineseGrocery.Sim.Tests.Seafood;
 /// <summary>
 /// A stage 1 store with the seafood fixtures and the fishmonger unlocked and plenty of cash (data tweak), so tests need
 /// no upgrade.
-/// Free floor used by the tests: tanks at (7,3) and (8,3) worked from the row below, an ice table at (6,3), a seafood
-/// counter at (3,3) worked from (3,2) with customers at (3,4), and cold storage at (9,4) worked from (9,6).
+/// Free floor used by the tests: tanks against the back wall at (7,0) and (8,0) worked from the row below, an ice table
+/// at (6,3), a seafood counter against the left wall at (0,4) worked from (0,3) with customers at (0,5), and cold
+/// storage at (9,4) worked from (9,6).
 /// </summary>
 public static class SeafoodScenario
 {
@@ -46,10 +47,13 @@ public static class SeafoodScenario
         return id;
     }
 
-    public static int Tank(GameSim sim, int x, params string?[] products) => Place(sim, "fish_tank", x, 3, products);
+    /// <summary>A fish tank against the back wall at (x, 0), worked from the row below.</summary>
+    public static int Tank(GameSim sim, int x, params string?[] products) => Place(sim, "fish_tank", x, 0, products);
 
-    /// <summary>A lobster and crab tank at (x, 3), worked from the row below.</summary>
-    public static int ShellfishTank(GameSim sim, int x, params string?[] products) => Place(sim, "shellfish_tank", x, 3, products);
+    /// <summary>A lobster and crab tank against the back wall at (x, 0), worked from the row below.</summary>
+    public static int ShellfishTank(GameSim sim, int x, params string?[] products) => Place(sim, "shellfish_tank", x, 0, products);
+
+    public static int Counter(GameSim sim) => Place(sim, "seafood_counter", 0, 4);
 
     /// <summary>Puts animals that arrived today straight into a slot (test shortcut).</summary>
     public static void Stock(GameSim sim, int fixture, int slot, string productId, int units)

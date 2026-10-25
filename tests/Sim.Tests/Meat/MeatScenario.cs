@@ -7,14 +7,15 @@ using ChineseGrocery.Sim.Tasks;
 namespace ChineseGrocery.Sim.Tests.Meat;
 
 /// <summary>
-/// A stage 2 store with meat fixtures: cold storage 2x2 at (14,0) worked from (14,2), meat display at (14,4) worked
-/// from (14,5)/(15,5), cutting table at (14,7) worked from (14,8). Primals arrive by a normal order.
+/// A stage 2 store with meat fixtures: cold storage 2x2 at (14,0) worked from (14,2), meat display against the right
+/// wall at (16,4) worked from (16,5)/(17,5), cutting table against the right wall at (16,7) worked from (16,8). Primals
+/// arrive by a normal order.
 /// </summary>
 public static class MeatScenario
 {
     public const string Primal = "pork_primal";
     public static readonly GridPoint ColdStorageCell = new(14, 2);
-    public static readonly GridPoint TableCell = new(14, 8);
+    public static readonly GridPoint TableCell = new(16, 8);
 
     public static GameSim Stage2(int primals = 1, bool withTable = true, ulong seed = 1)
     {
@@ -22,8 +23,8 @@ public static class MeatScenario
         sim.Economy.Earn("rice_jasmine", 1, SimTestKit.Data.Stages[1].RequiredCumulativeRevenueCents);
         sim.Run(new UpgradeStage());
         sim.Run(new PlaceFixture("cold_storage", new GridPoint(14, 0)));
-        sim.Run(new PlaceFixture("meat_display", new GridPoint(14, 4)));
-        if (withTable) sim.Run(new PlaceFixture("cutting_table", new GridPoint(14, 7)));
+        sim.Run(new PlaceFixture("meat_display", new GridPoint(16, 4)));
+        if (withTable) sim.Run(new PlaceFixture("cutting_table", new GridPoint(16, 7)));
         if (primals > 0)
         {
             sim.Run(new PlaceOrder(Primal, primals));

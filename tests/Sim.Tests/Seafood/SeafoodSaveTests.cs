@@ -20,7 +20,7 @@ public class SeafoodSaveTests
         var tank = Tank(sim, 7, Fish, Shrimp);
         Stock(sim, tank, 0, Fish, 6);
         Stock(sim, tank, 1, Shrimp, 12);
-        Place(sim, "seafood_counter", 3, 3);
+        Counter(sim);
         sim.Run(new HireEmployee("fishmonger"));
         sim.AddDead(tank, DeadLot(sim, Crab, 2));
         sim.SetWaterQuality(tank, 70);

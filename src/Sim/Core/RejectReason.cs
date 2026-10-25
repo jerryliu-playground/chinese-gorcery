@@ -41,4 +41,5 @@ public enum RejectReason
     NotADeliStation,
     WrongStation,
     NotForSale,
+    NotAgainstWall,
 }

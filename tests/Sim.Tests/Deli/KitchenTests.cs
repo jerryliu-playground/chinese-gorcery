@@ -51,7 +51,7 @@ public class KitchenTests
         var sim = DeliStore();
         var stand = Place(sim, "produce_stand", 6, 3, "scallion");
         var ice = Place(sim, "ice_table", 9, 3, ChilledFish);
-        var tank = Tank(sim, 4, Shrimp);
+        var tank = Tank(sim, 7, Shrimp);
         Put(sim, new StockLocation(stand, 0), "scallion", 2);
         Put(sim, new StockLocation(ice, 0), ChilledFish, 1);
         Put(sim, Backroom(sim), "ginger", 1);
@@ -275,7 +275,7 @@ public class KitchenTests
     public void Kitchen_only_goods_cannot_be_put_out_for_sale()
     {
         var sim = DeliStore();
-        var display = Place(sim, "meat_display", 3, 3);
+        var display = Place(sim, "meat_display", 6, 0);
 
         Assert.Equal(RejectReason.NotForSale, Send(sim, new AssignShelfSlot(display, 0, "whole_duck")));
     }

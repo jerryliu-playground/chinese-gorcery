@@ -199,7 +199,7 @@ public class StaffTests
         sim.Economy.Earn("rice_jasmine", 1, data.Stages[1].RequiredCumulativeRevenueCents);
         sim.Run(new UpgradeStage());
         sim.Run(new PlaceFixture("cold_storage", new GridPoint(14, 0)));
-        sim.Run(new PlaceFixture("cutting_table", new GridPoint(14, 7)));
+        sim.Run(new PlaceFixture("cutting_table", new GridPoint(16, 7)));
         sim.Run(new PlaceOrder(Primal, 2));
         sim.RunFullDay();
         var butcher = Hire(sim);

@@ -46,9 +46,14 @@ public static class LayoutRules
 
     public static bool InBounds(GridSize size, GridPoint p) => p.X >= 0 && p.Y >= 0 && p.X < size.W && p.Y < size.H;
 
+    /// <summary>Whether any cell of the fixture lies on the edge of the floor.</summary>
+    public static bool TouchesWall(GridSize size, FixtureDef def, GridPoint origin, Rotation rotation) =>
+        Footprint(def, origin, rotation).Any(c => c.X == 0 || c.Y == 0 || c.X == size.W - 1 || c.Y == size.H - 1);
+
     /// <summary>
     /// Checks a candidate layout. When a problem involves <paramref name="focusId"/> (the fixture being placed or moved),
-    /// it is reported against that fixture first.
+    /// it is reported against that fixture first. Only that fixture has to be against the wall if its kind requires it:
+    /// fixtures an expansion left inside the floor stay where they are.
     /// </summary>
     public static Rejection? Check(GridSize size, IReadOnlyList<PlacedFixture> fixtures, Func<string, FixtureDef> defs, int focusId = 0)
     {
@@ -60,6 +65,12 @@ public static class LayoutRules
                 if (!InBounds(size, cell)) return new(RejectReason.OutOfBounds, f.InstanceId);
                 if (!occupied.Add(cell)) return new(RejectReason.Overlap, f.InstanceId);
             }
+        }
+
+        if (fixtures.FirstOrDefault(f => f.InstanceId == focusId) is { } focus && defs(focus.FixtureId) is { AgainstWall: true } focusDef
+            && !TouchesWall(size, focusDef, focus.Origin, focus.Rotation))
+        {
+            return new(RejectReason.NotAgainstWall, focus.InstanceId);
         }
 
         var entrances = fixtures.Where(f => defs(f.FixtureId).Kind == FixtureKind.Entrance).ToList();

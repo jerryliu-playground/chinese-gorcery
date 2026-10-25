@@ -400,6 +400,11 @@ public static partial class DataValidator
             var which = problem.InstanceId == 0 ? "" : $" at entry [{problem.InstanceId - 1}] '{placed[problem.InstanceId - 1].FixtureId}'";
             errors.Add($"{at}: invalid layout ({problem.Reason}){which}");
         }
+
+        foreach (var f in placed.Where(f => fixtures[f.FixtureId].AgainstWall && !LayoutRules.TouchesWall(data.Stages[0].StoreSize, fixtures[f.FixtureId], f.Origin, f.Rotation)))
+        {
+            errors.Add($"{at}: entry [{f.InstanceId - 1}] '{f.FixtureId}' must be against the wall");
+        }
     }
 
     /// <summary>Opening stock must be real products that the starting storage areas can hold, within their slot capacity.</summary>

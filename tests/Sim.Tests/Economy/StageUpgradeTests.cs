@@ -92,8 +92,8 @@ public class StageUpgradeTests
         sim.DrainEvents();
 
         sim.Run(new PlaceFixture("cold_storage", new GridPoint(14, 0)));
-        sim.Run(new PlaceFixture("meat_display", new GridPoint(14, 4)));
-        sim.Run(new PlaceFixture("cutting_table", new GridPoint(14, 7)));
+        sim.Run(new PlaceFixture("meat_display", new GridPoint(16, 4)));
+        sim.Run(new PlaceFixture("cutting_table", new GridPoint(16, 7)));
         sim.Run(new PlaceOrder("pork_primal", 2));
 
         Assert.Empty(sim.DrainEvents().OfType<CommandRejected>());
