@@ -43,6 +43,8 @@ public sealed partial class GameSim
         var player = data.Employees.Player;
         Player = new Worker(1, isPlayer: true, PlayerStartCell(), player.MoveCellsPerMinute, player.WorkSpeedPermille, player.KnifeSkill);
         _workers.Add(Player);
+        StartStaffStream(seed);
+        RefreshApplicants();
 
         _events.Add(new DayStarted(Clock.Day));
     }
@@ -117,6 +119,16 @@ public sealed partial class GameSim
             PlayerInteract interact => HandlePlayerInteract(interact),
             UpgradeStage => HandleUpgradeStage(),
             HireEmployee hire => HandleHireEmployee(hire),
+            HireApplicant hire => HandleHireApplicant(hire),
+            RejectApplicant reject => HandleRejectApplicant(reject),
+            FireEmployee fire => HandleFireEmployee(fire),
+            SetShift shift => HandleSetShift(shift),
+            SetRestDays rest => HandleSetRestDays(rest),
+            SetWorkerTasks only => HandleSetWorkerTasks(only),
+            SetTaskPriority priority => HandleSetTaskPriority(priority),
+            AssignManager assign => HandleAssignManager(assign),
+            SetAutomation automation => HandleSetAutomation(automation),
+            SetOrderTarget target => HandleSetOrderTarget(target),
             Deli.SetMenuItem menu => HandleSetMenuItem(menu),
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
@@ -146,8 +158,11 @@ public sealed partial class GameSim
 
         Clock.StartNextDay(Data.Economy.OpenMinuteOfDay);
         _cookedToday.Clear();
+        foreach (var worker in _workers) worker.TasksToday = 0;
         _events.Add(new DayStarted(Clock.Day));
         DeliverOrders();
+        RefreshApplicants();
+        RunManagers();
         return null;
     }
 
@@ -169,6 +184,7 @@ public sealed partial class GameSim
         }
 
         PayWages();
+        CloseStaffDay();
 
         foreach (var worker in _workers)
         {

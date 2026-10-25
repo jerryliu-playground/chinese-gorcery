@@ -10,6 +10,9 @@ public sealed class GameClock
     public int SecondOfDay { get; internal set; }
     public int MinuteOfDay => SecondOfDay / 60;
 
+    /// <summary>Day of the week, 0-6; day 1 is weekday 0.</summary>
+    public int Weekday => (Day - 1) % 7;
+
     internal void Open() => Phase = DayPhase.Open;
 
     internal void Advance(int seconds) => SecondOfDay += seconds;

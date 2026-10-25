@@ -14,19 +14,24 @@ public sealed partial class GameSim
         if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
         if (Data.Employees.Roles.FirstOrDefault(r => r.Id == hire.RoleId) is not { } role) return Reject(RejectReason.UnknownRole);
         if (role.UnlockStage > Economy.Stage) return Reject(RejectReason.RoleLocked);
-        if (_workers.Count(w => w.RoleId == role.Id) >= role.MaxCount) return Reject(RejectReason.RoleFull);
+        if (_workers.Count(w => w.RoleId == role.Id) >= RoleLimit(role)) return Reject(RejectReason.RoleFull);
 
         var knife = Rng.NextInt(role.KnifeSkill.Min, role.KnifeSkill.Max + 1);
         var speed = Rng.NextInt(role.SpeedPermille.Min, role.SpeedPermille.Max + 1);
-        var worker = new Worker(_workers.Max(w => w.Id) + 1, isPlayer: false, PlayerStartCell(), role.MoveCellsPerMinute, speed, knife)
+        AddStaff(role, knife, speed, role.MarketWageCentsPerDay);
+        return null;
+    }
+
+    private void AddStaff(RoleDef role, int skill, int speed, long wageCentsPerDay)
+    {
+        var worker = new Worker(_workers.Max(w => w.Id) + 1, isPlayer: false, PlayerStartCell(), role.MoveCellsPerMinute, speed, skill)
         {
             RoleId = role.Id,
-            WageCentsPerDay = role.MarketWageCentsPerDay,
-            MoralePermille = Morale.FromWage(role, role.MarketWageCentsPerDay),
+            WageCentsPerDay = wageCentsPerDay,
         };
+        RecomputeMorale(worker);
         _workers.Add(worker);
-        _events.Add(new EmployeeHired(worker.Id, role.Id, knife, speed, worker.WageCentsPerDay));
-        return null;
+        _events.Add(new EmployeeHired(worker.Id, role.Id, skill, speed, worker.WageCentsPerDay));
     }
 
     private Rejection? HandleSetWage(SetWage set)
@@ -36,7 +41,7 @@ public sealed partial class GameSim
         if (set.WageCentsPerDay < 0) return Reject(RejectReason.InvalidWage);
 
         worker.WageCentsPerDay = set.WageCentsPerDay;
-        worker.MoralePermille = Morale.FromWage(RoleOf(worker)!, set.WageCentsPerDay);
+        RecomputeMorale(worker);
         _events.Add(new WageChanged(worker.Id, worker.WageCentsPerDay, worker.MoralePermille));
         return null;
     }
@@ -59,6 +64,8 @@ public sealed partial class GameSim
             worker.Level++;
             worker.KnifeSkill += role.LevelUpKnifeSkill;
             worker.WorkSpeedPermille += role.LevelUpSpeedPermille;
+            worker.MoraleAdjustPermille += Data.Employees.Morale?.LevelUpBonusPermille ?? 0;
+            RecomputeMorale(worker);
             _events.Add(new EmployeeLeveledUp(worker.Id, worker.Level, worker.KnifeSkill, worker.WorkSpeedPermille));
         }
     }
@@ -67,7 +74,7 @@ public sealed partial class GameSim
     {
         foreach (var worker in _workers.Where(w => w.RoleId is not null))
         {
-            Economy.Pay(ExpenseCategory.Wages, worker.WageCentsPerDay);
+            Economy.Pay(ExpenseCategory.Wages, WageFor(worker));
         }
     }
 }

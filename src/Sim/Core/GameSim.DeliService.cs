@@ -109,7 +109,7 @@ public sealed partial class GameSim
             if (Tasks.Tasks.Any(t => t is ServeDeliTask s && s.StationInstanceId == station)) continue;
             if (line.FirstOrDefault(c => c.State == CustomerState.AtCounter && DishAt(station, c.WaitingFor!) > 0) is not { } next) continue;
 
-            Tasks.Add(id => new ServeDeliTask(id, Data.Economy.Tasks.PriorityOf(TaskType.ServeDeli), station, next.Id, next.WaitingFor!));
+            Tasks.Add(id => new ServeDeliTask(id, PriorityOf(TaskType.ServeDeli), station, next.Id, next.WaitingFor!));
         }
     }
 

@@ -77,7 +77,7 @@ public sealed partial class GameSim
     }
 
     private bool CoversWorker(PlacedFixture fixture) =>
-        LayoutRules.Footprint(_fixtures[fixture.FixtureId], fixture.Origin, fixture.Rotation).Any(c => _workers.Any(w => w.Position == c));
+        LayoutRules.Footprint(_fixtures[fixture.FixtureId], fixture.Origin, fixture.Rotation).Any(c => _workers.Any(w => w.IsPresent && w.Position == c));
 
     private Rejection? CheckLayout(IReadOnlyList<PlacedFixture> fixtures, int focusId) =>
         LayoutRules.Check(Layout.Size, fixtures, id => _fixtures[id], focusId);

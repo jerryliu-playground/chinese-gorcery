@@ -39,7 +39,7 @@ public sealed partial class GameSim
             if (Inventory.Count(slot, productId) * 1000L >= (long)full * settings.RestockBelowPermille) continue;
             if (FindRestockSource(productId) is not { } source) continue;
 
-            Tasks.Add(id => new RestockTask(id, settings.PriorityOf(TaskType.Restock), source, slot, productId));
+            Tasks.Add(id => new RestockTask(id, PriorityOf(TaskType.Restock), source, slot, productId));
         }
     }
 
@@ -64,7 +64,7 @@ public sealed partial class GameSim
             if (!HasQueue(checkout.InstanceId)) continue;
             if (Tasks.Tasks.Any(t => t is CheckoutTask c && c.CheckoutInstanceId == checkout.InstanceId)) continue;
 
-            Tasks.Add(id => new CheckoutTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Checkout), checkout.InstanceId));
+            Tasks.Add(id => new CheckoutTask(id, PriorityOf(TaskType.Checkout), checkout.InstanceId));
         }
     }
 
@@ -100,7 +100,7 @@ public sealed partial class GameSim
 
                 for (var n = tasks.Count; n < waiting; n++)
                 {
-                    Tasks.Add(id => new CutMeatTask(id, Data.Economy.Tasks.PriorityOf(TaskType.CutMeat), pile.Location, cut.PrimalId, table.InstanceId));
+                    Tasks.Add(id => new CutMeatTask(id, PriorityOf(TaskType.CutMeat), pile.Location, cut.PrimalId, table.InstanceId));
                 }
             }
         }
@@ -192,7 +192,8 @@ public sealed partial class GameSim
 
     /// <summary>The player can do every task type; staff only their role's.</summary>
     private bool CanDo(Worker worker, SimTask task) =>
-        worker.IsPlayer || RoleOf(worker)?.TaskTypes.Contains(task.Type) == true;
+        worker.IsPlayer
+        || (RoleOf(worker)?.TaskTypes.Contains(task.Type) == true && worker.AllowedTasks?.Contains(task.Type) != false);
 
     private void StartFirstStep(Worker worker, SimTask task)
     {
@@ -318,6 +319,9 @@ public sealed partial class GameSim
     {
         foreach (var worker in _workers)
         {
+            if (!worker.IsPlayer) UpdatePresence(worker);
+            if (!worker.IsPresent) continue;
+
             if (worker.IsPlayer) ServeIfBehindRegister(worker);
             else DriveStaff(worker);
 
@@ -539,6 +543,7 @@ public sealed partial class GameSim
         worker.WorkTicksLeft = 0;
         if (completed)
         {
+            worker.TasksToday++;
             _events.Add(new TaskCompleted(task.Id, task.Type, worker.Id));
             GainExperience(worker);
         }

@@ -35,7 +35,7 @@ public sealed partial class GameSim
                 continue;
             }
 
-            Tasks.Add(id => new KillFishTask(id, Data.Economy.Tasks.PriorityOf(TaskType.KillFish), counter.InstanceId, front.Id, productId, source.Value));
+            Tasks.Add(id => new KillFishTask(id, PriorityOf(TaskType.KillFish), counter.InstanceId, front.Id, productId, source.Value));
         }
     }
 

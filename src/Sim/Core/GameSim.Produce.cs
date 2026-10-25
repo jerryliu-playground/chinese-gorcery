@@ -147,7 +147,7 @@ public sealed partial class GameSim
             if (!NeedsTidying(stand.InstanceId)) continue;
             if (Tasks.Tasks.Any(t => t is TidyTask tidy && tidy.StandInstanceId == stand.InstanceId)) continue;
 
-            Tasks.Add(id => new TidyTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Tidy), stand.InstanceId));
+            Tasks.Add(id => new TidyTask(id, PriorityOf(TaskType.Tidy), stand.InstanceId));
         }
     }
 

@@ -106,7 +106,7 @@ public sealed partial class GameSim
             var stove = stoves.FirstOrDefault(s => !Tasks.Tasks.Any(t => t is CookTask c && c.StoveInstanceId == s));
             if (stove == 0) return;
 
-            Tasks.Add(id => new CookTask(id, Data.Economy.Tasks.PriorityOf(TaskType.Cook), stove, slot, item.DishId));
+            Tasks.Add(id => new CookTask(id, PriorityOf(TaskType.Cook), stove, slot, item.DishId));
         }
     }
 

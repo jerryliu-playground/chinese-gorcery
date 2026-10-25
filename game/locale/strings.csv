@@ -260,3 +260,10 @@ ui.order.space,{name}: {used}/{total} slots used (incl. goods on order),{name}�
 ui.storage.line,{name} {count} ({slots} slots),{name} {count} 个（{slots} 格）
 ui.storage.incoming,+{n} arriving,明早到 +{n}
 ui.order.facts,{per_slot} per slot · have {stock} (+{pending}) · last day {sold} · fits {room} more,一格 {per_slot} 个 · 现有 {stock}（+{pending}） · 上一天卖 {sold} · 还能放 {room}
+role.cashier.name,Cashier,收银员
+role.stocker.name,Stocker,理货员
+role.manager.name,Manager,店长
+ui.staff.skill.none,skill,技能
+ui.staff.skill.management,management,管理能力
+ui.reject.unknown_applicant,That applicant has gone.,这个应聘者已经走了。
+ui.reject.not_a_manager,Only a manager can run a department.,只有店长能管理部门。

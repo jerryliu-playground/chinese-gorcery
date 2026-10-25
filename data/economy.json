@@ -63,6 +63,7 @@
       { "quality": 60, "permille": 2000 }, { "quality": 100, "permille": 1000 }
     ]
   },
+  "shifts": { "morningEndMinuteOfDay": 840, "eveningStartMinuteOfDay": 840, "halfShiftWagePermille": 550 },
   "deli": {
     "rushArrivals": [
       { "startMinuteOfDay": 540, "customersPerHour": 0, "typeWeights": [] },

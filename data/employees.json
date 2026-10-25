@@ -1,6 +1,36 @@
 {
   "roles": [
     {
+      "id": "cashier", "nameKey": "role.cashier.name", "unlockStage": 1, "maxCount": 4,
+      "taskTypes": ["checkout"], "marketWageCentsPerDay": 9000,
+      "knifeSkill": { "min": 1, "max": 1 }, "speedPermille": { "min": 800, "max": 1300 },
+      "moveCellsPerMinute": 4,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 5, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 0, "levelUpSpeedPermille": 50,
+      "sprite": { "main": "char_cashier" }, "skillNameKey": "ui.staff.skill.none",
+      "_tbd": true
+    },
+    {
+      "id": "stocker", "nameKey": "role.stocker.name", "unlockStage": 1, "maxCount": 4,
+      "taskTypes": ["restock", "tidy"], "marketWageCentsPerDay": 9000,
+      "knifeSkill": { "min": 1, "max": 1 }, "speedPermille": { "min": 800, "max": 1300 },
+      "moveCellsPerMinute": 4,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 5, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 0, "levelUpSpeedPermille": 50,
+      "sprite": { "main": "char_stocker" }, "skillNameKey": "ui.staff.skill.none",
+      "_tbd": true
+    },
+    {
+      "id": "manager", "nameKey": "role.manager.name", "unlockStage": 4, "maxCount": 5,
+      "taskTypes": [], "marketWageCentsPerDay": 20000,
+      "knifeSkill": { "min": 1, "max": 5 }, "speedPermille": { "min": 1000, "max": 1000 },
+      "moveCellsPerMinute": 3,
+      "moraleAtMarketWagePermille": 700, "moralePerWageRatioPermille": 1000, "minMoraleSpeedPermille": 500,
+      "xpPerTask": 10, "xpPerLevel": 100, "maxLevel": 5, "levelUpKnifeSkill": 1, "levelUpSpeedPermille": 0,
+      "sprite": { "main": "char_manager" }, "skillNameKey": "ui.staff.skill.management", "manager": true,
+      "_tbd": true
+    },
+    {
       "id": "butcher", "nameKey": "role.butcher.name", "unlockStage": 2, "maxCount": 1,
       "taskTypes": ["cut_meat"], "marketWageCentsPerDay": 12000,
       "knifeSkill": { "min": 1, "max": 5 }, "speedPermille": { "min": 800, "max": 1200 },
@@ -31,5 +61,14 @@
       "_tbd": true
     }
   ],
+  "applicantsPerDay": 3,
+  "askingWage": { "min": 800, "max": 1200 },
+  "severanceDays": 3,
+  "managerErrorPerPointPermille": 50,
+  "morale": {
+    "maxStreakDays": 6, "streakPenaltyPermille": 50, "restRecoveryPermille": 100,
+    "workloadFactorPermille": 2000, "workloadPenaltyPermille": 20, "levelUpBonusPermille": 50,
+    "quitBelowPermille": 200, "quitChancePermille": 300
+  },
   "player": { "moveCellsPerMinute": 4, "workSpeedPermille": 1000, "knifeSkill": 1, "sprite": { "main": "char_protagonist" }, "_tbd": true }
 }

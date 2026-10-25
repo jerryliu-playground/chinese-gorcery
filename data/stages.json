@@ -4,6 +4,7 @@
     "requiredCumulativeRevenueCents": 0, "upgradeCostCents": 0,
     "floorSprite": "tile_floor", "wallSprite": "tile_wall",
     "decorations": [{ "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 9, "y": -1 } }],
+    "roleLimits": [{ "roleId": "cashier", "max": 1 }, { "roleId": "stocker", "max": 1 }],
     "_tbd": true
   },
   {
@@ -14,6 +15,7 @@
       { "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 8, "y": -1 } },
       { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }
     ],
+    "roleLimits": [{ "roleId": "cashier", "max": 2 }, { "roleId": "stocker", "max": 2 }],
     "_tbd": true
   },
   {
@@ -24,6 +26,7 @@
       { "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 8, "y": -1 } },
       { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 21, "y": -1 } }
     ],
+    "roleLimits": [{ "roleId": "cashier", "max": 3 }, { "roleId": "stocker", "max": 3 }],
     "_tbd": true
   },
   {
@@ -35,6 +38,7 @@
       { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 21, "y": -1 } },
       { "sprite": "deco_lantern", "cell": { "x": 26, "y": -1 } }
     ],
+    "roleLimits": [{ "roleId": "cashier", "max": 4 }, { "roleId": "stocker", "max": 4 }, { "roleId": "manager", "max": 5 }],
     "_tbd": true
   }
 ]

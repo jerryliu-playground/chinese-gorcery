@@ -59,7 +59,7 @@ public class StaffTests
         Hire(sim);
 
         Assert.Equal(RejectReason.RoleFull, RejectionFor(sim, new HireEmployee("butcher")));
-        Assert.Equal(RejectReason.UnknownRole, RejectionFor(sim, new HireEmployee("cashier")));
+        Assert.Equal(RejectReason.UnknownRole, RejectionFor(sim, new HireEmployee("no_such_role")));
         sim.Run(new OpenStore());
         Assert.Equal(RejectReason.WrongPhase, RejectionFor(sim, new SetWage(2, 1)));
     }

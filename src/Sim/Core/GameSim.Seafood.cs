@@ -135,12 +135,12 @@ public sealed partial class GameSim
         {
             if (NeedsCleaning(tank) && !Tasks.Tasks.Any(t => t is CleanTankTask c && c.TankInstanceId == tank))
             {
-                Tasks.Add(id => new CleanTankTask(id, Data.Economy.Tasks.PriorityOf(TaskType.CleanTank), tank));
+                Tasks.Add(id => new CleanTankTask(id, PriorityOf(TaskType.CleanTank), tank));
             }
 
             if (DeadIn(tank).Count > 0 && !Tasks.Tasks.Any(t => t is RemoveDeadTask r && r.TankInstanceId == tank))
             {
-                Tasks.Add(id => new RemoveDeadTask(id, Data.Economy.Tasks.PriorityOf(TaskType.RemoveDead), tank));
+                Tasks.Add(id => new RemoveDeadTask(id, PriorityOf(TaskType.RemoveDead), tank));
             }
         }
     }

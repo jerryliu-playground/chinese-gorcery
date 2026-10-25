@@ -208,7 +208,8 @@ public static partial class DataValidator
             CheckNameKey(at, r.NameKey, "role", r.Id, errors);
             if (!stageIds.Contains(r.UnlockStage)) errors.Add($"{at}: unlockStage {r.UnlockStage} does not exist in {DataFiles.Stages}");
             if (r.MaxCount <= 0) errors.Add($"{at}: maxCount must be > 0");
-            if (r.TaskTypes.Count == 0) errors.Add($"{at}: taskTypes must not be empty");
+            if (r.TaskTypes.Count == 0 && !r.Manager) errors.Add($"{at}: taskTypes must not be empty (except for managers)");
+            if (r.TaskTypes.Count > 0 && r.Manager) errors.Add($"{at}: managers do no tasks");
             if (r.MarketWageCentsPerDay < 0) errors.Add($"{at}: marketWageCentsPerDay must be >= 0");
             CheckRange(at, "knifeSkill", r.KnifeSkill, minAllowed: 0, errors);
             CheckRange(at, "speedPermille", r.SpeedPermille, minAllowed: 1, errors);

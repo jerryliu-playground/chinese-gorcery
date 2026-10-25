@@ -48,6 +48,15 @@ public sealed class TaskBoard
 
     internal void Release(int taskId) => _claims.Remove(taskId);
 
+    /// <summary>Gives every task of a type a new priority.</summary>
+    internal void Reprioritize(TaskType type, int priority)
+    {
+        for (var i = 0; i < _tasks.Count; i++)
+        {
+            if (_tasks[i].Type == type) _tasks[i] = _tasks[i] with { Priority = priority };
+        }
+    }
+
     internal void Remove(int taskId)
     {
         _tasks.RemoveAll(t => t.Id == taskId);

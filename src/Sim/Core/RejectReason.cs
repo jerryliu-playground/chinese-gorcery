@@ -42,4 +42,6 @@ public enum RejectReason
     WrongStation,
     NotForSale,
     NotAgainstWall,
+    UnknownApplicant,
+    NotAManager,
 }

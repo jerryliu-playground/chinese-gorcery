@@ -244,8 +244,8 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         {
             if (sim.Workers.Any(w => w.RoleId == role.Id)) continue;
 
-            // Only hire once there is somewhere to work.
-            var needs = RoleNeeds.GetValueOrDefault(role.Id, []);
+            // Only the specialists, and only once there is somewhere to work.
+            if (!RoleNeeds.TryGetValue(role.Id, out var needs)) continue;
             if (!needs.All(kind => sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == kind))) continue;
             if (Send(sim, new HireEmployee(role.Id)) is null) _notes.Add($"hired {role.Id}");
         }

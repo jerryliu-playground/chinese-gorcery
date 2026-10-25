@@ -22,4 +22,13 @@ public sealed record WorkerSave(
     WorkStep Step,
     int WorkTicksLeft,
     int? ServingCustomerId,
-    IReadOnlyList<StockLot> Carrying);
+    IReadOnlyList<StockLot> Carrying,
+    bool IsPresent = true,
+    Staff.Shift Shift = Staff.Shift.Full,
+    IReadOnlyList<int>? RestDays = null,
+    IReadOnlyList<TaskType>? AllowedTasks = null,
+    Data.Department? ManagedDepartment = null,
+    int MoraleAdjustPermille = 0,
+    int WorkStreakDays = 0,
+    int TasksToday = 0,
+    bool QuitWarning = false);

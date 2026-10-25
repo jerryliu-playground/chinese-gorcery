@@ -44,7 +44,8 @@ public sealed partial class GameSim
             _workers.Select(w => new WorkerSave(
                 w.Id, w.IsPlayer, w.RoleId, w.Position, w.Path.ToList(), w.MoveCellsPerMinute, w.MoveProgress, w.WorkSpeedPermille,
                 w.KnifeSkill, w.WageCentsPerDay, w.MoralePermille, w.Level, w.Xp, w.TaskId, w.Step, w.WorkTicksLeft,
-                w.ServingCustomerId, w.Carrying.ToList())).ToList(),
+                w.ServingCustomerId, w.Carrying.ToList(), w.IsPresent, w.Shift, w.RestDays.ToList(), w.AllowedTasks?.ToList(),
+                w.ManagedDepartment, w.MoraleAdjustPermille, w.WorkStreakDays, w.TasksToday, w.QuitWarning)).ToList(),
             _customers.Select(c => new CustomerSave(
                 c.Id, c.TypeId, c.Position, c.Path.ToList(), c.MoveProgress, c.State, c.ShoppingList.ToList(), c.Basket.ToList(),
                 c.Target?.Slot, c.Target?.ProductId, c.BrowseTicksLeft, c.CheckoutInstanceId, c.QueueNumber, c.WaitedSeconds,
@@ -54,7 +55,8 @@ public sealed partial class GameSim
             _queue.ToList(),
             _tidiness.Select(kv => new TidinessSave(kv.Key, kv.Value)).ToList(),
             TankSaves(),
-            _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList());
+            _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList(),
+            StaffSave());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -110,7 +112,9 @@ public sealed partial class GameSim
             {
                 RoleId = w.RoleId, MoveProgress = w.MoveProgress, WageCentsPerDay = w.WageCentsPerDay, MoralePermille = w.MoralePermille,
                 Level = w.Level, Xp = w.Xp, TaskId = w.TaskId, Step = w.Step, WorkTicksLeft = w.WorkTicksLeft,
-                ServingCustomerId = w.ServingCustomerId,
+                ServingCustomerId = w.ServingCustomerId, IsPresent = w.IsPresent, Shift = w.Shift, RestDays = w.RestDays ?? [],
+                AllowedTasks = w.AllowedTasks, ManagedDepartment = w.ManagedDepartment, MoraleAdjustPermille = w.MoraleAdjustPermille,
+                WorkStreakDays = w.WorkStreakDays, TasksToday = w.TasksToday, QuitWarning = w.QuitWarning,
             };
             worker.SetPath(w.Path);
             worker.Carry(w.Carrying);
@@ -139,6 +143,7 @@ public sealed partial class GameSim
         _queue.AddRange(save.QueuedCommands);
         foreach (var stand in save.Tidiness ?? []) _tidiness[stand.StandInstanceId] = stand.Tidiness;
         RestoreTanks(save.Tanks ?? []);
+        RestoreStaff(save.Staff, (ulong)save.TickCount);
         foreach (var m in save.Menu ?? [])
         {
             _menu[m.Slot] = m.Item;
