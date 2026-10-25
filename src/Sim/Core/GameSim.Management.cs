@@ -40,6 +40,14 @@ public sealed partial class GameSim
 
     public Worker? ManagerOf(Department department) => _workers.Find(w => w.ManagedDepartment == department);
 
+    /// <summary>
+    /// The departments one manager's area covers: the dry goods manager runs all the packaged aisles (dry goods,
+    /// sauces, snacks, drinks); the others run their own department.
+    /// </summary>
+    public static IReadOnlyList<Department> AreaOf(Department department) => department == Department.DryGoods
+        ? [Department.DryGoods, Department.Sauces, Department.Snacks, Department.Drinks]
+        : [department];
+
     private void StartStaffStream(ulong seed) => _staffRng = new SimRng(seed ^ StaffStreamSalt);
 
     /// <summary>Yesterday's applicants leave; new ones come for roles unlocked and not full.</summary>
@@ -300,7 +308,8 @@ public sealed partial class GameSim
         {
             if (ManagerOf(department) is not { } manager || IsRestDay(manager)) continue;
 
-            var products = Data.Products.Where(p => p.Department == department).ToList();
+            var area = AreaOf(department);
+            var products = Data.Products.Where(p => area.Contains(p.Department)).ToList();
             if (automation.AutoOrder)
             {
                 foreach (var product in products.Where(p => _orderTargets.ContainsKey(p.Id)))

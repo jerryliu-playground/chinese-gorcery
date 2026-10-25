@@ -17,7 +17,7 @@ public static class Program
         if (!TryParseArgs(args, out var options, out var usageError))
         {
             Console.Error.WriteLine(usageError);
-            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--no-deli] [--data DIR]");
+            Console.Error.WriteLine("Usage: SimRunner [--days N] [--seed S] [--stock-target N] [--display-score 0-100] [--no-tank-cleaning] [--no-deli] [--auto] [--data DIR]");
             return ExitUsageError;
         }
 
@@ -44,14 +44,14 @@ public static class Program
                           $"roles={data.Employees.Roles.Count} meatCuts={data.MeatCuts.Count} stages={data.Stages.Count}");
         Console.WriteLine($"Run: days={options.Days} seed={options.Seed} stockTarget={options.StockTarget}" +
                           (options.DisplayScore is { } fixedScore ? $" displayScore={fixedScore} (fixed)" : "") +
-                          (options.NoTankCleaning ? " tankCleaning=off" : "") + (options.NoDeli ? " deli=off" : ""));
+                          (options.NoTankCleaning ? " tankCleaning=off" : "") + (options.NoDeli ? " deli=off" : "") + (options.Auto ? " staff=auto" : ""));
         Console.WriteLine();
 
         var sim = new GameSim(data, options.Seed) { DisplayScoreOverride = options.DisplayScore, TankCleaningDisabled = options.NoTankCleaning };
         var produce = data.Products.Where(p => p.Department == Department.Produce).Select(p => p.Id).ToHashSet();
         var seafood = data.Products.Where(p => p.Department == Department.Seafood).Select(p => p.Id).ToHashSet();
         var deli = data.Products.Where(p => p.Department == Department.Deli).Select(p => p.Id).ToHashSet();
-        var bot = new PlayerBot(options.StockTarget, runDeli: !options.NoDeli);
+        var bot = new PlayerBot(options.StockTarget, runDeli: !options.NoDeli, autoStaff: options.Auto);
         var anomalies = new List<string>();
         ReportPrinter.PrintHeader();
 
@@ -97,7 +97,7 @@ public static class Program
         return ExitOk;
     }
 
-    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false, bool NoDeli = false);
+    private sealed record Options(int Days, ulong Seed, int StockTarget, string? DataDir, int? DisplayScore = null, bool NoTankCleaning = false, bool NoDeli = false, bool Auto = false);
 
     private static bool TryParseArgs(string[] args, out Options options, out string error)
     {
@@ -116,6 +116,12 @@ public static class Program
             if (flag == "--no-deli")
             {
                 options = options with { NoDeli = true };
+                continue;
+            }
+
+            if (flag == "--auto")
+            {
+                options = options with { Auto = true };
                 continue;
             }
 

@@ -21,7 +21,7 @@ namespace ChineseGrocery.SimRunner;
 /// menu each morning and keeps ducks and pork shoulder on hand. While open it works the highest-priority open task.
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
@@ -78,8 +78,13 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
         AssignEmptySlots(sim);
+        if (autoStaff)
+        {
+            StaffTheStore(sim);
+            GiveRestDays(sim);
+        }
         PlaceOrders(sim);
-        PlanMenu(sim);
+        if (!IsAutomated(sim, Department.Deli)) PlanMenu(sim);
         Send(sim, new RestockAll());
         for (var i = 0; i < MaxPreOpenTicks && HasWork(sim); i++) Step(sim);
 
@@ -280,6 +285,76 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         }
     }
 
+    /// <summary>The departments a manager runs, so the bot leaves their ordering and menu alone.</summary>
+    private static bool IsAutomated(GameSim sim, Department department) =>
+        sim.Automation.Any(a => a.Value.AutoOrder && sim.ManagerOf(a.Key) is not null && GameSim.AreaOf(a.Key).Contains(department));
+
+    private static readonly Department[] ManagedAreas = [Department.DryGoods, Department.Produce, Department.Meat, Department.Seafood, Department.Deli];
+
+    /// <summary>
+    /// --auto: a cashier and a stocker from the start, then once managers unlock, one per area with automatic ordering
+    /// and pricing, ordering up to the same targets the bot would use.
+    /// </summary>
+    private void StaffTheStore(GameSim sim)
+    {
+        foreach (var roleId in new[] { "cashier", "stocker" })
+        {
+            if (!sim.Workers.Any(w => w.RoleId == roleId) && Send(sim, new HireEmployee(roleId)) is null) _notes.Add($"hired {roleId}");
+        }
+
+        foreach (var area in ManagedAreas)
+        {
+            if (sim.ManagerOf(area) is null)
+            {
+                if (Send(sim, new HireEmployee("manager")) is not null) continue;
+                var manager = sim.Workers.Last(w => w.RoleId == "manager");
+                Send(sim, new AssignManager(manager.Id, area));
+                Send(sim, new SetAutomation(area, AutoOrder: true, AutoPrice: true));
+                _notes.Add($"manager for {area}");
+            }
+
+            foreach (var (productId, target) in Targets(sim).Where(t => GameSim.AreaOf(area).Contains(sim.Data.Products.Single(p => p.Id == t.Key).Department)))
+            {
+                if (sim.OrderTargets.GetValueOrDefault(productId) != target) Send(sim, new SetOrderTarget(productId, target));
+            }
+        }
+    }
+
+    /// <summary>--auto: every staff member gets one day off a week, spread over the week, so no one burns out.</summary>
+    private void GiveRestDays(GameSim sim)
+    {
+        foreach (var worker in sim.Workers.Where(w => w.RoleId is not null && w.RestDays.Count == 0))
+        {
+            Send(sim, new SetRestDays(worker.Id, [worker.Id % 7]));
+        }
+    }
+
+    /// <summary>What the bot keeps on hand of each product it orders.</summary>
+    private Dictionary<string, int> Targets(GameSim sim)
+    {
+        var targets = new Dictionary<string, int>();
+        foreach (var id in sim.Shelves.Assigned.Values.Distinct())
+        {
+            var product = sim.Data.Products.Single(p => p.Id == id);
+            if (!product.Orderable) continue;
+
+            var fills = sim.Shelves.Assigned.Values.Count(x => x == id) * product.UnitsPerShelfSlot;
+            targets[id] = product.Live is not null ? fills : product.FreshnessDays is not null ? 2 * fills : stockTarget;
+        }
+
+        if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.CuttingTable))
+        {
+            foreach (var cut in sim.Data.MeatCuts) targets[cut.PrimalId] = primalsOnHand;
+        }
+
+        if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.RoastStation))
+        {
+            foreach (var x in sim.Data.Recipes.Where(r => r.Station == FixtureKind.RoastStation).SelectMany(r => r.Ingredients)) targets[x.ProductId] = RoastStockTarget * x.Quantity;
+        }
+
+        return targets;
+    }
+
     private void PlaceOrders(GameSim sim)
     {
         var orderable = sim.Data.Products.Where(p => p.Orderable).Select(p => p.Id).ToHashSet();
@@ -289,7 +364,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             .Select(id => sim.Data.Products.Single(p => p.Id == id))
             .OrderBy(p => p.Department is not (Department.Produce or Department.Seafood))
             .ThenBy(p => p.Id, StringComparer.Ordinal);
-        foreach (var product in products)
+        foreach (var product in products.Where(p => !IsAutomated(sim, p.Department)))
         {
             var fills = sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot;
             var target = product.Live is not null ? fills : product.FreshnessDays is not null ? 2 * fills : stockTarget;
@@ -298,7 +373,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
 
         if (sim.Layout.Fixtures.Any(f => Def(sim.Data, f).Kind == FixtureKind.RoastStation))
         {
-            foreach (var recipe in sim.Data.Recipes.Where(r => r.Station == FixtureKind.RoastStation))
+            foreach (var recipe in sim.Data.Recipes.Where(r => r.Station == FixtureKind.RoastStation && !IsAutomated(sim, Department.Meat)))
             {
                 foreach (var x in recipe.Ingredients) TopUp(sim, x.ProductId, RoastStockTarget * x.Quantity);
             }
@@ -309,7 +384,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             foreach (var cut in sim.Data.MeatCuts)
             {
                 var primal = sim.Data.Products.Single(p => p.Id == cut.PrimalId);
-                if (StorageRouting.FindDestination(sim.Data, sim.Layout.Fixtures, primal) is not null) TopUp(sim, cut.PrimalId, primalsOnHand);
+                if (StorageRouting.FindDestination(sim.Data, sim.Layout.Fixtures, primal) is not null && !IsAutomated(sim, Department.Meat)) TopUp(sim, cut.PrimalId, primalsOnHand);
             }
         }
     }
