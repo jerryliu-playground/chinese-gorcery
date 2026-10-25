@@ -347,3 +347,12 @@ task.unload.name,Unload,卸货
 ui.reject.not_importable,The importer does not sell that.,进口商不卖这个。
 ui.reject.below_minimum_order,The importer has a minimum order.,不够进口商的最低起订量。
 ui.reject.not_a_storage_area,That is not a storage area.,这不是仓库。
+ui.order.local,Local wholesaler,本地批发
+ui.order.import,Overseas importer,海外进口
+ui.order.import_hint,Imports are cheaper but paid now and take a week or two by sea; they arrive on pallets to unload.,进口更便宜，但下单即付款，海运一到两周；到货是托盘，要卸货。
+ui.order.import_facts,min {min} · {from}-{to} days at sea · local {local} · at sea {at_sea},起订 {min} 个 · 海运 {from}-{to} 天 · 本地价 {local} · 在途 {at_sea}
+ui.order.import_only,import only,只能进口
+ui.order.more_room,+{slots} slots {cost},扩容 +{slots} 格 {cost}
+ui.storage.pallet,{name} {count} on a pallet (unload first),{name} {count} 个（托盘上，要先卸货）
+ui.hud.ships,Ship x{count}: {days}d,船 {count} 艘：{days} 天后到
+ui.hud.pallets,Pallets x{count},待卸托盘 {count}

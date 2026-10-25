@@ -251,12 +251,38 @@ public partial class StoreView : Node2D
         DrawFloor(sim.Layout.Size, stage);
         DrawWall(sim.Layout.Size, stage);
         foreach (var f in sim.Layout.Fixtures) DrawFixture(f);
+        DrawPallets();
         if (_ui.Mode == ToolMode.Build) DrawUseCells();
         DrawGhost();
         DrawCarryTarget();
         foreach (var c in sim.Customers.OrderBy(c => c.Position.Y)) DrawCustomer(c);
         foreach (var w in sim.Workers) DrawWorker(w);
         if (_ui.Mode == ToolMode.Play) DrawPriceTag();
+    }
+
+    /// <summary>Pallets waiting to be unloaded: on their floor cell by the door, or stacked at the corner of their storage area.</summary>
+    private void DrawPallets()
+    {
+        var sim = _host.Sim;
+        var art = _art.Get("pallet");
+        var perStorage = new Dictionary<int, int>();
+        foreach (var pallet in sim.Pallets)
+        {
+            Vector2 at;
+            if (pallet.FloorCell is { } cell) at = TopLeftOf(cell);
+            else if (pallet.StorageInstanceId is { } id && sim.Layout.Find(id) is { } storage)
+            {
+                var n = perStorage.GetValueOrDefault(id);
+                perStorage[id] = n + 1;
+                var size = LayoutRules.RotatedSize(Def(storage), storage.Rotation);
+                at = TopLeftOf(storage.Origin) + new Vector2(size.W * Cell - Cell - n * 10, size.H * Cell - Cell);
+            }
+            else continue;
+
+            if (art is not null) DrawTexture(art, at);
+            else DrawRect(new Rect2(at + new Vector2(4, 8), new Vector2(24, 20)), new Color(0.7f, 0.55f, 0.35f));
+            DrawIconAt(this, pallet.Lots[0].ProductId, at + new Vector2(Cell / 2f, Cell / 2f - 4), 12, 1);
+        }
     }
 
     /// <summary>Hovering a shelf cell shows its slots' products, prices and stock (names in the UI language).</summary>
@@ -306,7 +332,12 @@ public partial class StoreView : Node2D
     private List<(string? Id, string Text)> StorageLines(PlacedFixture storage, FixtureDef def)
     {
         var sim = _host.Sim;
-        var rows = new List<(string?, string)> { (null, UiText.F("ui.order.space", ("name", UiText.T(def.NameKey)), ("used", sim.SlotsUsed(storage.InstanceId)), ("total", def.Capacity))) };
+        var rows = new List<(string?, string)> { (null, UiText.F("ui.order.space", ("name", UiText.T(def.NameKey)), ("used", sim.SlotsUsed(storage.InstanceId)), ("total", sim.StorageCapacityOf(storage.InstanceId)))) };
+        foreach (var pallet in sim.Pallets.Where(p => p.FloorCell is null && p.StorageInstanceId == storage.InstanceId))
+        {
+            var lot = pallet.Lots[0];
+            rows.Add((lot.ProductId, UiText.F("ui.storage.pallet", ("name", UiText.T(Data.Products.Single(p => p.Id == lot.ProductId).NameKey)), ("count", pallet.Lots.Sum(l => l.Quantity)))));
+        }
         var held = (sim.Inventory.TryGet(StockLocation.Storage(storage.InstanceId))?.Lots ?? []).GroupBy(l => l.ProductId).ToDictionary(g => g.Key, g => g.Sum(l => l.Quantity));
         var incoming = sim.PendingOrders.Where(o => o.DestinationInstanceId == storage.InstanceId).GroupBy(o => o.ProductId).ToDictionary(g => g.Key, g => g.Sum(o => o.Quantity));
         foreach (var id in held.Keys.Union(incoming.Keys).Order(StringComparer.Ordinal))

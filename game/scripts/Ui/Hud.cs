@@ -26,6 +26,7 @@ public partial class Hud : Control
     private readonly Label _clock = new();
     private readonly Label _cash = new();
     private readonly Label _stage = new();
+    private readonly Label _ships = new();
     private readonly Label _message = new();
     private readonly Button _open = new() { Text = "ui.hud.open_store" };
     private readonly Button _restockAll = new() { Text = "ui.hud.restock_all" };
@@ -92,7 +93,7 @@ public partial class Hud : Control
         var bar = new HBoxContainer { Position = new Vector2(4, 0), CustomMinimumSize = new Vector2(632, 18) };
         bar.AddThemeConstantOverride("separation", 10);
         AddChild(bar);
-        foreach (var label in new[] { _day, _clock, _cash, _stage })
+        foreach (var label in new[] { _day, _clock, _cash, _stage, _ships })
         {
             label.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
             bar.AddChild(label);
@@ -278,6 +279,10 @@ public partial class Hud : Control
         _clock.Text = UiText.ClockTime(sim.Clock.MinuteOfDay);
         UpdateCashLabel(0);
         _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
+        _ships.Visible = sim.Shipments.Count > 0 || sim.Pallets.Count > 0;
+        _ships.Text = sim.Shipments.Count > 0
+            ? UiText.F("ui.hud.ships", ("count", sim.Shipments.Count), ("days", sim.Shipments.Min(s => s.ArrivalDay) - sim.Clock.Day))
+            : UiText.F("ui.hud.pallets", ("count", sim.Pallets.Count));
         _open.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         _restockAll.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         foreach (var p in _panels) p.RefreshIfOpen();

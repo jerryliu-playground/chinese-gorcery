@@ -12,6 +12,14 @@ namespace ChineseGrocery.Game.Ui;
 public partial class OrderPanel : PanelBase
 {
     private readonly Dictionary<string, (Label Facts, int Sold)> _rows = [];
+    private bool _importing;
+
+    /// <summary>Switches to the importer's goods (used by the screenshot tour).</summary>
+    public void ShowImports()
+    {
+        _importing = true;
+        Rebuild();
+    }
     private readonly List<(int Storage, Label Space)> _spaces = [];
 
     protected override void Rebuild()
@@ -20,13 +28,29 @@ public partial class OrderPanel : PanelBase
         ClearBody();
         _rows.Clear();
         _spaces.Clear();
-        Body.AddChild(Text(UiText.T("ui.order.hint")));
+        var imports = Host.Data.Economy.Imports;
+        var canImport = imports is not null && Host.Sim.Economy.Stage >= imports.UnlockStage;
+        _importing &= canImport;
+        Body.AddChild(Row(
+            ActionButton("ui.order.local", () => { _importing = false; Rebuild(); }, _importing),
+            ActionButton("ui.order.import", () => { _importing = true; Rebuild(); }, canImport && !_importing)));
+        Body.AddChild(Text(UiText.T(_importing ? "ui.order.import_hint" : "ui.order.hint")));
 
         foreach (var storage in Host.Sim.Layout.Fixtures.Where(f => DataValidator.IsStorageArea(Def(f).Kind)))
         {
-            var label = Text("");
+            var label = Text("", 300);
             _spaces.Add((storage.InstanceId, label));
-            Body.AddChild(label);
+            var cost = imports is null ? "" : UiText.Money(imports.StorageUpgradeCostCents);
+            Body.AddChild(imports is null
+                ? label
+                : Row(label, ActionButton(UiText.F("ui.order.more_room", ("slots", imports.StorageUpgradeSlots), ("cost", cost)), () => Host.Send(new Sim.Imports.UpgradeStorage(storage.InstanceId)))));
+        }
+
+        if (_importing)
+        {
+            AddImportRows(imports!);
+            Refresh();
+            return;
         }
 
         var lastDay = Host.Sim.Reports.Count > 0 ? Host.Sim.Reports[^1].Sales : [];
@@ -49,6 +73,26 @@ public partial class OrderPanel : PanelBase
         Refresh();
     }
 
+    /// <summary>Importable goods: import price, minimum order and sailing time; the quantity starts at the minimum.</summary>
+    private void AddImportRows(ImportSettingsDef settings)
+    {
+        foreach (var product in Host.Data.Products.Where(p => p.Import is not null))
+        {
+            var import = product.Import!;
+            var qty = new SpinBox { MinValue = import.MinUnits, MaxValue = 9999, Value = import.MinUnits, CustomMinimumSize = new Vector2(64, 0) };
+            Body.AddChild(Row(
+                Text(UiText.T(product.NameKey), 120),
+                Text(UiText.Money(import.CostCents), 60),
+                qty,
+                ActionButton("ui.order.place", () => Host.Send(new Sim.Imports.PlaceImportOrder(product.Id, (int)qty.Value)))));
+            var atSea = Host.Sim.Shipments.Where(s => s.ProductId == product.Id).Sum(s => s.Quantity);
+            var facts = Text(UiText.F("ui.order.import_facts", ("min", import.MinUnits), ("from", settings.MinDays), ("to", settings.MaxDays),
+                ("local", product.Orderable ? UiText.Money(product.CostCents) : UiText.T("ui.order.import_only")), ("at_sea", atSea)));
+            facts.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.66f));
+            Body.AddChild(Row(new Control { CustomMinimumSize = new Vector2(16, 0) }, facts));
+        }
+    }
+
     protected override void Refresh()
     {
         var sim = Host.Sim;
@@ -66,7 +110,7 @@ public partial class OrderPanel : PanelBase
             if (placed is null) continue;
 
             var def = Def(placed);
-            label.Text = UiText.F("ui.order.space", ("name", UiText.T(def.NameKey)), ("used", sim.SlotsUsed(storage)), ("total", def.Capacity));
+            label.Text = UiText.F("ui.order.space", ("name", UiText.T(def.NameKey)), ("used", sim.SlotsUsed(storage)), ("total", sim.StorageCapacityOf(storage)));
         }
     }
 

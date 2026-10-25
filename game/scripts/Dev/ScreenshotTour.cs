@@ -98,6 +98,12 @@ public partial class ScreenshotTour : Node
             return;
         }
 
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m14"))
+        {
+            PlanImports();
+            return;
+        }
+
         if (OS.GetCmdlineUserArgs().Contains("--tour=fixes"))
         {
             PlanFixes();
@@ -594,6 +600,48 @@ public partial class ScreenshotTour : Node
             Host.Send(new OpenStore());
             for (var i = 0; i < 2000; i++) Sim.Tick();
         }, () => Sim.Workers.Count(w => w.IsPresent && w.RoleId is not null) >= 2, frames: 40);
+    }
+
+    // ---------- M14: imports and new goods ----------
+
+    /// <summary>Spec 17.6 item 4: an import order, the ship at sea, pallets arriving (one by the door), unloading, new goods out.</summary>
+    private void PlanImports()
+    {
+        Step("01-import-tab", () =>
+        {
+            ReachStage(2);
+            Hud.ShowPanel<OrderPanel>();
+            Hud.Panel<OrderPanel>().ShowImports();
+        });
+        Step("02-ship-at-sea", () =>
+        {
+            var min = Sim.Data.Products.Single(p => p.Id == "doubanjiang").Import!.MinUnits;
+            Send(new Sim.Imports.PlaceImportOrder("doubanjiang", min));
+            // A second, huge order will not fit the backroom when it lands.
+            Send(new Sim.Imports.PlaceImportOrder("seaweed", 12 * Sim.Data.Products.Single(p => p.Id == "seaweed").UnitsPerStorageSlot));
+            Hud.ShowPanel<OrderPanel>();
+            Hud.Panel<OrderPanel>().ShowImports();
+        });
+        Step("03-pallets-arrive-one-by-the-door", () =>
+        {
+            for (var day = 0; day < 20 && Sim.Shipments.Count > 0; day++) RunToNextDay();
+            Store.DebugHover = Sim.Layout.Find(FirstOf("backroom"))!.Origin;
+        });
+        Live("04-stocker-unloads", () =>
+        {
+            Store.DebugHover = null;
+            Send(new HireEmployee("stocker"));
+        }, () => Sim.Workers.Any(w => w.Step == WorkStep.Unloading), frames: 6);
+        Step("05-imported-goods-on-a-new-shelf", () =>
+        {
+            for (var i = 0; i < 3000 && Sim.Pallets.Any(p => p.FloorCell is null); i++) Sim.Tick();
+            Send(new PlaceFixture("shelf", new GridPoint(7, 3)));
+            var shelf = Sim.Layout.Fixtures[^1].InstanceId;
+            Send(new AssignShelfSlot(shelf, 0, "doubanjiang"));
+            Send(new AssignShelfSlot(shelf, 1, "seaweed"));
+            Send(new RestockAll());
+            Store.DebugHover = new GridPoint(7, 3);
+        });
     }
 
     // ---------- playtest fixes, 2026-10-25 ----------
