@@ -392,6 +392,14 @@ public partial class ScreenshotTour : Node
             Hud.Retranslate();
             Store.DebugHover = TankCells[0];
         });
+        Step("17-camera-scrolled-to-far-corner", () =>
+        {
+            TranslationServer.SetLocale("zh");
+            Hud.Retranslate();
+            Hud.CloseAllPanels();
+            var size = Sim.Layout.Size;
+            Camera.CenterOn(new GridPoint(size.W - 1, size.H - 1));
+        });
     }
 
     private bool HasDeadThatKeeps(int tank) =>
