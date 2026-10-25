@@ -42,4 +42,7 @@ public enum RejectReason
     WrongStation,
     NotForSale,
     NotAgainstWall,
+    DialogueNotShowing,
+    UnknownChoice,
+    InvalidName,
 }

@@ -35,7 +35,10 @@ public class OpeningStockTests
         }
 
         Assert.Equal(Real.Economy.StartingCashCents, sim.Economy.CashCents);
-        Assert.IsType<DayStarted>(Assert.Single(sim.DrainEvents()));
+        // A new game also queues the opening dialogue.
+        var events = sim.DrainEvents();
+        Assert.IsType<DayStarted>(events[0]);
+        Assert.All(events.Skip(1), e => Assert.IsType<Sim.Story.DialogueQueued>(e));
     }
 
     [Fact]
@@ -58,7 +61,7 @@ public class OpeningStockTests
         for (var d = 0; d < 12; d++) bot.PlayDay(sim);
 
         Assert.True(sim.Reports[0].RevenueCents > 0, "day 1 now sells from opening stock");
-        Assert.All(sim.Reports, r => Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents, r.CashEndCents - r.CashStartCents));
+        Assert.All(sim.Reports, r => Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents, r.CashEndCents - r.CashStartCents));
 
         // Opening stock is free, so it joins what was paid on the "came in" side.
         var openingValue = Real.Economy.StartingStock!.Sum(s => s.Quantity * Real.Products.Single(p => p.Id == s.ProductId).CostCents);

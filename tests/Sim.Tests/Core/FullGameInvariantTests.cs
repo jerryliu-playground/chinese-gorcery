@@ -24,7 +24,7 @@ public class FullGameInvariantTests
         Assert.Equal(10, sim.Reports.Count);
         Assert.All(sim.Reports, r =>
         {
-            Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents, r.CashEndCents - r.CashStartCents);
+            Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents, r.CashEndCents - r.CashStartCents);
             Assert.Equal(r.RevenueCents, r.Sales.Sum(s => s.RevenueCents));
             Assert.True(r.CashEndCents >= 0);
             Assert.True(r.AngryLeaves <= r.Customers);

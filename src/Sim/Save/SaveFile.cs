@@ -40,4 +40,5 @@ public sealed record SaveFile(
     IReadOnlyList<SimCommand> QueuedCommands,
     IReadOnlyList<TidinessSave>? Tidiness = null,
     IReadOnlyList<TankSave>? Tanks = null,
-    IReadOnlyList<MenuSave>? Menu = null);
+    IReadOnlyList<MenuSave>? Menu = null,
+    StorySave? Story = null);

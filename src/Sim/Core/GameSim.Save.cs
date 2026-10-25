@@ -29,7 +29,7 @@ public sealed partial class GameSim
                 today.Day, today.CashStartCents, today.RevenueCents, today.CostOfGoodsSoldCents, today.PurchaseCostCents,
                 today.WagesCents, today.FixtureSpendCents, today.LossCents, today.Customers, today.AngryLeaves,
                 today.ItemsNotFound, today.ItemsTooExpensive, today.Sales, today.ProduceLossCents, today.SeafoodLossCents, today.SeafoodDeaths, today.MeatLossCents, today.DeliLossCents,
-                today.KitchenRescuedCents),
+                today.KitchenRescuedCents, today.LoanPaymentCents),
             _reports.ToList(),
             Layout.Size,
             Layout.Fixtures.ToList(),
@@ -54,7 +54,8 @@ public sealed partial class GameSim
             _queue.ToList(),
             _tidiness.Select(kv => new TidinessSave(kv.Key, kv.Value)).ToList(),
             TankSaves(),
-            _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList());
+            _menu.Select(kv => new MenuSave(kv.Key, kv.Value, CookedToday(kv.Key))).ToList(),
+            SaveStory());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -78,6 +79,7 @@ public sealed partial class GameSim
             AngryLeaves = t.AngryLeaves, ItemsNotFound = t.ItemsNotFound, ItemsTooExpensive = t.ItemsTooExpensive,
             ProduceLossCents = t.ProduceLossCents, SeafoodLossCents = t.SeafoodLossCents, SeafoodDeaths = t.SeafoodDeaths,
             MeatLossCents = t.MeatLossCents, DeliLossCents = t.DeliLossCents, KitchenRescuedCents = t.KitchenRescuedCents,
+            LoanPaymentCents = t.LoanPaymentCents,
         };
         ledger.RestoreSales(t.Sales);
         Economy = new EconomyState(save.CashCents)
@@ -144,5 +146,7 @@ public sealed partial class GameSim
             _menu[m.Slot] = m.Item;
             if (m.CookedToday > 0) _cookedToday[m.Slot] = m.CookedToday;
         }
+
+        RestoreStory(save.Story, save.Rng);
     }
 }

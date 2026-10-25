@@ -404,3 +404,6 @@ tutorial.step3.objective,Dad's tip: stand behind the register and ring up a cust
 tutorial.step4.objective,Dad's tip: look over today's report (Report),爸爸的提示：看一看今天的报表（报表）
 tutorial.step5.objective,Dad's tip: change one price (Prices),爸爸的提示：改一次价格（定价）
 tutorial.step6.objective,Dad's tip: the store can be upgraded (Upgrade),爸爸的提示：店面可以升级了（升级）
+ui.reject.dialogue_not_showing,That conversation is not on screen.,这段对话没有在显示。
+ui.reject.unknown_choice,Pick one of the answers.,请选择一个回答。
+ui.reject.invalid_name,Enter a name (not too long).,请输入店名（不要太长）。
