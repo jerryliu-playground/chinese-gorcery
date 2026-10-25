@@ -463,6 +463,7 @@ public partial class ScreenshotTour : Node
             Send(new SetMenuItem(table, 1, "dumplings", 10));
             Send(new SetMenuItem(table, 2, "braised_pork", 6));
             Send(new SetMenuItem(FirstOf("roast_station"), 0, "roast_duck", 16));
+            Send(new SetMenuItem(FirstOf("roast_station"), 1, "char_siu", 8));
             Hud.ShowPanel<MenuPanel>();
         });
         Live("05-cooking-at-the-wok", () =>
