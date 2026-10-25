@@ -44,7 +44,9 @@ public class FullGameInvariantTests
         // Valued at purchase cost, so units of different products (and primals cut into boxes) can be summed.
         var paid = sim.Reports.Sum(r => r.PurchaseCostCents);
         var pending = sim.PendingOrders.Sum(o => o.Quantity * o.UnitCostCents);
-        var onHand = sim.Inventory.Locations.SelectMany(l => l.Lots).Sum(l => l.Quantity * l.UnitCostCents);
+        // Dead animals still in a tank are on hand too (they go on as chilled goods or are written off later).
+        var onHand = sim.Inventory.Locations.SelectMany(l => l.Lots).Sum(l => l.Quantity * l.UnitCostCents)
+                     + sim.Layout.Fixtures.SelectMany(f => sim.DeadIn(f.InstanceId)).Sum(l => l.Quantity * l.UnitCostCents);
         var carried = sim.Workers.SelectMany(w => w.Carrying).Sum(l => l.Quantity * l.UnitCostCents);
         var sold = sim.Reports.Sum(r => r.CostOfGoodsSoldCents);
         var writtenOff = sim.Reports.Sum(r => r.LossCents);

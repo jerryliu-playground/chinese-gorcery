@@ -42,6 +42,7 @@ public partial class ScreenshotTour : Node
     public SimHost Host { get; set; } = null!;
     public UiState Ui { get; set; } = null!;
     public StoreView Store { get; set; } = null!;
+    public StoreCamera Camera { get; set; } = null!;
     public Hud Hud { get; set; } = null!;
 
     public static string? RequestedDir() =>

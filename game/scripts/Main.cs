@@ -7,9 +7,6 @@ namespace ChineseGrocery.Game;
 /// <summary>Boot scene: starts a game and wires the Sim host, the store view and the HUD together.</summary>
 public partial class Main : Node2D
 {
-    private const int TopBarHeight = 18;
-    private const int MessageLineHeight = 18;
-
     private SimHost _host = null!;
     private StoreView _store = null!;
 
@@ -34,7 +31,11 @@ public partial class Main : Node2D
         var feel = FeelConfig.Load();
         _store = new StoreView { Name = "Store" };
         _store.Init(_host, ui, feel);
-        AddChild(_store);
+
+        // The store is clipped to its screen area so a scrolled floor never shows under the tool column or top bar.
+        var clip = new Control { Name = "StoreClip", ClipContents = true, MouseFilter = Control.MouseFilterEnum.Ignore };
+        AddChild(clip);
+        clip.AddChild(_store);
 
         var layer = new CanvasLayer { Name = "UiLayer" };
         AddChild(layer);
@@ -45,31 +46,17 @@ public partial class Main : Node2D
         var audio = new Audio.AudioManager { Name = "Audio" };
         AddChild(audio);
         audio.Init(_host, feel);
+        var camera = new StoreCamera { Name = "Camera" };
+        AddChild(camera);
+        camera.Init(_host, _store, clip);
         _store.DisplayClicked += hud.ShowShelf;
         _store.FixtureSelected += _ => ui.Notify();
 
         if (tour)
         {
-            AddChild(new Dev.ScreenshotTour { Name = "ScreenshotTour", Host = _host, Ui = ui, Store = _store, Hud = hud });
+            AddChild(new Dev.ScreenshotTour { Name = "ScreenshotTour", Host = _host, Ui = ui, Store = _store, Hud = hud, Camera = camera });
         }
 
         GD.Print($"Data OK: {_host.Data.Products.Count} products, {_host.Data.Fixtures.Count} fixtures");
-    }
-
-    public override void _Process(double delta)
-    {
-        if (_store is null) return;
-
-        // Keep the store centred right of the tool column as it grows with stage upgrades. The back wall gets up to a
-        // cell above the floor; on a big floor it is cropped, and the message line may then overlap the bottom row.
-        var size = _host.Sim.Layout.Size;
-        var viewport = GetViewportRect().Size;
-        var floorHeight = size.H * StoreView.Cell;
-        var below = viewport.Y - TopBarHeight;
-        _store.WallHeight = (int)Mathf.Clamp(below - floorHeight, 0, StoreView.Cell);
-        var spare = Mathf.Max(0, below - MessageLineHeight - floorHeight - _store.WallHeight);
-        _store.Position = new Vector2(
-            Hud.ToolColumnWidth + Mathf.Floor((viewport.X - Hud.ToolColumnWidth - size.W * StoreView.Cell) / 2),
-            TopBarHeight + _store.WallHeight + Mathf.Floor(spare / 2));
     }
 }

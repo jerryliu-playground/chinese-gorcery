@@ -40,6 +40,9 @@ public partial class StoreView : Node2D
     /// <summary>Height of the wall strip drawn above the top row (up to one cell), set by the layout.</summary>
     public int WallHeight { get; set; } = Cell;
 
+    /// <summary>The part of the store on screen, in local coordinates; cells outside it cannot be hovered or clicked.</summary>
+    public Rect2? VisibleArea { get; set; }
+
     /// <summary>Raised when a display fixture is clicked in play mode (to open its slots).</summary>
     public event Action<int>? DisplayClicked;
 
@@ -123,6 +126,8 @@ public partial class StoreView : Node2D
 
     private GridPoint? CellAt(Vector2 local)
     {
+        if (VisibleArea is { } visible && !visible.HasPoint(local)) return null;
+
         var cell = new GridPoint(Mathf.FloorToInt(local.X / Cell), Mathf.FloorToInt(local.Y / Cell));
         return LayoutRules.InBounds(_host.Sim.Layout.Size, cell) ? cell : null;
     }

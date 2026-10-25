@@ -17,12 +17,12 @@
     "_tbd": true
   },
   {
-    "id": 3, "nameKey": "stage.3.name", "storeSize": { "w": 18, "h": 10 },
+    "id": 3, "nameKey": "stage.3.name", "storeSize": { "w": 24, "h": 12 },
     "requiredCumulativeRevenueCents": 800000, "upgradeCostCents": 30000,
     "floorSprite": "tile_floor", "wallSprite": "tile_wall",
     "decorations": [
       { "sprite": "deco_lantern", "cell": { "x": 2, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 8, "y": -1 } },
-      { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }
+      { "sprite": "deco_lantern", "cell": { "x": 15, "y": -1 } }, { "sprite": "deco_lantern", "cell": { "x": 21, "y": -1 } }
     ],
     "_tbd": true
   }
