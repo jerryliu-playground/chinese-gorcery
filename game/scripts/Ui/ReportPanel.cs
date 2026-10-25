@@ -3,10 +3,24 @@ using ChineseGrocery.Sim.Time;
 
 namespace ChineseGrocery.Game.Ui;
 
-/// <summary>The end-of-day report; confirming it starts the next day.</summary>
+/// <summary>
+/// The end-of-day report; confirming it starts the next day. Starting it with nothing on order first asks whether to
+/// order (goods ordered after the next day starts only come the day after).
+/// </summary>
 public partial class ReportPanel : PanelBase
 {
-    public DailyReport? Report { get; set; }
+    private bool _askingAboutOrders;
+    private DailyReport? _report;
+
+    public DailyReport? Report
+    {
+        get => _report;
+        set
+        {
+            _report = value;
+            _askingAboutOrders = false;
+        }
+    }
 
     /// <summary>Raised when the player wants to order straight from the report (ordering is allowed after closing).</summary>
     public event Action? OrderRequested;
@@ -51,12 +65,38 @@ public partial class ReportPanel : PanelBase
         }
 
         var isLatest = Host.Sim.Clock.Phase == DayPhase.Closed && Host.Sim.Reports.Count > 0 && Host.Sim.Reports[^1] == r;
+        if (_askingAboutOrders && isLatest)
+        {
+            Footer.AddChild(Text(UiText.T("ui.report.no_orders_yet")));
+            Footer.AddChild(Row(
+                ActionButton("ui.report.order_first", () =>
+                {
+                    _askingAboutOrders = false;
+                    OrderRequested?.Invoke();
+                }),
+                ActionButton("ui.report.next_day_anyway", StartNextDay)));
+            return;
+        }
+
         Footer.AddChild(Row(
             ActionButton("ui.report.order", () => OrderRequested?.Invoke(), isLatest),
             ActionButton("ui.report.next_day", () =>
             {
-                Host.Send(new StartNextDay());
-                Close();
+                if (Host.Sim.PendingOrders.Count > 0)
+                {
+                    StartNextDay();
+                    return;
+                }
+
+                _askingAboutOrders = true;
+                Rebuild();
             }, isLatest)));
+    }
+
+    private void StartNextDay()
+    {
+        _askingAboutOrders = false;
+        Host.Send(new StartNextDay());
+        Close();
     }
 }
