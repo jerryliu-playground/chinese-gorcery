@@ -1,0 +1,11 @@
+[
+  {"id": "side_auntie_homework", "style": "talk", "trigger": {"on": "day_start", "minDay": 4, "after": ["chapter1_regular"]}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "auntie", "expression": "normal", "key": "dialogue.side_auntie_homework.line_01"},
+      {"speaker": "auntie", "expression": "happy", "key": "dialogue.side_auntie_homework.line_02"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_auntie_homework.line_03"},
+      {"speaker": "auntie", "expression": "happy", "key": "dialogue.side_auntie_homework.line_04"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_auntie_homework.line_05"}
+    ]
+  }
+]

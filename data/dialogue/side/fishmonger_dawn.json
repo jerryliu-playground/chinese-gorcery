@@ -1,0 +1,10 @@
+[
+  {"id": "side_fishmonger_dawn", "style": "talk", "trigger": {"on": "day_start", "role": "fishmonger"}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "fishmonger", "expression": "happy", "key": "dialogue.side_fishmonger_dawn.line_01"},
+      {"speaker": "fishmonger", "expression": "normal", "key": "dialogue.side_fishmonger_dawn.line_02"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_fishmonger_dawn.line_03"},
+      {"speaker": "fishmonger", "expression": "happy", "key": "dialogue.side_fishmonger_dawn.line_04"}
+    ]
+  }
+]

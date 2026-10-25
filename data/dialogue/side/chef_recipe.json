@@ -1,0 +1,10 @@
+[
+  {"id": "side_chef_recipe", "style": "talk", "trigger": {"on": "store_close", "role": "chef"}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "chef", "expression": "normal", "key": "dialogue.side_chef_recipe.line_01"},
+      {"speaker": "chef", "expression": "happy", "key": "dialogue.side_chef_recipe.line_02"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_chef_recipe.line_03"},
+      {"speaker": "chef", "expression": "happy", "key": "dialogue.side_chef_recipe.line_04"}
+    ]
+  }
+]

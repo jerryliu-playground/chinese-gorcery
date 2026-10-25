@@ -1,0 +1,35 @@
+{
+  "characters": [
+    { "id": "protagonist", "nameKey": "character.protagonist.name", "portrait": "portrait_protagonist" },
+    { "id": "dad", "nameKey": "character.dad.name", "portrait": "portrait_dad" },
+    { "id": "mom", "nameKey": "character.mom.name", "portrait": "portrait_mom" },
+    { "id": "auntie", "nameKey": "character.auntie.name", "sprite": "char_auntie" },
+    { "id": "student", "nameKey": "character.student.name", "sprite": "char_student" },
+    { "id": "butcher", "nameKey": "character.butcher.name", "sprite": "char_butcher" },
+    { "id": "fishmonger", "nameKey": "character.fishmonger.name", "sprite": "char_fishmonger" },
+    { "id": "chef", "nameKey": "character.chef.name", "sprite": "char_chef" }
+  ],
+  "tutorialStartsAfter": "opening_walk_in",
+  "tutorial": [
+    { "step": 1, "dialogueId": "tutorial_1_order", "trigger": "pre_open", "goal": "place_order", "objectiveKey": "tutorial.step1.objective" },
+    { "step": 2, "dialogueId": "tutorial_2_shelve", "trigger": "goods_arrived", "goal": "shelve_goods", "objectiveKey": "tutorial.step2.objective", "after": [1] },
+    { "step": 3, "dialogueId": "tutorial_3_checkout", "trigger": "store_open", "goal": "checkout", "objectiveKey": "tutorial.step3.objective", "after": [1] },
+    { "step": 4, "dialogueId": "tutorial_4_report", "trigger": "store_closed", "goal": "view_report", "objectiveKey": "tutorial.step4.objective", "after": [3] },
+    { "step": 5, "dialogueId": "tutorial_5_price", "trigger": "pre_open", "goal": "change_price", "objectiveKey": "tutorial.step5.objective", "after": [2, 4], "minDay": 3 },
+    { "step": 6, "dialogueId": "tutorial_6_upgrade", "trigger": "upgrade_available", "goal": "upgrade_or_dismiss", "objectiveKey": "tutorial.step6.objective", "after": [5] }
+  ],
+  "loan": { "principalCents": 1500000, "minimumPaymentCents": 15000, "paymentEveryDays": 7, "_tbd": true },
+  "competition": {
+    "fromStage": 3,
+    "placeholderReputation": 50,
+    "arrivalPermilleByReputation": [
+      { "reputation": 0, "arrivalPermille": 700 },
+      { "reputation": 50, "arrivalPermille": 850 },
+      { "reputation": 100, "arrivalPermille": 1000 }
+    ],
+    "_tbd": true
+  },
+  "shopNameMaxLength": 16,
+  "defaultShopNameKey": "story.shop.default_name",
+  "_tbd": true
+}

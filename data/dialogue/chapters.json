@@ -1,0 +1,60 @@
+[
+  {"id": "chapter1_regular", "style": "talk", "trigger": {"on": "store_open", "minDay": 2}, "_draft": true,
+    "lines": [
+      {"speaker": "auntie", "expression": "happy", "key": "dialogue.chapter1_regular.line_01"},
+      {"speaker": "auntie", "expression": "normal", "key": "dialogue.chapter1_regular.line_02"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.chapter1_regular.line_03"},
+      {"speaker": "auntie", "expression": "normal", "key": "dialogue.chapter1_regular.line_04"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.chapter1_regular.line_05"},
+      {"speaker": "auntie", "expression": "happy", "key": "dialogue.chapter1_regular.line_06"}
+    ]
+  },
+  {"id": "chapter2_change", "style": "talk", "trigger": {"on": "stage_reached", "stage": 2}, "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.chapter2_change.line_01"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.chapter2_change.line_02"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.chapter2_change.line_03"}
+    ],
+    "choices": [
+      {"id": "reassure", "key": "dialogue.chapter2_change.choice_reassure", "next": "chapter2_reassured"},
+      {"id": "ask", "key": "dialogue.chapter2_change.choice_ask", "next": "chapter2_advice"}
+    ]
+  },
+  {"id": "chapter2_reassured", "style": "talk", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.chapter2_reassured.line_01"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.chapter2_reassured.line_02"}
+    ]
+  },
+  {"id": "chapter2_advice", "style": "talk", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.chapter2_advice.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.chapter2_advice.line_02"}
+    ]
+  },
+  {"id": "chapter3_rival", "style": "phone", "trigger": {"on": "stage_reached", "stage": 3}, "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "worried", "key": "dialogue.chapter3_rival.line_01"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.chapter3_rival.line_02"},
+      {"speaker": "mom", "expression": "worried", "key": "dialogue.chapter3_rival.line_03"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.chapter3_rival.line_04"},
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.chapter3_rival.line_05"}
+    ]
+  },
+  {"id": "chapter4_own_store", "style": "talk", "trigger": {"on": "stage_reached", "stage": 4}, "next": "chapter4_epilogue", "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.chapter4_own_store.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.chapter4_own_store.line_02"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.chapter4_own_store.line_03"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.chapter4_own_store.line_04"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.chapter4_own_store.line_05"}
+    ]
+  },
+  {"id": "chapter4_epilogue", "style": "caption", "_draft": true,
+    "lines": [
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.chapter4_epilogue.line_01"},
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.chapter4_epilogue.line_02"},
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.chapter4_epilogue.line_03"}
+    ]
+  }
+]

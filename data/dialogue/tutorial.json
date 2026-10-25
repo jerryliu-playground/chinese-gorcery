@@ -1,0 +1,47 @@
+[
+  {"id": "tutorial_1_order", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_1_order.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_1_order.line_02"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_1_order.line_03"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.tutorial_1_order.line_04"}
+    ]
+  },
+  {"id": "tutorial_2_shelve", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_2_shelve.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_2_shelve.line_02"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_2_shelve.line_03"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.tutorial_2_shelve.line_04"}
+    ]
+  },
+  {"id": "tutorial_3_checkout", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_3_checkout.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_3_checkout.line_02"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.tutorial_3_checkout.line_03"}
+    ]
+  },
+  {"id": "tutorial_4_report", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_4_report.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_4_report.line_02"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.tutorial_4_report.line_03"}
+    ]
+  },
+  {"id": "tutorial_5_price", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_5_price.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_5_price.line_02"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.tutorial_5_price.line_03"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.tutorial_5_price.line_04"}
+    ]
+  },
+  {"id": "tutorial_6_upgrade", "style": "phone", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.tutorial_6_upgrade.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.tutorial_6_upgrade.line_02"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.tutorial_6_upgrade.line_03"}
+    ]
+  }
+]

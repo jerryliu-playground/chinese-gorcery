@@ -1,0 +1,12 @@
+[
+  {"id": "side_parents_visit", "style": "talk", "trigger": {"on": "store_open", "minDay": 6}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.side_parents_visit.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.side_parents_visit.line_02"},
+      {"speaker": "mom", "expression": "worried", "key": "dialogue.side_parents_visit.line_03"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.side_parents_visit.line_04"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_parents_visit.line_05"},
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.side_parents_visit.line_06"}
+    ]
+  }
+]

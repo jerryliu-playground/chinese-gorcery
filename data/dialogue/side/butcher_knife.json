@@ -1,0 +1,11 @@
+[
+  {"id": "side_butcher_knife", "style": "talk", "trigger": {"on": "store_close", "role": "butcher"}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "butcher", "expression": "normal", "key": "dialogue.side_butcher_knife.line_01"},
+      {"speaker": "butcher", "expression": "normal", "key": "dialogue.side_butcher_knife.line_02"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.side_butcher_knife.line_03"},
+      {"speaker": "butcher", "expression": "happy", "key": "dialogue.side_butcher_knife.line_04"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_butcher_knife.line_05"}
+    ]
+  }
+]

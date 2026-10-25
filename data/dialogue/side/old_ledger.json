@@ -1,0 +1,10 @@
+[
+  {"id": "side_old_ledger", "style": "talk", "trigger": {"on": "store_close", "minDay": 8}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.side_old_ledger.line_01"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.side_old_ledger.line_02"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.side_old_ledger.line_03"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_old_ledger.line_04"}
+    ]
+  }
+]
