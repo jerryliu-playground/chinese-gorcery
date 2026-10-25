@@ -11,3 +11,4 @@ obj/
 .idea/
 *.user
 .DS_Store
+.claude/worktrees/

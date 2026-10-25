@@ -71,7 +71,7 @@ public class InvariantTests
         Assert.Equal(20, sim.Reports.Count);
         Assert.All(sim.Reports, r =>
         {
-            Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents, r.CashEndCents - r.CashStartCents);
+            Assert.Equal(r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents, r.CashEndCents - r.CashStartCents);
             Assert.Equal(r.CashEndCents - r.CashStartCents, r.ProfitCents);
             Assert.True(r.CashEndCents >= 0);
             Assert.True(r.LossCents >= 0);

@@ -357,3 +357,177 @@ ui.storage.pallet,{name} {count} on a pallet (unload first),{name} {count} 个�
 ui.hud.ships,Ship x{count}: {days}d,船 {count} 艘：{days} 天后到
 ui.hud.pallets,Pallets x{count},待卸托盘 {count}
 ui.reject.out_of_season,Not in season.,现在不是这个的季节。
+dialogue.opening_captions.line_01,"The summer I graduated, I had a degree and big plans.",那年夏天，我大学毕业了。
+dialogue.opening_captions.line_02,I sent out dozens of applications. Hardly anyone wrote back.,投了几十份简历，回音寥寥。
+dialogue.opening_captions.line_03,"The student loan statements, though, arrived right on time.",倒是学生贷款的账单，每个月都准时寄到。
+dialogue.opening_mom_call.line_01,Hello? Mom?,喂，妈？
+dialogue.opening_mom_call.line_02,"{protagonist}, your dad... he collapsed at the store two days ago.",{protagonist}，你爸……前两天在店里晕倒了。
+dialogue.opening_mom_call.line_03,What?! Is he okay?,什么？！他现在怎么样？
+dialogue.opening_mom_call.line_04,"The doctor says he'll be fine, but he has to rest. No more long days.",医生说没大事，但必须好好休养，不能再累着了。
+dialogue.opening_mom_call.line_05,Can you come home? There's something we want to talk about.,你回家一趟吧，我们有事想跟你商量。
+dialogue.opening_retire.line_01,Your mom and I have run this store for twenty years.,这家店，我和你妈开了二十年。
+dialogue.opening_retire.line_02,But this body of mine can't keep up anymore.,可我这身体，是撑不动了。
+dialogue.opening_retire.line_03,We've decided to retire. And the store... we'd like you to have it.,我们商量好了，准备退休。店……想交给你。
+dialogue.opening_retire.line_04,Me? I've never even placed an order...,交给我？我连货都没进过……
+dialogue.opening_retire.line_05,Then you'll learn. You grew up in this store. What's there to be afraid of?,不会就学。你从小在店里长大，怕什么。
+dialogue.opening_retire.choice_accept,Okay. I'll do it.,好，我接！
+dialogue.opening_retire.choice_for_now,"I'll keep it going for a while, for you.",我先帮你们撑一阵子。
+dialogue.opening_retire_accept.line_01,That's my kid.,好孩子。
+dialogue.opening_retire_accept.line_02,"If you get stuck, just call me.",有什么不懂的，随时打电话问我。
+dialogue.opening_retire_for_now.line_01,Even a while is enough. We're just glad you came home.,一阵子也好。你肯回来，我们就很高兴了。
+dialogue.opening_retire_for_now.line_02,"Whenever you're stuck, give me a call.",遇到不懂的，随时给我打电话。
+dialogue.opening_name_shop.line_01,"Oh, and since the store is yours now, the sign is yours to choose.",对了，店既然交给你了，招牌也该你来定。
+dialogue.opening_name_shop.line_02,Give it a name. We'll order a new sign once you've decided.,起个名字吧，想好了我们就去订新招牌。
+dialogue.opening_walk_in.line_01,"""{shop}""... From today, this is my store.",「{shop}」……从今天起，这就是我的店了。
+dialogue.opening_walk_in.line_02,"Old shelves, a backroom packed to the ceiling. Just like when I was a kid.",货架有点旧，后仓堆得满满的，跟小时候一模一样。
+dialogue.opening_walk_in.line_03,Okay. Let's just get through today first!,好，先把今天撑过去再说！
+dialogue.tutorial_1_order.line_01,"Hey {protagonist}, it's me. Before you open, check the backroom and the shelves.",喂，{protagonist}，是我。开门前，先看看后仓和货架。
+dialogue.tutorial_1_order.line_02,"Click ""Order"" on the left, pick what's running low and set a quantity.",点左边的「进货」，挑要补的货，填个数量就行。
+dialogue.tutorial_1_order.line_03,Whatever you order today arrives in the backroom before opening tomorrow.,今天订的货，明天开门前送到后仓。
+dialogue.tutorial_1_order.line_04,Don't overdo it. Keep some cash on hand.,别一次订太多，手上要留点钱周转。
+dialogue.tutorial_2_shelve.line_01,Delivery's in? Goods sitting in the backroom won't sell themselves.,货到了吧？东西堆在后仓，可卖不出去。
+dialogue.tutorial_2_shelve.line_02,"Walk to the backroom and press E to pick up, then press E at a shelf to stock it.",走到后仓按 E 拿货，再走到货架前按 E 放上去。
+dialogue.tutorial_2_shelve.line_03,"Short on time? Hit ""Fill shelves"" at the top.",嫌麻烦，就点上面的「一键上货」。
+dialogue.tutorial_2_shelve.line_04,Full shelves make people want to buy.,货架满满的，客人看着就想买。
+dialogue.tutorial_3_checkout.line_01,"Open already? When customers line up, go stand behind the register.",开门了？有客人排队，你就站到收银台后面。
+dialogue.tutorial_3_checkout.line_02,"While you're behind the register, they'll come up and pay one by one.",人站在收银台后，客人就会过来一个一个结账。
+dialogue.tutorial_3_checkout.line_03,"Don't keep them waiting. If they get fed up, they'll drop everything and leave.",别让人等太久。等急了，人家放下东西就走。
+dialogue.tutorial_4_report.line_01,Closed up? Good work. Now look at today's report.,打烊了？辛苦了。看看今天的报表。
+dialogue.tutorial_4_report.line_02,"What you sold, what you spent on stock, whether you made money: it's all there.",卖了多少、进货花了多少、赚没赚钱，上面都有。
+dialogue.tutorial_4_report.line_03,"Whatever sold well, order a bit more tomorrow.",哪样卖得好，明天就多订一点。
+dialogue.tutorial_5_price.line_01,How's business? Let me show you how to set prices.,这两天生意怎么样？我教你改价钱。
+dialogue.tutorial_5_price.line_02,"Click ""Prices"". Every item has a reference price.",点「定价」，每样东西都有个参考价。
+dialogue.tutorial_5_price.line_03,Too high and the aunties frown. Too low and you're working for nothing.,定高了，阿姨们一看就皱眉；定低了，白忙一场。
+dialogue.tutorial_5_price.line_04,Try changing one and see how customers react.,改一样试试，看看客人什么反应。
+dialogue.tutorial_6_upgrade.line_01,Your mom says business is good?,听你妈说，店里生意不错？
+dialogue.tutorial_6_upgrade.line_02,"Once you've saved enough, you can expand the store. Take a look under ""Upgrade"".",钱攒够了，就能把店面扩大。点「升级」看看。
+dialogue.tutorial_6_upgrade.line_03,But don't rush it. Expand when you're ready.,不过别急，想好了再扩。
+dialogue.chapter1_regular.line_01,"Oh my, isn't that little {protagonist}?",哎哟，这不是{protagonist}吗？
+dialogue.chapter1_regular.line_02,You used to do your homework on this counter. Now you're the boss!,以前天天趴在收银台上写作业，现在都当老板啦！
+dialogue.chapter1_regular.line_03,Auntie... you still remember me.,阿姨……您还记得我啊。
+dialogue.chapter1_regular.line_04,Of course I do. How's your dad feeling?,怎么不记得。你爸身体好点没有？
+dialogue.chapter1_regular.line_05,"Resting at home. If you ever need anything here, just tell me.",在家休养呢。以后店里缺什么，您跟我说。
+dialogue.chapter1_regular.line_06,"Good, good. Auntie will come by every day to keep you in business.",好好好，阿姨以后天天来照顾你生意。
+dialogue.chapter2_change.line_01,"You expanded? Knocked down a wall, swapped out every shelf...",店扩大了？墙打通了，货架也全换了……
+dialogue.chapter2_change.line_02,Won't the regulars get lost?,老顾客来了，会不会找不到东西？
+dialogue.chapter2_change.line_03,"Dad, I want to sell meat and produce, so the neighbors don't have to go to the big supermarket.",爸，我想多卖点肉和菜，街坊就不用跑大超市了。
+dialogue.chapter2_change.choice_reassure,Don't worry. I'll take care of the regulars.,放心，我会照顾好老顾客的。
+dialogue.chapter2_change.choice_ask,Then teach me how to change without losing what we had.,那您教教我，怎么改才不走样？
+dialogue.chapter2_reassured.line_01,"...Alright. If you've made up your mind, I won't say more.",……嗯。你决定了，我就不多说了。
+dialogue.chapter2_reassured.line_02,Just keep that cutting table clean every day.,切肉台记得天天擦干净。
+dialogue.chapter2_advice.line_01,"Ha, so you still ask your old man.",哈，还知道问我。
+dialogue.chapter2_advice.line_02,Never run out of what the regulars buy. Everything else is your call.,老顾客常买的那几样，永远别断货。别的，你放手去做。
+dialogue.chapter3_rival.line_01,"{protagonist}, did you see? A big Asian supermarket chain is opening down the street.",{protagonist}，你看到没有？街口要开一家大型亚洲连锁超市。
+dialogue.chapter3_rival.line_02,I saw... They say everything's on sale opening week.,看到了……听说开业那周全场打折。
+dialogue.chapter3_rival.line_03,Your dad heard and didn't sleep all night.,你爸听说了，一晚上没睡好。
+dialogue.chapter3_rival.line_04,"Mom, we can't beat them on price. But we can beat them on freshness, and on knowing our customers.",妈，价钱我们拼不过，可我们有新鲜，有人情。
+dialogue.chapter3_rival.line_05,Well said. Earn a good name and people will come back.,说得好。口碑做好了，客人会回来的。
+dialogue.chapter4_own_store.line_01,"Wow, is this really our little store?",哇，这还是我们那家小店吗？
+dialogue.chapter4_own_store.line_02,"A deli counter, fish tanks... bigger than I ever dreamed.",熟食柜、鱼缸……比我当年想的还大。
+dialogue.chapter4_own_store.line_03,"Honestly, at first I just wanted to keep it going for you.",其实一开始，我只是想替你们撑住这家店。
+dialogue.chapter4_own_store.line_04,"But now, every morning when I open up, I can't wait.",可现在，每天开门，我都很期待。
+dialogue.chapter4_own_store.line_05,That's all I wanted. This store is truly yours now.,那就好。这家店，现在真是你的了。
+dialogue.chapter4_epilogue.line_01,"In time, ""{shop}"" became the place the whole neighborhood went to.",后来，「{shop}」成了街坊们最常去的地方。
+dialogue.chapter4_epilogue.line_02,"Mom and Dad still drop by now and then, pretending they're just passing.",爸妈还是会时不时来店里转转，假装只是路过。
+dialogue.chapter4_epilogue.line_03,And my story keeps going.,而我的故事，还在继续。
+dialogue.dept_meat.line_01,You're buying whole pork primals? Then you need to know how to break them down.,你进整块猪肉了？那得会拆。
+dialogue.dept_meat.line_02,"Put it on the cutting table. Belly, ribs and loin go separate; the scraps become ground pork.",放上切肉台，五花、排骨、里脊分开，边角料做肉馅。
+dialogue.dept_meat.line_03,"Poor knife work means more waste. If you're swamped, hire a butcher.",刀工不好，损耗就大。忙不过来，就请个师傅。
+dialogue.dept_produce.line_01,Selling produce now? Let me teach you how to choose.,开始卖菜啦？妈教你怎么挑。
+dialogue.dept_produce.line_02,Leafy greens don't keep. Buy what you can sell; less is better than too much.,叶子菜放不久，卖多少进多少，宁可少进。
+dialogue.dept_produce.line_03,"Mark it down when it wilts and tidy the stand when it's messy, so people want to browse.",不新鲜了就打折，摊子乱了就理一理，客人才愿意挑。
+dialogue.dept_seafood.line_01,I hear you put in fish tanks? I always wanted to sell live fish when I was young.,听说你装了鱼缸？我年轻时就想卖活鱼。
+dialogue.dept_seafood.line_02,Change the water often. Dirty water kills fish fast.,水要勤换，水脏了鱼死得快。
+dialogue.dept_seafood.line_03,"When a customer picks a fish, clean it on the spot. That's what fresh means.",客人挑了活鱼，现杀现卖，这才叫新鲜。
+dialogue.dept_deli.line_01,Starting a deli? Now that's my specialty.,要做熟食了？这个妈拿手。
+dialogue.dept_deli.line_02,Don't toss meat and vegetables near their date. Cook them and sell them: no waste.,快到期的肉和菜别扔，做成菜卖，一点不浪费。
+dialogue.dept_deli.line_03,"Roasts should smell amazing, stir-fries should be quick, steamed dishes piping hot.",烧腊要香，炒菜要快，蒸的要热乎。
+dialogue.loan_paid_off.line_01,Mom! My student loan... I paid it all off today!,妈！我的学生贷款……今天全还清了！
+dialogue.loan_paid_off.line_02,"Really? Dear, come listen to this!",真的？老头子，快来听！
+dialogue.loan_paid_off.line_03,Atta kid. You're doing better than I ever did.,好小子，比我当年还能干。
+dialogue.loan_paid_off.line_04,It all came from the store. Thank you for trusting me with it.,都是店里赚的。谢谢你们把店交给我。
+dialogue.loan_short.line_01,Couldn't make the full loan payment this week...,这周的贷款没还够……
+dialogue.loan_short.line_02,One more line of arrears on the statement.,账单上的欠款又多了一行。
+dialogue.loan_short.line_03,It's fine. Sell a bit more next week and catch up.,没事，下周多卖一点，补上就好。
+dialogue.side_auntie_homework.line_01,"{protagonist}, you know, you were such a good kid.",{protagonist}，阿姨跟你说，你小时候可乖了。
+dialogue.side_auntie_homework.line_02,"After school you'd do homework on a box of instant noodles, then help your mom count change.",放学就坐在方便面箱子上写作业，写完还帮你妈数零钱。
+dialogue.side_auntie_homework.line_03,I don't even remember that...,我都不记得了……
+dialogue.side_auntie_homework.line_04,I do. You said you'd open the biggest supermarket in town one day.,我记得。那时候你说，长大要开全城最大的超市。
+dialogue.side_auntie_homework.line_05,"...Guess I'd better get to work, then.",……那我得加油了。
+dialogue.side_parents_visit.line_01,We were just passing by. Only a quick look.,我们就是路过，看一眼。
+dialogue.side_parents_visit.line_02,"This case of soy sauce is crooked, let me—",这箱酱油放歪了，我来——
+dialogue.side_parents_visit.line_03,Sit down! What did the doctor tell you?,你给我坐下！医生怎么说的？
+dialogue.side_parents_visit.line_04,One box won't hurt...,搬一箱又累不着……
+dialogue.side_parents_visit.line_05,"Dad, leave it to me. You can supervise from the chair.",爸，交给我吧。您坐着指挥就行。
+dialogue.side_parents_visit.line_06,See? Our kid's all grown up.,看见没，孩子出息了。
+dialogue.side_old_ledger.line_01,There's an old notebook in the corner of the backroom... Dad's ledger.,后仓角落里有个旧本子……是爸的账本。
+dialogue.side_old_ledger.line_02,"Every delivery, every sale, written neatly in fountain pen.",每天进了什么、卖了多少，都用钢笔写得整整齐齐。
+dialogue.side_old_ledger.line_03,"One page says: ""Rain today, no customers. Tomorrow will be better.""",有一页写着：「今天下雨，没人来。明天会好的。」
+dialogue.side_old_ledger.line_04,...Tomorrow will be better.,……明天会好的。
+dialogue.side_parents_call_busy.line_01,"{protagonist}, has the store been busy lately?",{protagonist}，最近店里忙不忙？
+dialogue.side_parents_call_busy.line_02,Pretty busy. Weekends are packed.,挺忙的，周末客人特别多。
+dialogue.side_parents_call_busy.line_03,"Good. Busy or not, remember to eat.",那就好。再忙也要记得吃饭。
+dialogue.side_parents_call_busy.line_04,(in the background) Ask if the cooler temperature is set right!,（在旁边）问问冷柜温度调好没有！
+dialogue.side_parents_call_busy.line_05,"It's set, Dad. Don't worry.",调好了调好了，爸您放心。
+dialogue.side_student_snack.line_01,"Excuse me, do you have... those spicy gluten strips? The kind from back home?",老板，请问有没有……那种辣条？我家乡的那种。
+dialogue.side_student_snack.line_02,Spicy strips? Not yet. Which brand do you want?,辣条啊，现在还没进。你想要哪个牌子？
+dialogue.side_student_snack.line_03,Any brand! I haven't had them since I moved here.,哪个都行！来这边以后好久没吃到了。
+dialogue.side_student_snack.line_04,I'll make a note. I'll save you a pack from the next delivery.,我记下了，下次进货给你留一包。
+dialogue.side_butcher_knife.line_01,"Boss, this knife was handed down from my master.",老板，这把刀是我师父传下来的。
+dialogue.side_butcher_knife.line_02,He used to say cutting meat is like living: go with the grain.,他说，切肉跟做人一样，要顺着纹理来。
+dialogue.side_butcher_knife.line_03,How long did you train with him?,那您跟师父学了多久？
+dialogue.side_butcher_knife.line_04,"Ten years. The first three, he only let me sharpen knives.",十年。头三年，只让我磨刀。
+dialogue.side_butcher_knife.line_05,Then my knife skills have a long way to go.,那我这点刀工，还差得远呢。
+dialogue.side_fishmonger_dawn.line_01,"Morning, boss! I was at the docks by four.",老板早！我四点就去码头了。
+dialogue.side_fishmonger_dawn.line_02,Check the eyes. Bright eyes mean a fresh fish.,挑鱼要看眼睛，眼睛亮的才新鲜。
+dialogue.side_fishmonger_dawn.line_03,No wonder the live fish have been selling so well.,难怪最近活鱼卖得这么好。
+dialogue.side_fishmonger_dawn.line_04,"Heh, I grew up in a fishing village. It's the one thing I know.",嘿嘿，渔村长大的，就这点本事。
+dialogue.side_chef_recipe.line_01,"Boss, today's braised pork is my grandmother's recipe.",老板，今天的红烧肉，是我奶奶的方子。
+dialogue.side_chef_recipe.line_02,You cook the rock sugar to amber. Not one second longer.,冰糖要炒到琥珀色，一秒都不能多。
+dialogue.side_chef_recipe.line_03,No wonder a customer said it tasted like home.,怪不得有客人说，吃出了家里的味道。
+dialogue.side_chef_recipe.line_04,Then it was worth it.,那就值了。
+character.protagonist.name,Ming,阿明
+character.dad.name,Dad,爸爸
+character.mom.name,Mom,妈妈
+character.auntie.name,Auntie Wang,王阿姨
+character.student.name,Xiao Li,留学生小李
+character.butcher.name,Master Chen,陈师傅
+character.fishmonger.name,Ah Hai,阿海
+character.chef.name,Chef Zhou,周师傅
+story.shop.default_name,Lucky Grocery,福记杂货
+tutorial.step1.objective,Dad's tip: place an order (Order),爸爸的提示：下一张订单（进货）
+tutorial.step2.objective,Dad's tip: put goods from the backroom on a shelf,爸爸的提示：把后仓的货摆上货架
+tutorial.step3.objective,Dad's tip: stand behind the register and ring up a customer,爸爸的提示：站到收银台后，完成一笔收银
+tutorial.step4.objective,Dad's tip: look over today's report (Report),爸爸的提示：看一看今天的报表（报表）
+tutorial.step5.objective,Dad's tip: change one price (Prices),爸爸的提示：改一次价格（定价）
+tutorial.step6.objective,Dad's tip: the store can be upgraded (Upgrade),爸爸的提示：店面可以升级了（升级）
+ui.reject.dialogue_not_showing,That conversation is not on screen.,这段对话没有在显示。
+ui.reject.unknown_choice,Pick one of the answers.,请选择一个回答。
+ui.reject.invalid_name,Enter a name (not too long).,请输入店名（不要太长）。
+ui.dialogue.on_phone,On the phone,通话中
+ui.dialogue.continue,Click to continue,点击继续
+ui.dialogue.skip,Skip,跳过
+ui.dialogue.name_shop_title,Name your shop,给店起个名字
+ui.dialogue.name_shop_hint,Leave it empty to keep the old name.,不填就沿用老店名。
+ui.dialogue.name_shop_ok,OK,确定
+ui.loan.title,Student loan,学生贷款
+ui.loan.balance,Still owed,剩余欠款
+ui.loan.paid_off,All paid off!,已经全部还清！
+ui.loan.minimum,Minimum payment,最低还款
+ui.loan.every_days,{amount} every {days} days,每 {days} 天 {amount}
+ui.loan.next_payment,Next payment,下次还款
+ui.loan.arrears,Overdue,逾期未还
+ui.loan.arrears_note,Overdue amounts are added to the next payment.,逾期的部分会加到下次还款里。
+ui.loan.pay_extra,Pay extra now (from cash):,现在多还一些（从现金扣）：
+ui.loan.pay_all,As much as I can,能还多少还多少
+ui.hud.loan,Loan {amount},贷款 {amount}
+ui.hud.loan_paid_off,Loan paid off,贷款已还清
+ui.hud.loan_pay,Pay,还款
+ui.settings.story_prompts,Story prompts,剧情提示
+ui.settings.story_prompts_hint,Off: no side stories. Dad's tips and the main story still play.,关闭后不再出现支线小故事；爸爸的引导和主线照常。
+ui.report.loan,Loan payment,还贷款
+ui.event.loan_paid,Paid {paid} on the student loan.,学生贷款还了 {paid}。
+ui.event.loan_paid_extra,Paid an extra {paid} on the loan.,多还了 {paid} 贷款。
+ui.event.loan_short,Could only pay {paid} on the loan; {due} still due.,贷款只还了 {paid}，还欠 {due}。
+ui.event.tutorial_step_done,Got it! That's one of Dad's tips done.,学会了！爸爸的这条提示完成。
+ui.celebrate.loan_paid_off,Student loan paid off!,学生贷款还清了！

@@ -42,4 +42,5 @@ public sealed record SaveFile(
     IReadOnlyList<TankSave>? Tanks = null,
     IReadOnlyList<MenuSave>? Menu = null,
     StaffSave? Staff = null,
-    ImportSave? Imports = null);
+    ImportSave? Imports = null,
+    StorySave? Story = null);

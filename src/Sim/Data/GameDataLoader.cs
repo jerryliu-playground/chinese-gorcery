@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ChineseGrocery.Sim.Data;
 
-/// <summary>Reads the JSON data tables and validates them. Any problem throws <see cref="DataValidationException"/>.</summary>
+/// <summary>Reads the JSON data tables (and, from a directory, the story tables) and validates them. Any problem throws <see cref="DataValidationException"/>.</summary>
 public static class GameDataLoader
 {
     private static readonly JsonSerializerOptions Options = new()
@@ -23,7 +23,8 @@ public static class GameDataLoader
             throw new DataValidationException(missing.Select(f => $"{f}: file not found in '{directory}'").ToList());
         }
 
-        return Load(file => File.ReadAllText(Path.Combine(directory, file)));
+        var data = Load(file => File.ReadAllText(Path.Combine(directory, file)));
+        return data with { Story = StoryLoader.LoadFromDirectory(directory, data) };
     }
 
     /// <summary>Loads all tables through <paramref name="readFile"/>, which maps a file name to its JSON text.</summary>

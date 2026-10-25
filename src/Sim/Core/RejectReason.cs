@@ -48,4 +48,7 @@ public enum RejectReason
     BelowMinimumOrder,
     NotAStorageArea,
     OutOfSeason,
+    DialogueNotShowing,
+    UnknownChoice,
+    InvalidName,
 }

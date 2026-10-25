@@ -19,13 +19,13 @@ public static class AnomalyCheck
                      ("loss", r.LossCents), ("customers", r.Customers), ("angry", r.AngryLeaves),
                      ("notFound", r.ItemsNotFound), ("tooExpensive", r.ItemsTooExpensive),
                      ("produceLoss", r.ProduceLossCents), ("seafoodLoss", r.SeafoodLossCents), ("seafoodDeaths", r.SeafoodDeaths),
-                     ("meatLoss", r.MeatLossCents), ("deliLoss", r.DeliLossCents), ("kitchenRescued", r.KitchenRescuedCents),
+                     ("meatLoss", r.MeatLossCents), ("deliLoss", r.DeliLossCents), ("kitchenRescued", r.KitchenRescuedCents), ("loan", r.LoanPaymentCents),
                  })
         {
             if (value < 0) yield return $"{day}: {name} is negative ({value})";
         }
 
-        var expectedChange = r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents;
+        var expectedChange = r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents;
         if (r.CashEndCents - r.CashStartCents != expectedChange)
         {
             yield return $"{day}: cash changed by {r.CashEndCents - r.CashStartCents} but ledger says {expectedChange}";

@@ -37,4 +37,10 @@ namespace ChineseGrocery.Sim.Core;
 [JsonDerivedType(typeof(SetOrderTarget), "set_order_target")]
 [JsonDerivedType(typeof(Imports.PlaceImportOrder), "place_import_order")]
 [JsonDerivedType(typeof(Imports.UpgradeStorage), "upgrade_storage")]
+[JsonDerivedType(typeof(Story.FinishDialogue), "finish_dialogue")]
+[JsonDerivedType(typeof(Story.SkipDialogue), "skip_dialogue")]
+[JsonDerivedType(typeof(Story.NameShop), "name_shop")]
+[JsonDerivedType(typeof(Story.ReportViewed), "report_viewed")]
+[JsonDerivedType(typeof(Story.SetStoryPrompts), "set_story_prompts")]
+[JsonDerivedType(typeof(Story.PayLoan), "pay_loan")]
 public abstract record SimCommand;

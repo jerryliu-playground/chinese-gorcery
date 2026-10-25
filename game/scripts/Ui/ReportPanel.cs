@@ -55,6 +55,7 @@ public partial class ReportPanel : PanelBase
             ("ui.report.too_expensive", r.ItemsTooExpensive.ToString(System.Globalization.CultureInfo.InvariantCulture)),
         ];
         foreach (var (key, value) in lines) Body.AddChild(Row(Text(UiText.T(key), 150), Text(value)));
+        if (r.LoanPaymentCents > 0) Body.AddChild(Row(Text(UiText.T("ui.report.loan"), 150), Text(UiText.Money(r.LoanPaymentCents))));
 
         Body.AddChild(Text(UiText.T("ui.report.sales")));
         if (r.Sales.Count == 0) Body.AddChild(Text(UiText.T("ui.report.no_sales")));

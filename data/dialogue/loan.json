@@ -1,0 +1,17 @@
+[
+  {"id": "loan_paid_off", "style": "phone", "trigger": {"on": "loan_paid_off"}, "_draft": true,
+    "lines": [
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.loan_paid_off.line_01"},
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.loan_paid_off.line_02"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.loan_paid_off.line_03"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.loan_paid_off.line_04"}
+    ]
+  },
+  {"id": "loan_short", "style": "talk", "trigger": {"on": "loan_short"}, "optional": true, "repeatable": true, "cooldownDays": 14, "_draft": true,
+    "lines": [
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.loan_short.line_01"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.loan_short.line_02"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.loan_short.line_03"}
+    ]
+  }
+]

@@ -22,8 +22,8 @@ public sealed partial class GameSim
     {
         if (Clock.Phase != DayPhase.Open || Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay) return;
 
-        // Expected arrivals this tick = rate per hour x tick length; the fractional part is a seeded roll.
-        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick;
+        // Expected arrivals this tick = rate per hour x tick length (less any lost to the competition); the fractional part is a seeded roll.
+        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick * CompetitionArrivalPermille() / 1000;
         var count = perHourTimesSeconds / SecondsPerHour;
         if (Rng.NextInt(0, SecondsPerHour) < perHourTimesSeconds % SecondsPerHour) count++;
 

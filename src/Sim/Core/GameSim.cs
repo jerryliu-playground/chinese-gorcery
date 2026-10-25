@@ -48,6 +48,7 @@ public sealed partial class GameSim
         RefreshApplicants();
 
         _events.Add(new DayStarted(Clock.Day));
+        StartStory(seed);
     }
 
     public GameData Data { get; }
@@ -78,6 +79,7 @@ public sealed partial class GameSim
     public void Tick()
     {
         TickCount++;
+        var storyMark = _events.Count;
 
         var commands = _queue.ToList();
         _queue.Clear();
@@ -102,6 +104,8 @@ public sealed partial class GameSim
                 CloseDay();
             }
         }
+
+        UpdateStory(storyMark);
     }
 
     private void Execute(SimCommand command)
@@ -135,6 +139,7 @@ public sealed partial class GameSim
             Deli.SetMenuItem menu => HandleSetMenuItem(menu),
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
+            Story.StoryCommand story => HandleStoryCommand(story),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
@@ -189,6 +194,7 @@ public sealed partial class GameSim
 
         PayWages();
         CloseStaffDay();
+        CollectLoanPayment();
 
         foreach (var worker in _workers)
         {

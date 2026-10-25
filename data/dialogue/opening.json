@@ -1,0 +1,56 @@
+[
+  {"id": "opening_captions", "style": "caption", "trigger": {"on": "new_game"}, "next": "opening_mom_call", "_draft": true,
+    "lines": [
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.opening_captions.line_01"},
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.opening_captions.line_02"},
+      {"speaker": "narrator", "expression": "normal", "key": "dialogue.opening_captions.line_03"}
+    ]
+  },
+  {"id": "opening_mom_call", "style": "phone", "next": "opening_retire", "_draft": true,
+    "lines": [
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.opening_mom_call.line_01"},
+      {"speaker": "mom", "expression": "worried", "key": "dialogue.opening_mom_call.line_02"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.opening_mom_call.line_03"},
+      {"speaker": "mom", "expression": "worried", "key": "dialogue.opening_mom_call.line_04"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.opening_mom_call.line_05"}
+    ]
+  },
+  {"id": "opening_retire", "style": "talk", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.opening_retire.line_01"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.opening_retire.line_02"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.opening_retire.line_03"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.opening_retire.line_04"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.opening_retire.line_05"}
+    ],
+    "choices": [
+      {"id": "accept", "key": "dialogue.opening_retire.choice_accept", "next": "opening_retire_accept"},
+      {"id": "for_now", "key": "dialogue.opening_retire.choice_for_now", "next": "opening_retire_for_now"}
+    ]
+  },
+  {"id": "opening_retire_accept", "style": "talk", "next": "opening_name_shop", "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.opening_retire_accept.line_01"},
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.opening_retire_accept.line_02"}
+    ]
+  },
+  {"id": "opening_retire_for_now", "style": "talk", "next": "opening_name_shop", "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.opening_retire_for_now.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.opening_retire_for_now.line_02"}
+    ]
+  },
+  {"id": "opening_name_shop", "style": "talk", "prompt": "shop_name", "next": "opening_walk_in", "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.opening_name_shop.line_01"},
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.opening_name_shop.line_02"}
+    ]
+  },
+  {"id": "opening_walk_in", "style": "talk", "_draft": true,
+    "lines": [
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.opening_walk_in.line_01"},
+      {"speaker": "protagonist", "expression": "worried", "key": "dialogue.opening_walk_in.line_02"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.opening_walk_in.line_03"}
+    ]
+  }
+]

@@ -81,6 +81,12 @@ public static class Program
         Console.WriteLine($"Waste by department: produce={ReportPrinter.Money(reports.Sum(r => r.ProduceLossCents))} " +
                           $"seafood={ReportPrinter.Money(reports.Sum(r => r.SeafoodLossCents))} meat={ReportPrinter.Money(reports.Sum(r => r.MeatLossCents))} " +
                           $"(together {ReportPrinter.Money(reports.Sum(r => r.ProduceLossCents + r.SeafoodLossCents + r.MeatLossCents))})");
+        if (sim.Loan is { } loan)
+        {
+            Console.WriteLine($"Student loan: paid={ReportPrinter.Money(reports.Sum(r => r.LoanPaymentCents))} balance={ReportPrinter.Money(loan.BalanceCents)} " +
+                              $"arrears={ReportPrinter.Money(loan.ArrearsCents)} competition={sim.CompetitionArrivalPermille()}/1000");
+        }
+
         Console.WriteLine($"Stage: {sim.Economy.Stage}  staff: {string.Join(", ", sim.Workers.Where(w => w.RoleId is not null).Select(w => $"{w.RoleId} L{w.Level} knife {w.KnifeSkill}"))}");
         Console.WriteLine($"Rejected commands: {bot.RejectedCommands} {string.Join(", ", bot.Rejections.Select(kv => $"{kv.Key} x{kv.Value}"))}" +
                           $" (orders cut for storage space: {bot.OrdersCutForSpace})");

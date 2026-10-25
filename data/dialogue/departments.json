@@ -1,0 +1,30 @@
+[
+  {"id": "dept_meat", "style": "phone", "trigger": {"on": "stage_reached", "stage": 2}, "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.dept_meat.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.dept_meat.line_02"},
+      {"speaker": "dad", "expression": "worried", "key": "dialogue.dept_meat.line_03"}
+    ]
+  },
+  {"id": "dept_produce", "style": "talk", "trigger": {"on": "stage_reached", "stage": 2}, "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.dept_produce.line_01"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.dept_produce.line_02"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.dept_produce.line_03"}
+    ]
+  },
+  {"id": "dept_seafood", "style": "phone", "trigger": {"on": "stage_reached", "stage": 3}, "_draft": true,
+    "lines": [
+      {"speaker": "dad", "expression": "happy", "key": "dialogue.dept_seafood.line_01"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.dept_seafood.line_02"},
+      {"speaker": "dad", "expression": "normal", "key": "dialogue.dept_seafood.line_03"}
+    ]
+  },
+  {"id": "dept_deli", "style": "talk", "trigger": {"on": "stage_reached", "stage": 4}, "_draft": true,
+    "lines": [
+      {"speaker": "mom", "expression": "happy", "key": "dialogue.dept_deli.line_01"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.dept_deli.line_02"},
+      {"speaker": "mom", "expression": "normal", "key": "dialogue.dept_deli.line_03"}
+    ]
+  }
+]

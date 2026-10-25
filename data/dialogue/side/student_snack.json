@@ -1,0 +1,10 @@
+[
+  {"id": "side_student_snack", "style": "talk", "trigger": {"on": "store_open", "minDay": 5}, "optional": true, "cooldownDays": 3, "chancePermille": 400, "_draft": true,
+    "lines": [
+      {"speaker": "student", "expression": "worried", "key": "dialogue.side_student_snack.line_01"},
+      {"speaker": "protagonist", "expression": "normal", "key": "dialogue.side_student_snack.line_02"},
+      {"speaker": "student", "expression": "happy", "key": "dialogue.side_student_snack.line_03"},
+      {"speaker": "protagonist", "expression": "happy", "key": "dialogue.side_student_snack.line_04"}
+    ]
+  }
+]

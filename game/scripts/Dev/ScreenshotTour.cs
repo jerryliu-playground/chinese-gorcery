@@ -23,8 +23,9 @@ namespace ChineseGrocery.Game.Dev;
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
 /// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
 /// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> or
-/// <c>--tour=m9</c>, <c>--tour=m10</c> or <c>--tour=fixes</c> for the produce, seafood or deli department scenes, or
-/// the playtest fixes of 2026-10-25, instead of the M7 ones.
+/// <c>--tour=m9</c>, <c>--tour=m10</c>, <c>--tour=fixes</c> or <c>--tour=m15</c> for the produce, seafood or deli
+/// department scenes, the playtest fixes of 2026-10-25, or the story and tutorial, instead of the M7 ones.
+/// Dialogues are hidden (and do not hold time) in every tour but the story one.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
@@ -59,6 +60,9 @@ public partial class ScreenshotTour : Node
         DirAccess.MakeDirRecursiveAbsolute(_dir);
         TranslationServer.SetLocale("zh");
         Host.EventsReady += events => _seen.AddRange(events);
+
+        // Only the story tour shows dialogues; the others play on as if there were none.
+        Hud.Dialogue.Suppressed = !OS.GetCmdlineUserArgs().Contains("--tour=m15");
         Plan();
     }
 
@@ -107,6 +111,12 @@ public partial class ScreenshotTour : Node
         if (OS.GetCmdlineUserArgs().Contains("--tour=fixes"))
         {
             PlanFixes();
+            return;
+        }
+
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m15"))
+        {
+            PlanStory();
             return;
         }
 
@@ -159,6 +169,157 @@ public partial class ScreenshotTour : Node
             TranslationServer.SetLocale("zh");
             Hud.Retranslate();
         }, () => Sim.Customers.Any(c => c.TypeId == "chinese_family"), frames: 3);
+    }
+
+    // ---------- M15: story and tutorial ----------
+
+    private DialogueBox Dialogue => Hud.Dialogue;
+
+    /// <summary>Finishes the dialogue on screen (first answer where there is a choice).</summary>
+    private void Finish(string? choice = null) => Send(new Sim.Story.FinishDialogue(Sim.Story.Current!, choice));
+
+    /// <summary>Shows a line of the current dialogue with its text already typed out.</summary>
+    private void ShowLine(int line)
+    {
+        Dialogue.Sync();
+        Dialogue.DebugShowLine(line);
+        Hud.RefreshNow();
+    }
+
+    /// <summary>Reads every queued dialogue (first answers).</summary>
+    private void ReadAll()
+    {
+        while (Sim.Story.Current is { } id) Finish(Sim.Data.Story!.Dialogue(id).Choices?.FirstOrDefault()?.Id);
+        Dialogue.Sync();
+    }
+
+    /// <summary>Spec 18.7 items 4 and 5: the whole opening, Dad's six calls, a chapter, the loan and the settings toggle.</summary>
+    private void PlanStory()
+    {
+        Step("01-opening-black-screen-captions", () => ShowLine(1));
+        Step("02-opening-mom-calls", () =>
+        {
+            Finish();
+            ShowLine(1);
+        }, frames: 4);
+        Step("02b-a-click-goes-to-the-next-line", () =>
+        {
+            // A real mouse click on the dialogue (not a debug call): the line is typed out, so it moves on.
+            var click = new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true, Position = new Vector2(320, 200) };
+            GetViewport().PushInput(click, inLocalCoords: true);
+            GetViewport().PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = false, Position = new Vector2(320, 200) }, inLocalCoords: true);
+            GD.Print($"Tour: pushed a click on the dialogue at {Dialogue.GetGlobalRect()}");
+        }, frames: 40);
+        Step("03-opening-parents-retire-choice", () =>
+        {
+            Finish();
+            Dialogue.Sync();
+            Dialogue.DebugEnd();
+        });
+        Step("04-opening-name-the-shop", () =>
+        {
+            Finish("accept");
+            Finish();
+            Dialogue.Sync();
+            Dialogue.DebugEnd();
+        });
+        Step("05-opening-walk-in-with-shop-name", () =>
+        {
+            // A player-typed name, in Chinese (escaped: code holds no Chinese text).
+            Send(new Sim.Story.NameShop("\u83b2\u82b1\u8d85\u5e02"));
+            Finish();
+            ShowLine(0);
+        });
+        Step("06-tutorial1-dad-calls-about-orders", () =>
+        {
+            Finish();
+            ShowLine(1);
+        }, frames: 4);
+        Step("07-tutorial-reminder-and-loan-corner", () =>
+        {
+            Finish();
+            Dialogue.Sync();
+            Hud.RefreshNow();
+        });
+        Step("08-tutorial3-checkout-call", () =>
+        {
+            Send(new PlaceOrder("rice_jasmine", 10));
+            WalkTo(new GridPoint(2, 4));
+            Send(new OpenStore());
+            ShowLine(1);
+        });
+        Step("09-tutorial4-report-call", () =>
+        {
+            ReadAll();
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowReport(Sim.Reports[^1]);
+            ShowLine(1);
+        });
+        Step("10-tutorial2-shelving-call", () =>
+        {
+            ReadAll();
+            Send(new Sim.Story.ReportViewed());
+            Send(new StartNextDay());
+            ShowLine(1);
+        });
+        Step("11-chapter1-auntie-remembers", () =>
+        {
+            ReadAll();
+            Send(new RestockAll());
+            Send(new OpenStore());
+            ShowLine(1);
+        });
+        Step("12-tutorial5-prices-call", () =>
+        {
+            ReadAll();
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Send(new StartNextDay());
+            Dialogue.Sync();
+            while (Sim.Story.Current is { } id && id != "tutorial_5_price") Finish(Sim.Data.Story!.Dialogue(id).Choices?.FirstOrDefault()?.Id);
+            ShowLine(2);
+        });
+        Step("13-loan-panel", () =>
+        {
+            ReadAll();
+            Send(new SetPrice("rice_jasmine", 1299));
+            ReadAll();
+            Hud.ShowPanel<LoanPanel>();
+        });
+        Step("14-settings-story-prompts", () => Hud.ShowPanel<SettingsPanel>());
+        Step("15-tutorial6-upgrade-call", () =>
+        {
+            var json = SaveGame.Write(Sim)
+                .Replace($"\"cumulativeRevenueCents\":{Sim.Economy.CumulativeRevenueCents}", "\"cumulativeRevenueCents\":1000000")
+                .Replace($"\"cashCents\":{Sim.Economy.CashCents},", "\"cashCents\":1000000,");
+            Host.LoadFromJson(json);
+            Ticks(1);
+            ShowLine(1);
+        }, frames: 4);
+        Step("16-chapter2-dad-worries-choice", () =>
+        {
+            ReadAll();
+            Send(new UpgradeStage());
+            Dialogue.Sync();
+            Dialogue.DebugEnd();
+            Hud.RefreshNow();
+        });
+        Step("17-chapter2-follow-up-advice", () =>
+        {
+            Finish("ask");
+            ShowLine(1);
+        });
+        Step("18-dept-meat-call-en", () =>
+        {
+            TranslationServer.SetLocale("en");
+            Hud.Retranslate();
+            Finish();
+            ShowLine(1);
+        }, frames: 4);
+        Step("19-dept-produce-mom-en", () =>
+        {
+            Finish();
+            ShowLine(2);
+        });
     }
 
     // ---------- M8: produce ----------
