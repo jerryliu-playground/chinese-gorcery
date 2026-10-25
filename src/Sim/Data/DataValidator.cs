@@ -72,11 +72,11 @@ public static partial class DataValidator
                 else if (f.Fresh + f.Normal + f.Ripe != p.ShelfLifeDays) errors.Add($"{at}: freshnessDays must add up to shelfLifeDays");
             }
 
-            if ((p.Live is not null) != (p.Storage == StorageType.Live)) errors.Add($"{at}: live seafood needs storage 'live' and a 'live' block, and only it");
+            if ((p.Live is not null) != (p.Storage is StorageType.Live or StorageType.LiveShellfish)) errors.Add($"{at}: live seafood needs storage 'live' or 'live_shellfish' and a 'live' block, and only it");
             if (p.Live is { } live)
             {
                 CheckPermille(at, "live.deathBasePermille", live.DeathBasePermille, errors);
-                if (live.DiesAs is { } dead && products.FirstOrDefault(x => x.Id == dead) is not { Storage: not StorageType.Live })
+                if (live.DiesAs is { } dead && products.FirstOrDefault(x => x.Id == dead) is not { Live: null })
                 {
                     errors.Add($"{at}: live.diesAs '{dead}' must be a product that is not kept alive");
                 }
@@ -118,6 +118,7 @@ public static partial class DataValidator
             if (needsCustomerCell && f.CustomerCells.Count == 0) errors.Add($"{at}: {f.Kind} needs at least one customer cell");
             if ((IsDisplay(f.Kind) || IsStorageArea(f.Kind) || IsDeliStation(f.Kind)) && f.Capacity <= 0) errors.Add($"{at}: {f.Kind} needs capacity > 0");
             if (IsDeliStation(f.Kind) && !f.Storage.Contains(StorageType.Hot)) errors.Add($"{at}: deli stations must store 'hot' food");
+            if (f.WaterDropPermille < 0) errors.Add($"{at}: waterDropPermille must be >= 0");
             if (IsDisplay(f.Kind) && f.Storage.Count == 0) errors.Add($"{at}: displays must list at least one storage type");
         }
 
@@ -132,7 +133,10 @@ public static partial class DataValidator
 
     /// <summary>Fixture kinds customers take goods from, organised in single-product slots.</summary>
     public static bool IsDisplay(FixtureKind kind) =>
-        kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.FishTank or FixtureKind.IceTable;
+        kind is FixtureKind.Shelf or FixtureKind.MeatDisplay or FixtureKind.ProduceStand or FixtureKind.IceTable || IsTank(kind);
+
+    /// <summary>Fixture kinds that keep live seafood in water.</summary>
+    public static bool IsTank(FixtureKind kind) => kind is FixtureKind.FishTank or FixtureKind.ShellfishTank;
 
     /// <summary>Fixture kinds that sell the kitchen's dishes, served by a worker; the daily menu sets what is in each slot.</summary>
     public static bool IsDeliStation(FixtureKind kind) => kind is FixtureKind.SteamTable or FixtureKind.RoastStation;

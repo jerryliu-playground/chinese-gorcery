@@ -20,7 +20,7 @@ public class KillFishTests
     private static (GameSim Sim, int Tank, int Counter) Shop(int perHour = 60, int patienceMinutes = 30, string product = Fish)
     {
         var sim = Store(ScenarioData(perHour: perHour, wants: Department.Seafood, patienceMinutes: patienceMinutes));
-        var tank = Tank(sim, 7, product);
+        var tank = product is Lobster or Crab ? ShellfishTank(sim, 7, product) : Tank(sim, 7, product);
         Stock(sim, tank, 0, product, 3);
         var counter = Place(sim, "seafood_counter", 3, 3);
         return (sim, tank, counter);
@@ -166,9 +166,10 @@ public class KillFishTests
     public void Lobster_is_rarely_on_a_shopping_list()
     {
         var sim = Store(SimTestKit.Data);
-        var tank = Tank(sim, 7, Fish, Lobster);
+        var tank = Tank(sim, 7, Fish);
+        var shellfish = ShellfishTank(sim, 8, Lobster);
         Stock(sim, tank, 0, Fish, 3);
-        Stock(sim, tank, 1, Lobster, 3);
+        Stock(sim, shellfish, 0, Lobster, 3);
         var family = sim.Data.CustomerTypes.Single(t => t.Id == "chinese_family");
 
         var picks = Enumerable.Range(0, 300).SelectMany(_ => sim.BuildShoppingList(family)).ToList();

@@ -17,7 +17,7 @@
     "id": "backroom", "nameKey": "fixture.backroom.name", "kind": "backroom",
     "size": { "w": 3, "h": 2 }, "interactionCells": [{ "x": 1, "y": 2 }],
     "customerCells": [],
-    "capacity": 12, "storage": ["ambient", "live"], "priceCents": 0, "unlockStage": 1, "_tbd": true
+    "capacity": 12, "storage": ["ambient", "live", "live_shellfish"], "priceCents": 0, "unlockStage": 1, "_tbd": true
   },
   {
     "id": "entrance", "nameKey": "fixture.entrance.name", "kind": "entrance",
@@ -59,6 +59,14 @@
     "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
     "customerCells": [{ "x": 0, "y": 1 }],
     "capacity": 2, "storage": ["live"], "priceCents": 15000, "unlockStage": 3,
+    "sprite": { "main": "fish_tank", "empty": "fish_tank_empty", "dirty": "fish_tank_murky" },
+    "_tbd": true
+  },
+  {
+    "id": "shellfish_tank", "nameKey": "fixture.shellfish_tank.name", "kind": "shellfish_tank",
+    "size": { "w": 1, "h": 1 }, "interactionCells": [{ "x": 0, "y": 1 }],
+    "customerCells": [{ "x": 0, "y": 1 }],
+    "capacity": 2, "storage": ["live_shellfish"], "priceCents": 15000, "unlockStage": 3, "waterDropPermille": 500,
     "sprite": { "main": "fish_tank", "empty": "fish_tank_empty", "dirty": "fish_tank_murky" },
     "_tbd": true
   },

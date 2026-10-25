@@ -36,7 +36,7 @@ public sealed partial class GameSim
         Data.Economy.Seafood ?? throw new InvalidOperationException("Fish tanks need economy.seafood settings.");
 
     private IEnumerable<int> Tanks() =>
-        Layout.Fixtures.Where(f => _fixtures[f.FixtureId].Kind == FixtureKind.FishTank).Select(f => f.InstanceId);
+        Layout.Fixtures.Where(f => DataValidator.IsTank(_fixtures[f.FixtureId].Kind)).Select(f => f.InstanceId);
 
     private IEnumerable<Stockpile> TankSlots(int tankInstanceId) =>
         Inventory.Locations.Where(p => p.Location.FixtureInstanceId == tankInstanceId);
@@ -56,7 +56,10 @@ public sealed partial class GameSim
         else dead.Add(lot with { BestBeforeDay = 0 });
     }
 
-    /// <summary>One open tick of fouling: a base rate plus a share for every live and every dead animal in the tank.</summary>
+    /// <summary>
+    /// One open tick of fouling: a base rate plus a share for every live and every dead animal in the tank, scaled by the
+    /// tank's own rate (a shellfish tank fouls more slowly).
+    /// </summary>
     private void FoulTankWater()
     {
         if (Data.Economy.Seafood is not { } s) return;
@@ -66,7 +69,8 @@ public sealed partial class GameSim
             var live = TankSlots(tank).Sum(p => p.Lots.Sum(l => l.Quantity));
             var dead = DeadIn(tank).Sum(l => l.Quantity);
             var perHourMilli = s.WaterDropBasePerHourMilli + (long)s.WaterDropPerUnitPerHourMilli * live + (long)s.WaterDropPerDeadPerHourMilli * dead;
-            var drop = perHourMilli * (MicroPerPoint / 1000) * Data.Economy.SecondsPerTick / 3600;
+            var rate = _fixtures[Layout.Find(tank)!.FixtureId].WaterDropPermille;
+            var drop = perHourMilli * rate * Data.Economy.SecondsPerTick / 3600;
             _water[tank] = Math.Max(0, WaterMicro(tank) - drop);
         }
     }

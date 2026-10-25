@@ -29,7 +29,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
     private static readonly FixtureKind[] MeatFixtures = [FixtureKind.ColdStorage, FixtureKind.MeatDisplay, FixtureKind.CuttingTable];
 
     /// <summary>The seafood corner, in the order the bot buys it.</summary>
-    private static readonly FixtureKind[] SeafoodFixtures = [FixtureKind.SeafoodCounter, FixtureKind.FishTank, FixtureKind.FishTank, FixtureKind.IceTable];
+    private static readonly FixtureKind[] SeafoodFixtures = [FixtureKind.SeafoodCounter, FixtureKind.FishTank, FixtureKind.ShellfishTank, FixtureKind.IceTable];
 
     /// <summary>The deli corner, in the order the bot buys it.</summary>
     private static readonly FixtureKind[] DeliFixtures = [FixtureKind.WokStove, FixtureKind.SteamTable, FixtureKind.RoastStation, FixtureKind.WokStove];
@@ -266,7 +266,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             var candidates = data.Products
                 .Where(p => def.Storage.Contains(p.Storage) && !primals.Contains(p.Id) && (p.Orderable || producible.Contains(p.Id)))
                 .Where(p => (p.Department == Department.Produce) == (def.Kind == FixtureKind.ProduceStand))
-                .Where(p => (p.Department == Department.Seafood) == (def.Kind is FixtureKind.FishTank or FixtureKind.IceTable))
+                .Where(p => (p.Department == Department.Seafood) == (DataValidator.IsTank(def.Kind) || def.Kind == FixtureKind.IceTable))
                 .ToList();
             for (var slot = 0; slot < def.Capacity && candidates.Count > 0; slot++)
             {

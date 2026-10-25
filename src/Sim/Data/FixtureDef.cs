@@ -8,6 +8,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="CustomerCells">Cells where customers stand to use it (shelf front, checkout queue head, entrance step).</param>
 /// <param name="Capacity">Slots: shelves hold one product per slot; storage areas fill slots by each product's unitsPerStorageSlot.</param>
 /// <param name="Storage">Storage types this fixture can hold; empty when it holds no goods.</param>
+/// <param name="WaterDropPermille">Tanks: how fast the water fouls, as a share of the economy.json rates.</param>
 public sealed record FixtureDef(
     string Id,
     string NameKey,
@@ -20,4 +21,5 @@ public sealed record FixtureDef(
     long PriceCents,
     int UnlockStage,
     SpriteDef? Sprite = null,
+    int WaterDropPermille = 1000,
     [property: JsonPropertyName("_tbd")] bool Tbd = false);

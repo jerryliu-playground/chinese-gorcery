@@ -278,7 +278,7 @@ public partial class StoreView : Node2D
                 return ((string?)product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}{FreshnessNote(slot, product)}");
             })
             .ToList();
-        if (def.Kind == FixtureKind.FishTank) rows.AddRange(TankLines(f).Select(line => ((string?)null, line)));
+        if (DataValidator.IsTank(def.Kind)) rows.AddRange(TankLines(f).Select(line => ((string?)null, line)));
         if (def.Kind == FixtureKind.ProduceStand)
         {
             var score = _host.Sim.DisplayScoreOf(f.InstanceId);
@@ -298,7 +298,7 @@ public partial class StoreView : Node2D
         var height = rows.Count * lineHeight + 4;
         var floor = new Vector2(_host.Sim.Layout.Size.W * Cell, _host.Sim.Layout.Size.H * Cell);
         // Above the sale card or bad-water icon these may be wearing.
-        var lift = def.Kind is FixtureKind.ProduceStand or FixtureKind.IceTable or FixtureKind.FishTank ? 14 : 0;
+        var lift = def.Kind is FixtureKind.ProduceStand or FixtureKind.IceTable || DataValidator.IsTank(def.Kind) ? 14 : 0;
         var at = new Vector2(cell.X * Cell + Cell / 2f - width / 2, cell.Y * Cell - height - 2 - lift);
         at = new Vector2(Mathf.Clamp(at.X, 0, floor.X - width), at.Y < 0 ? (cell.Y + 1) * Cell + 2 : at.Y);
 
@@ -445,7 +445,7 @@ public partial class StoreView : Node2D
                 var stocked = _host.Sim.Inventory.Holds(f.InstanceId);
                 name = def.Kind == FixtureKind.SteamTable || !stocked ? sprite.Empty ?? sprite.Main : sprite.Main;
             }
-            else if (def.Kind == FixtureKind.FishTank)
+            else if (DataValidator.IsTank(def.Kind))
             {
                 var stocked = _host.Sim.Inventory.Holds(f.InstanceId) || _host.Sim.DeadIn(f.InstanceId).Count > 0;
                 name = !stocked ? sprite.Empty ?? sprite.Main : IsWaterBad(f.InstanceId) ? sprite.Dirty ?? sprite.Main : sprite.Main;
@@ -468,7 +468,7 @@ public partial class StoreView : Node2D
 
         if (def.Kind == FixtureKind.CuttingTable) DrawChopping(f, cells[0].Cell);
         if (def.Kind == FixtureKind.SeafoodCounter) DrawChopping(f, cells[0].Cell);
-        if (def.Kind == FixtureKind.FishTank) DrawTankExtras(f, TopLeftOf(cells[0].Cell));
+        if (DataValidator.IsTank(def.Kind)) DrawTankExtras(f, TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.SteamTable) DrawTrays(f, def, TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.WokStove) DrawWokFire(f, TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.IceTable && HasMarkdown(f, def)) DrawSaleCard(TopLeftOf(cells[0].Cell));

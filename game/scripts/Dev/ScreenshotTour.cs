@@ -279,7 +279,7 @@ public partial class ScreenshotTour : Node
 
     private int FirstOf(string fixtureId) => Sim.Layout.Fixtures.First(f => f.FixtureId == fixtureId).InstanceId;
 
-    private List<int> FishTanks() => Sim.Layout.Fixtures.Where(f => f.FixtureId == "fish_tank").Select(f => f.InstanceId).ToList();
+    private List<int> FishTanks() => Sim.Layout.Fixtures.Where(f => f.FixtureId is "fish_tank" or "shellfish_tank").Select(f => f.InstanceId).ToList();
 
     private GridPoint Below(int instanceId)
     {
@@ -302,7 +302,8 @@ public partial class ScreenshotTour : Node
             Send(new PlaceFixture("backroom", new GridPoint(12, 0)));
             for (var i = 0; i < TankCells.Length; i++)
             {
-                Send(new PlaceFixture("fish_tank", TankCells[i]));
+                // Fish and shrimp in the fish tank; lobster and crab in a tank of their own.
+                Send(new PlaceFixture(i == 0 ? "fish_tank" : "shellfish_tank", TankCells[i]));
                 var tank = Sim.Layout.Fixtures[^1].InstanceId;
                 for (var slot = 0; slot < 2; slot++) Send(new AssignShelfSlot(tank, slot, TankProducts[i][slot]));
             }

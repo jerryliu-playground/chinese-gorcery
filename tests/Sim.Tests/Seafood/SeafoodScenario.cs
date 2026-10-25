@@ -23,7 +23,7 @@ public static class SeafoodScenario
     public static GameData Unlocked(GameData data) => data with
     {
         Economy = data.Economy with { StartingCashCents = 1_000_000 },
-        Fixtures = data.Fixtures.Select(f => f.Kind is FixtureKind.FishTank or FixtureKind.IceTable or FixtureKind.SeafoodCounter or FixtureKind.ColdStorage ? f with { UnlockStage = 1 } : f).ToList(),
+        Fixtures = data.Fixtures.Select(f => f.Kind is FixtureKind.FishTank or FixtureKind.ShellfishTank or FixtureKind.IceTable or FixtureKind.SeafoodCounter or FixtureKind.ColdStorage ? f with { UnlockStage = 1 } : f).ToList(),
         Employees = data.Employees with { Roles = data.Employees.Roles.Select(r => r with { UnlockStage = 1 }).ToList() },
     };
 
@@ -47,6 +47,9 @@ public static class SeafoodScenario
     }
 
     public static int Tank(GameSim sim, int x, params string?[] products) => Place(sim, "fish_tank", x, 3, products);
+
+    /// <summary>A lobster and crab tank at (x, 3), worked from the row below.</summary>
+    public static int ShellfishTank(GameSim sim, int x, params string?[] products) => Place(sim, "shellfish_tank", x, 3, products);
 
     /// <summary>Puts animals that arrived today straight into a slot (test shortcut).</summary>
     public static void Stock(GameSim sim, int fixture, int slot, string productId, int units)

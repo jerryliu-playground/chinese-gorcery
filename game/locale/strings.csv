@@ -250,3 +250,4 @@ ui.menu.short,not enough,原料不够
 ui.menu.cooked,cooked {cooked}/{target} today,今天已做 {cooked}/{target}
 ui.menu.on_station,{count} on the station,档口上 {count} 份
 ui.tag.portions,{count} portions,{count} 份
+fixture.shellfish_tank.name,Lobster & Crab Tank,龙虾蟹缸

@@ -11,6 +11,7 @@ public enum FixtureKind
     ColdStorage,
     ProduceStand,
     FishTank,
+    ShellfishTank,
     IceTable,
     SeafoodCounter,
     WokStove,
