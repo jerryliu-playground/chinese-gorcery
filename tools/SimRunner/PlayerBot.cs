@@ -21,7 +21,7 @@ namespace ChineseGrocery.SimRunner;
 /// menu each morning and keeps ducks and pork shoulder on hand. While open it works the highest-priority open task.
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false, bool imports = false)
 {
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
@@ -364,8 +364,31 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             .Select(id => sim.Data.Products.Single(p => p.Id == id))
             .OrderBy(p => p.Department is not (Department.Produce or Department.Seafood))
             .ThenBy(p => p.Id, StringComparer.Ordinal);
+        var importing = imports && sim.Data.Economy.Imports is { } settings && sim.Economy.Stage >= settings.UnlockStage;
+        if (importing && !sim.Workers.Any(w => w.RoleId == "stocker") && Send(sim, new HireEmployee("stocker")) is null) _notes.Add("hired stocker");
+        if (importing)
+        {
+            // Big shipments need room: grow the first backroom to twice its size when cash allows.
+            var backroom = sim.Layout.Fixtures.First(f => Def(sim.Data, f).Kind == FixtureKind.Backroom);
+            if (sim.StorageCapacityOf(backroom.InstanceId) < 2 * Def(sim.Data, backroom).Capacity
+                && sim.Economy.CashCents > sim.Data.Economy.Imports!.StorageUpgradeCostCents + cashReserveCents
+                && Send(sim, new Sim.Imports.UpgradeStorage(backroom.InstanceId)) is null) _notes.Add("bought storage room");
+        }
+
         foreach (var product in products.Where(p => !IsAutomated(sim, p.Department)))
         {
+            if (importing && product.Import is { } import)
+            {
+                // Import instead: keep enough on hand and at sea to cover the longest sailing at the last day's pace.
+                var daily = Math.Max(1, sim.Reports.Count > 0 ? sim.Reports[^1].Sales.FirstOrDefault(s => s.ProductId == product.Id)?.Units ?? 0 : 0);
+                var pipeline = sim.Inventory.Total(product.Id) + sim.Shipments.Where(s => s.ProductId == product.Id).Sum(s => s.Quantity)
+                               + sim.Pallets.SelectMany(p => p.Lots).Where(l => l.ProductId == product.Id).Sum(l => l.Quantity);
+                var cover = (sim.Data.Economy.Imports!.MaxDays + 2) * daily;
+                if (pipeline < cover) Send(sim, new Sim.Imports.PlaceImportOrder(product.Id, Math.Max(import.MinUnits, cover - pipeline)));
+
+                continue;
+            }
+
             var fills = sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot;
             var target = product.Live is not null ? fills : product.FreshnessDays is not null ? 2 * fills : stockTarget;
             TopUp(sim, product.Id, target);
