@@ -43,6 +43,7 @@ public partial class Hud : Control
     private readonly Celebration _celebration = new();
     private double _shownCash = double.NaN;
     private BuildPanel _build = null!;
+    private MenuPanel _menu = null!;
     private ShelfPanel _shelf = null!;
     private ReportPanel _report = null!;
 
@@ -167,6 +168,7 @@ public partial class Hud : Control
         var staff = AddPanel<StaffPanel>();
         var upgrade = AddPanel<UpgradePanel>();
         var settings = AddPanel<SettingsPanel>();
+        _menu = AddPanel<MenuPanel>();
         _report.OrderRequested += () => ShowOnly(order);
 
         _build.Closed += () =>
@@ -194,6 +196,7 @@ public partial class Hud : Control
         bar.AddChild(PanelButton("ui.hud.order", order));
         bar.AddChild(PanelButton("ui.hud.prices", price));
         bar.AddChild(PanelButton("ui.hud.staff", staff));
+        bar.AddChild(PanelButton("ui.hud.menu", _menu));
         bar.AddChild(PanelButton("ui.hud.upgrade", upgrade));
         bar.AddChild(PanelButton("ui.hud.report", _report));
 
@@ -241,11 +244,13 @@ public partial class Hud : Control
         foreach (var p in _panels.Where(p => p.Visible)) p.Close();
     }
 
-    /// <summary>Opens the slots of a clicked shelf or display.</summary>
+    /// <summary>Opens the slots of a clicked shelf or display, or the menu for a clicked deli station.</summary>
     public void ShowShelf(int instanceId)
     {
         _ui.SelectedInstanceId = instanceId;
-        ShowOnly(_shelf);
+        var fixture = _host.Sim.Layout.Find(instanceId);
+        var isStation = fixture is not null && Sim.Data.DataValidator.IsDeliStation(_host.Data.Fixtures.Single(f => f.Id == fixture.FixtureId).Kind);
+        ShowOnly(isStation ? _menu : _shelf);
     }
 
     /// <summary>In build mode the panel steps aside while a fixture is being placed or moved, so the floor stays visible.</summary>

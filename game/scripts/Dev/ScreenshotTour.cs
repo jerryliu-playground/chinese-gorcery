@@ -3,6 +3,7 @@ using ChineseGrocery.Game.View;
 using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Deli;
 using ChineseGrocery.Sim.Meat;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Grid;
@@ -22,7 +23,7 @@ namespace ChineseGrocery.Game.Dev;
 /// ordinary Sim commands and saves a screenshot of each to DIR, then quits. Used to check visual changes (CLAUDE.md).
 /// Needs a rendering run (not --headless); run it with Godot's movie mode at 30 fps so short effects are caught, e.g.
 /// <c>godot --path game --write-movie /tmp/x.png --fixed-fps 30 -- --screenshot-tour=DIR</c>. Add <c>--tour=m8</c> or
-/// <c>--tour=m9</c> for the produce or seafood department scenes instead of the M7 ones.
+/// <c>--tour=m9</c> or <c>--tour=m10</c> for the produce, seafood or deli department scenes instead of the M7 ones.
 /// </summary>
 public partial class ScreenshotTour : Node
 {
@@ -78,6 +79,12 @@ public partial class ScreenshotTour : Node
         if (OS.GetCmdlineUserArgs().Contains("--tour=m9"))
         {
             PlanSeafood();
+            return;
+        }
+
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m10"))
+        {
+            PlanDeli();
             return;
         }
 
@@ -400,6 +407,141 @@ public partial class ScreenshotTour : Node
             var size = Sim.Layout.Size;
             Camera.CenterOn(new GridPoint(size.W - 1, size.H - 1));
         });
+    }
+
+    // ---------- M10: deli ----------
+
+    private static readonly GridPoint[] StoveCells = [new(14, 8), new(15, 8)];
+    private static readonly GridPoint SteamTableCell = new(17, 8);
+    private static readonly GridPoint RoastStationCell = new(18, 8);
+
+    /// <summary>
+    /// Spec 13.10 item 4 and 13.11: from ordering to a hot dish sold. Groceries bought on day 1 and a pork primal on
+    /// day 3 meet on day 4, when the bok choy, the ducks and the freshly cut trimmings are all on their last day, so
+    /// the menu flags them and the kitchen cooks them first.
+    /// </summary>
+    private void PlanDeli()
+    {
+        Step("01-stage4-place-wok-stove", () =>
+        {
+            ReachStage(4);
+            Ghost("wok_stove", StoveCells[0]);
+        });
+        Step("02-deli-corner-placed", () =>
+        {
+            foreach (var cell in StoveCells) Send(new PlaceFixture("wok_stove", cell));
+            Send(new PlaceFixture("steam_table", SteamTableCell));
+            Send(new PlaceFixture("roast_station", RoastStationCell));
+            // The meat corner supplies pork belly and trimmings; a butcher cuts the primals.
+            Send(new PlaceFixture("cold_storage", new GridPoint(20, 0)));
+            Send(new PlaceFixture("cutting_table", new GridPoint(23, 0)));
+            Send(new PlaceFixture("backroom", new GridPoint(12, 0)));
+            Send(new HireEmployee("butcher"));
+            Ui.Mode = ToolMode.Build;
+        });
+        Step("03-order-groceries-for-the-kitchen", () =>
+        {
+            Send(new PlaceOrder("bok_choy", 12));
+            Send(new PlaceOrder("napa_cabbage", 8));
+            Send(new PlaceOrder("whole_duck", 2));
+            Send(new PlaceOrder("pork_shoulder", 1));
+            Hud.ShowPanel<OrderPanel>();
+        });
+        Step("04-menu-flags-near-expiry-stock", () =>
+        {
+            RunToNextDay();
+            RunToNextDay();
+            Send(new PlaceOrder("pork_primal", 1));
+            Send(new PlaceOrder("bok_choy", 6));
+            RunToNextDay();
+            // The butcher cuts the primal before opening: pork belly, ribs and trimmings.
+            for (var i = 0; i < 2000 && (Sim.Tasks.Tasks.OfType<CutMeatTask>().Any() || Sim.Workers.Any(w => w.Step == WorkStep.Cutting)); i++) Sim.Tick();
+
+            var table = FirstOf("steam_table");
+            Send(new SetMenuItem(table, 0, "stir_fried_bok_choy", 12));
+            Send(new SetMenuItem(table, 1, "dumplings", 10));
+            Send(new SetMenuItem(table, 2, "braised_pork", 6));
+            Send(new SetMenuItem(FirstOf("roast_station"), 0, "roast_duck", 16));
+            Hud.ShowPanel<MenuPanel>();
+        });
+        Live("05-cooking-at-the-wok", () =>
+        {
+            var task = Sim.Tasks.Tasks.OfType<CookTask>().First();
+            WalkTo(Below(task.StoveInstanceId));
+            Host.Send(new PlayerInteract(task.StoveInstanceId));
+        }, () => Sim.Player.Step == WorkStep.Cooking, frames: 8);
+        Live("06-dish-carried-to-the-steam-table", () =>
+        {
+            for (var i = 0; i < 2000 && Sim.Player.Step != WorkStep.Carrying; i++) Sim.Tick();
+            var target = Sim.Tasks.Find(Sim.Player.TaskId!.Value) is CookTask c ? c.Target.FixtureInstanceId : FirstOf("steam_table");
+            WalkTo(Above(target));
+            Host.Send(new PlayerInteract(target));
+            Store.DebugHover = SteamTableCell;
+        }, () => Seen<ItemsShelved>(), frames: 4);
+        Step("07-everything-cooked-before-opening", () =>
+        {
+            CookEverything();
+            Store.DebugHover = SteamTableCell;
+        });
+        Live("08-lunch-rush-queue", () =>
+        {
+            Store.DebugHover = null;
+            WalkTo(Above(FirstOf("steam_table")));
+            Send(new OpenStore());
+            for (var i = 0; i < 20_000 && Sim.Clock.MinuteOfDay < 11 * 60 + 40; i++) Sim.Tick();
+        }, () => Sim.Customers.Count(c => c.State == CustomerState.AtCounter) >= 2, frames: 4);
+        Live("09-packing-takeaway", () =>
+        {
+            var station = Sim.Tasks.Tasks.OfType<ServeDeliTask>().Select(s => s.StationInstanceId).DefaultIfEmpty(FirstOf("steam_table")).First();
+            WalkTo(Above(station));
+            Host.Send(new PlayerInteract(station));
+        }, () => Sim.Player.Step == WorkStep.Packing, frames: 4);
+        Live("10-paying-for-hot-food", () =>
+        {
+            // Finish packing, then man the till so the buyer can pay.
+            for (var i = 0; i < 500 && Sim.Player.Step != WorkStep.Idle; i++) Sim.Tick();
+            WalkTo(CashierCell);
+        }, () => Seen<CheckoutCompleted>(), frames: 3);
+        Step("11-report-waste-saved", () =>
+        {
+            for (var i = 0; i < 100_000 && Sim.Clock.Phase != DayPhase.Closed; i++) Sim.Tick();
+            Hud.ShowReport(Sim.Reports[^1]);
+        });
+        Live("12-chef-runs-the-kitchen", () =>
+        {
+            Send(new StartNextDay());
+            Send(new HireEmployee("chef"));
+            Send(new PlaceOrder("bok_choy", 12));
+            RunToNextDay();
+            WalkTo(CashierCell);
+            Host.Send(new OpenStore());
+        }, () => Sim.Workers.Any(w => w.RoleId == "chef" && w.Step is WorkStep.Cooking or WorkStep.Packing), frames: 6);
+        Step("13-menu-en", () =>
+        {
+            TranslationServer.SetLocale("en");
+            Hud.Retranslate();
+            Hud.ShowPanel<MenuPanel>();
+        });
+    }
+
+    private GridPoint Above(int instanceId)
+    {
+        var f = Sim.Layout.Find(instanceId)!;
+        return new GridPoint(f.Origin.X, f.Origin.Y - 1);
+    }
+
+    /// <summary>The player works every Cook task, start to finish, until nothing is left to cook.</summary>
+    private void CookEverything()
+    {
+        for (var guard = 0; guard < 20 && Sim.Tasks.Tasks.OfType<CookTask>().FirstOrDefault() is { } task; guard++)
+        {
+            WalkTo(Below(task.StoveInstanceId));
+            Send(new PlayerInteract(task.StoveInstanceId));
+            for (var i = 0; i < 2000 && Sim.Player.Step != WorkStep.Carrying; i++) Sim.Tick();
+            WalkTo(Above(task.Target.FixtureInstanceId));
+            Send(new PlayerInteract(task.Target.FixtureInstanceId));
+            for (var i = 0; i < 500 && Sim.Player.Step != WorkStep.Idle; i++) Sim.Tick();
+        }
     }
 
     private bool HasDeadThatKeeps(int tank) =>

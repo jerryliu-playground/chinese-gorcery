@@ -108,6 +108,9 @@ public partial class Effects : Node2D
                 case Sim.Seafood.FishKilled k:
                     _pops.Add(new CutIcons(_store.FixtureTop(k.CounterInstanceId), [k.ProductId], _feel.CutPopSeconds));
                     break;
+                case Sim.Deli.DeliServed d:
+                    _pops.Add(new CutIcons(_store.FixtureTop(d.StationInstanceId), [d.DishId], _feel.CutPopSeconds));
+                    break;
                 case Sim.Seafood.TankCleaned t:
                     _fixtures[t.TankInstanceId] = (0, _feel.ShelfBounceSeconds, false, MinorEffectsOn);
                     break;

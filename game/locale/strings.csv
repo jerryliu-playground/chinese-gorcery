@@ -231,3 +231,22 @@ ui.report.kitchen_rescued,Near-expiry food cooked,进厨房的临期食材
 ui.reject.not_a_deli_station,That doesn't sell hot food.,这里不卖熟食。
 ui.reject.wrong_station,That dish is sold at a different station.,这道菜要在另一种档口卖。
 ui.reject.not_for_sale,That is only for the kitchen.,这个只给厨房用。
+ui.hud.menu,Menu,菜单
+ui.menu.title,Today's menu,今日菜单
+ui.menu.hint,Before opening choose a dish and today's target for each station slot. Short of ingredients the kitchen cooks until they run out.,开店前为每个档口格子选一道菜和今天的目标份数。原料不够时，做到用完为止。
+ui.menu.none,No steam table or roast station yet.,还没有打菜台或烧腊档。
+ui.menu.dishes,Dishes and what is in stock,菜品和现有原料
+ui.menu.slots,Station slots,档口
+ui.menu.slot,{station} slot {n},{station} 第 {n} 格
+ui.menu.empty_slot,(nothing),（不卖）
+ui.menu.target,Target,目标
+ui.menu.set,Set,设定
+ui.menu.ingredient,{name} {have} (need {need}),{name} {have}（每锅 {need}）
+ui.menu.flag.near_expiry,{n} near expiry,临期 {n}
+ui.menu.flag.chilled,chilled,冰鲜
+ui.menu.flag.trimmings,trimmings,边角料
+ui.menu.can_make,enough for {portions},够做 {portions} 份
+ui.menu.short,not enough,原料不够
+ui.menu.cooked,cooked {cooked}/{target} today,今天已做 {cooked}/{target}
+ui.menu.on_station,{count} on the station,档口上 {count} 份
+ui.tag.portions,{count} portions,{count} 份

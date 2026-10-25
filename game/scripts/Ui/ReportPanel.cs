@@ -32,6 +32,8 @@ public partial class ReportPanel : PanelBase
             ("ui.report.produce_loss", UiText.Money(r.ProduceLossCents)),
             ("ui.report.seafood_loss", UiText.Money(r.SeafoodLossCents)),
             ("ui.report.seafood_deaths", r.SeafoodDeaths.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            ("ui.report.deli_loss", UiText.Money(r.DeliLossCents)),
+            ("ui.report.kitchen_rescued", UiText.Money(r.KitchenRescuedCents)),
             ("ui.report.cash", UiText.Money(r.CashEndCents)),
             ("ui.report.customers", r.Customers.ToString(System.Globalization.CultureInfo.InvariantCulture)),
             ("ui.report.angry", r.AngryLeaves.ToString(System.Globalization.CultureInfo.InvariantCulture)),

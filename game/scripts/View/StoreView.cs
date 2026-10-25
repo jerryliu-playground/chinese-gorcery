@@ -1,5 +1,6 @@
 using ChineseGrocery.Game.Ui;
 using ChineseGrocery.Sim.Data;
+using ChineseGrocery.Sim.Deli;
 using ChineseGrocery.Sim.Grid;
 using ChineseGrocery.Sim.Inventory;
 using ChineseGrocery.Sim.Produce;
@@ -200,7 +201,7 @@ public partial class StoreView : Node2D
         {
             if (FixtureAt(cell) is { } fixture)
             {
-                if (DataValidator.IsDisplay(Def(fixture).Kind)) DisplayClicked?.Invoke(fixture.InstanceId);
+                if (DataValidator.IsDisplay(Def(fixture).Kind) || DataValidator.IsDeliStation(Def(fixture).Kind)) DisplayClicked?.Invoke(fixture.InstanceId);
             }
             else
             {
@@ -261,7 +262,7 @@ public partial class StoreView : Node2D
     /// <summary>Hovering a shelf cell shows its slots' products, prices and stock (names in the UI language).</summary>
     private void DrawPriceTag()
     {
-        if (_hover is not { } cell || FixtureAt(cell) is not { } f || !DataValidator.IsDisplay(Def(f).Kind)) return;
+        if (_hover is not { } cell || FixtureAt(cell) is not { } f || !(DataValidator.IsDisplay(Def(f).Kind) || DataValidator.IsDeliStation(Def(f).Kind))) return;
 
         var def = Def(f);
         var cells = CellsOf(def, f).ToList();
@@ -269,10 +270,10 @@ public partial class StoreView : Node2D
         var index = cells.First(c => c.Cell == cell).Index;
         var rows = Enumerable.Range(index * perCell, perCell)
             .Select(slot => new StockLocation(f.InstanceId, slot))
-            .Where(slot => _host.Sim.Shelves.ProductAt(slot) is not null)
+            .Where(slot => SlotProduct(slot) is not null)
             .Select(slot =>
             {
-                var product = Data.Products.Single(p => p.Id == _host.Sim.Shelves.ProductAt(slot));
+                var product = Data.Products.Single(p => p.Id == SlotProduct(slot));
                 var stock = UiText.F("ui.tag.stock", ("have", _host.Sim.Inventory.Count(slot, product.Id)), ("max", product.UnitsPerShelfSlot));
                 return ((string?)product.Id, Text: $"{UiText.T(product.NameKey)}  {UiText.Money(_host.Sim.Prices.PriceOf(product.Id))}  {stock}{FreshnessNote(slot, product)}");
             })
@@ -329,6 +330,9 @@ public partial class StoreView : Node2D
             .Max(p => Mortality.ChancePermille(settings, p, quality));
         yield return UiText.F("ui.water.risk", ("risk", (risk / 10.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)));
     }
+
+    /// <summary>What a slot sells: its shelf assignment, or for a deli station today's menu item.</summary>
+    private string? SlotProduct(StockLocation slot) => _host.Sim.Shelves.ProductAt(slot) ?? _host.Sim.Menu.GetValueOrDefault(slot)?.DishId;
 
     /// <summary>For produce: the freshest batch's tier, plus the sale price if a batch is marked down to clear.</summary>
     private string FreshnessNote(StockLocation slot, ProductDef product)
@@ -435,6 +439,12 @@ public partial class StoreView : Node2D
                 // The crates are filled below with the actual produce.
                 name = sprite.Empty ?? sprite.Main;
             }
+            else if (DataValidator.IsDeliStation(def.Kind))
+            {
+                // Steam table trays are filled below with the dishes actually there.
+                var stocked = _host.Sim.Inventory.Holds(f.InstanceId);
+                name = def.Kind == FixtureKind.SteamTable || !stocked ? sprite.Empty ?? sprite.Main : sprite.Main;
+            }
             else if (def.Kind == FixtureKind.FishTank)
             {
                 var stocked = _host.Sim.Inventory.Holds(f.InstanceId) || _host.Sim.DeadIn(f.InstanceId).Count > 0;
@@ -459,6 +469,8 @@ public partial class StoreView : Node2D
         if (def.Kind == FixtureKind.CuttingTable) DrawChopping(f, cells[0].Cell);
         if (def.Kind == FixtureKind.SeafoodCounter) DrawChopping(f, cells[0].Cell);
         if (def.Kind == FixtureKind.FishTank) DrawTankExtras(f, TopLeftOf(cells[0].Cell));
+        if (def.Kind == FixtureKind.SteamTable) DrawTrays(f, def, TopLeftOf(cells[0].Cell));
+        if (def.Kind == FixtureKind.WokStove) DrawWokFire(f, TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.IceTable && HasMarkdown(f, def)) DrawSaleCard(TopLeftOf(cells[0].Cell));
         if (def.Kind == FixtureKind.ProduceStand) DrawProduce(f, def, TopLeftOf(cells[0].Cell) + new Vector2(0, _effects.FixtureFeel(f.InstanceId).Lift));
 
@@ -578,6 +590,36 @@ public partial class StoreView : Node2D
         DrawLine(at - new Vector2(size, 0), at + new Vector2(size, 0), glint, 1);
         DrawLine(at - new Vector2(0, size), at + new Vector2(0, size), glint, 1);
         DrawRect(new Rect2(at - Vector2.One, new Vector2(2, 2)), Colors.White);
+    }
+
+    /// <summary>Left edge of each tray on the steam table sprite, one per slot (tools/art/make_sprites.py).</summary>
+    private static readonly int[] TrayX = [2, 9, 16, 23];
+
+    /// <summary>Each tray with food shows its dish's icon.</summary>
+    private void DrawTrays(PlacedFixture table, FixtureDef def, Vector2 topLeft)
+    {
+        for (var slot = 0; slot < Math.Min(def.Capacity, TrayX.Length); slot++)
+        {
+            var dish = _host.Sim.Inventory.TryGet(new StockLocation(table.InstanceId, slot))?.Lots.FirstOrDefault()?.ProductId;
+            if (dish is not null) DrawIconAt(this, dish, topLeft + new Vector2(TrayX[slot] + 3, 13), 9, 1);
+        }
+    }
+
+    /// <summary>While someone cooks at this stove: a flickering flame and rising steam.</summary>
+    private void DrawWokFire(PlacedFixture stove, Vector2 topLeft)
+    {
+        var cooking = _host.Sim.Workers.Any(w => w.Step == WorkStep.Cooking && w.TaskId is { } id && _host.Sim.Tasks.Find(id) is CookTask c && c.StoveInstanceId == stove.InstanceId);
+        if (!cooking) return;
+
+        var t = _effects.Clock;
+        var flicker = Mathf.Sin(t * 20) * 1.5f;
+        DrawRect(new Rect2(topLeft + new Vector2(4, 12 - flicker), new Vector2(10, 3 + flicker)), new Color(1f, 0.55f, 0.15f));
+        DrawRect(new Rect2(topLeft + new Vector2(18, 12 + flicker), new Vector2(10, 3 - flicker)), new Color(1f, 0.55f, 0.15f));
+        for (var i = 0; i < 3; i++)
+        {
+            var rise = (t * 8 + i * 5) % 12;
+            DrawRect(new Rect2(topLeft + new Vector2(7 + i * 8, 6 - rise), new Vector2(2, 2)), new Color(1, 1, 1, 1 - rise / 12));
+        }
     }
 
     private bool IsWaterBad(int tankInstanceId) =>
