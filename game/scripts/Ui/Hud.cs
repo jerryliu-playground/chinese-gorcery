@@ -257,6 +257,19 @@ public partial class Hud : Control
 
     public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 
+    /// <summary>Pops up a festival reminder or event notice (the tour uses it for notices from skipped time).</summary>
+    public void ShowNotice(SimEvent notice)
+    {
+        _notices.Add(notice);
+        ShowOnly(_notices);
+    }
+
+    public void ShowSeasonReport(Sim.Economy.QuarterReport report)
+    {
+        _quarter.Report = report;
+        ShowOnly(_quarter);
+    }
+
     public T Panel<T>() where T : PanelBase => _panels.OfType<T>().Single();
 
     public void CloseAllPanels()
