@@ -28,6 +28,7 @@ public sealed partial class GameSim
         if (Rng.NextInt(0, SecondsPerHour) < perHourTimesSeconds % SecondsPerHour) count++;
 
         for (var i = 0; i < count; i++) SpawnCustomer();
+        SpawnRushArrivals();
     }
 
     private int CurrentArrivalRate() =>
@@ -37,10 +38,16 @@ public sealed partial class GameSim
     {
         var types = Data.CustomerTypes;
         var type = types[PickWeighted(types.Select(t => t.ArrivalWeight).ToList())];
+        SpawnCustomer(type, null);
+    }
+
+    /// <summary>A customer of the type comes in, with the given list or one drawn from what is on sale.</summary>
+    private void SpawnCustomer(CustomerTypeDef type, List<string>? shoppingList)
+    {
         var doors = EntranceCells();
         var door = doors[doors.Count == 1 ? 0 : Rng.NextInt(0, doors.Count)];
 
-        var customer = new Customer(_nextCustomerId++, type.Id, door, BuildShoppingList(type));
+        var customer = new Customer(_nextCustomerId++, type.Id, door, shoppingList ?? BuildShoppingList(type));
         _customers.Add(customer);
         Economy.Today.CountCustomer();
         _events.Add(new CustomerEntered(customer.Id, type.Id));
@@ -65,7 +72,7 @@ public sealed partial class GameSim
     internal List<string> BuildShoppingList(CustomerTypeDef type)
     {
         var onDisplay = Inventory.Locations
-            .Where(p => IsDisplay(p.Location.FixtureInstanceId))
+            .Where(p => IsDisplay(p.Location.FixtureInstanceId) || IsDeliStation(p.Location.FixtureInstanceId))
             .SelectMany(p => p.Lots.Select(l => l.ProductId))
             .Where(id => !IsProduce(id) || type.ProduceCategories is not { } only || only.Contains(_products[id].Category!.Value))
             .Distinct()
@@ -157,6 +164,12 @@ public sealed partial class GameSim
             if (_products[productId].Live?.KillToOrder == true)
             {
                 if (TryQueueAtCounter(customer, type, productId)) return;
+                continue;
+            }
+
+            if (_products[productId].Department == Department.Deli)
+            {
+                if (TryQueueForDish(customer, type, productId)) return;
                 continue;
             }
 
@@ -334,6 +347,13 @@ public sealed partial class GameSim
             {
                 // Already killed at the counter: it can only go on as chilled goods.
                 KeepAsChilled(lot);
+                continue;
+            }
+
+            if (IsDeliStation(from.FixtureInstanceId))
+            {
+                // Hot food goes back on its station (it is thrown away at closing if unsold).
+                Inventory.GetOrCreate(from).Add(lot);
                 continue;
             }
 

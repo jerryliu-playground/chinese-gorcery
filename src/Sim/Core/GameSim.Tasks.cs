@@ -23,6 +23,7 @@ public sealed partial class GameSim
         RefreshTankTasks();
         RefreshKillTasks();
         RefreshCookTasks();
+        RefreshServeTasks();
     }
 
     private void RefreshRestockTasks()
@@ -129,6 +130,7 @@ public sealed partial class GameSim
         RemoveDeadTask r => r.TankInstanceId,
         KillFishTask k => k.Source.FixtureInstanceId,
         CookTask c => c.StoveInstanceId,
+        ServeDeliTask s => s.StationInstanceId,
         _ => throw new ArgumentOutOfRangeException(nameof(task)),
     };
 
@@ -221,6 +223,15 @@ public sealed partial class GameSim
                 if (!StartCooking(worker, c))
                 {
                     // The ingredients went (sold or used) before the cook got to the stove.
+                    FinishTask(worker, completed: false);
+                    return;
+                }
+
+                break;
+
+            case ServeDeliTask s:
+                if (!StartPacking(worker, s))
+                {
                     FinishTask(worker, completed: false);
                     return;
                 }
@@ -461,6 +472,10 @@ public sealed partial class GameSim
             case (WorkStep.Cleaning, CleanTankTask c):
                 CleanTank(worker, c.TankInstanceId);
                 FinishTask(worker, completed: true);
+                break;
+
+            case (WorkStep.Packing, ServeDeliTask s):
+                FinishPacking(worker, s);
                 break;
 
             case (WorkStep.Cooking, CookTask c):
