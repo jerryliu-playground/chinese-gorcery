@@ -63,59 +63,57 @@ Run: days=30 seed=1 stockTarget=40
       produce: units 20, revenue 43.80, loss 0.00
       * placed fish_tank at 27,3
       * hired fishmonger
-  23      710.27    1007.18     394.20    250.00    150.00      0.00      212.98      923.25    68    17       14      35
-      sold: bok_choy 8, chili_crisp 24, jasmine_tea 12, live_fish 6, live_shrimp 12, milk_candy 18, napa_cabbage 8, noodles_instant 23, pork_belly 3, pork_loin 1, pork_ribs 4, rice_jasmine 19, shrimp_chips 11, soy_milk 8, soy_sauce_light 15
+  23      710.27     964.70     394.20    250.00    150.00      0.00      170.50      880.77    67    16       13      35
+      sold: bok_choy 8, chili_crisp 24, jasmine_tea 13, live_fish 4, live_shrimp 12, milk_candy 17, napa_cabbage 8, noodles_instant 23, pork_belly 3, pork_loin 1, pork_ribs 4, rice_jasmine 19, shrimp_chips 11, soy_milk 8, soy_sauce_light 15
       produce: units 16, revenue 35.84, loss 0.00
-      seafood: units 18, revenue 263.82, deaths 0, loss 0.00
-      * placed shellfish_tank at 26,3
-  24      923.25    1003.78     542.00    250.00    300.00     15.00      -88.22      835.03    60    10        6      33
-      sold: bok_choy 12, chili_crisp 8, crab 8, ground_pork 4, jasmine_tea 9, lobster 3, milk_candy 10, napa_cabbage 8, noodles_instant 17, pork_belly 7, pork_loin 4, pork_ribs 4, rice_jasmine 17, shrimp_chips 11, soy_milk 9, soy_sauce_light 11
+      seafood: units 16, revenue 223.84, deaths 0, loss 0.00
+      * placed shellfish_tank at 27,5
+  24      880.77     881.41     540.70    250.00    300.00     18.00     -209.29      671.48    58     5        8      40
+      sold: bok_choy 12, chili_crisp 8, crab 8, ground_pork 2, jasmine_tea 6, lobster 1, milk_candy 10, napa_cabbage 8, noodles_instant 17, pork_belly 6, pork_loin 7, pork_ribs 8, rice_jasmine 17, shrimp_chips 11, soy_milk 6, soy_sauce_light 12
       produce: units 20, revenue 43.80, loss 0.00
-      seafood: units 11, revenue 344.89, deaths 0, loss 0.00
-      * placed ice_table at 27,5
+      seafood: units 9, revenue 194.91, deaths 0, loss 0.00
+      * placed ice_table at 26,3
       * placed wok_stove at 27,7
-  25      835.03     694.51     449.40    390.00    200.00     11.75     -344.89      490.14   115    61       11      42
-      sold: bok_choy 8, braised_pork 4, chili_crisp 8, clams 10, garlic_clams 5, jasmine_tea 6, live_fish 3, live_shrimp 3, milk_candy 6, napa_cabbage 7, noodles_instant 12, pork_belly 1, pork_loin 4, pork_ribs 2, rice_jasmine 10, salt_pepper_shrimp 5, shrimp_chips 8, soy_milk 6, soy_sauce_light 5, sweet_sour_ribs 4
-      produce: units 15, revenue 33.35, loss 0.00
-      seafood: units 16, revenue 170.84, deaths 0, loss 0.00
-      deli: units 18, revenue 138.70, loss 11.75, near-expiry cooked 6.00
+  25      671.48     719.84     446.40    250.00      0.00     12.00       23.44      694.92    64    21        9      29
+      sold: bok_choy 8, chili_crisp 6, clams 16, jasmine_tea 8, live_fish 5, live_shrimp 10, milk_candy 7, napa_cabbage 8, noodles_instant 15, pork_belly 4, pork_loin 1, rice_jasmine 10, shrimp_chips 5, soy_milk 5, soy_sauce_light 8
+      produce: units 16, revenue 35.84, loss 0.00
+      seafood: units 31, revenue 339.69, deaths 0, loss 12.00
+  26      694.92     839.04     294.30    250.00      0.00     66.50      294.74      989.66    69    15        5      41
+      sold: bok_choy 12, chili_crisp 14, clams 13, crab 8, ground_pork 3, jasmine_tea 6, live_shrimp 2, milk_candy 13, napa_cabbage 8, noodles_instant 16, pork_belly 10, pork_loin 5, pork_ribs 8, rice_jasmine 8, shrimp_chips 7, soy_milk 11, soy_sauce_light 13
+      produce: units 20, revenue 43.80, loss 0.00
+      seafood: units 23, revenue 226.58, deaths 0, loss 50.00
+  27      989.66     856.56     352.60    390.00    200.00     23.50      -86.04      903.62   107    37       28      61
+      sold: bok_choy 5, chili_crisp 16, clams 9, garlic_clams 8, jasmine_tea 4, live_fish 4, live_shrimp 6, milk_candy 4, napa_cabbage 8, noodles_instant 24, pork_loin 3, rice_jasmine 14, salt_pepper_shrimp 8, shrimp_chips 5, soy_milk 10, soy_sauce_light 8, stir_fried_bok_choy 6
+      produce: units 13, revenue 29.87, loss 0.00
+      seafood: units 19, revenue 219.31, deaths 0, loss 23.50
+      deli: units 22, revenue 166.76, loss 0.00, near-expiry cooked 10.00
       * placed steam_table at 26,7
       * hired chef
-  26      490.14    1082.22     274.40    390.00      0.00      9.00      417.82      907.96   117    43       32      40
-      sold: bok_choy 6, chili_crisp 9, clams 19, crab 8, garlic_clams 12, ground_pork 8, jasmine_tea 4, live_shrimp 1, lobster 1, milk_candy 6, napa_cabbage 9, noodles_instant 11, pork_belly 9, pork_loin 4, pork_ribs 8, rice_jasmine 6, salt_pepper_shrimp 8, shrimp_chips 8, soy_milk 8, soy_sauce_light 12, stir_fried_bok_choy 12
-      produce: units 15, revenue 34.35, loss 0.00
-      seafood: units 29, revenue 327.74, deaths 0, loss 0.00
-      deli: units 32, revenue 244.16, loss 0.00, near-expiry cooked 0.00
-  27      907.96     997.31     407.60    390.00    200.00     18.00       -0.29      907.67   108    38       15      49
-      sold: bok_choy 2, chili_crisp 7, clams 11, garlic_clams 8, jasmine_tea 8, live_fish 4, live_shrimp 1, lobster 2, milk_candy 11, napa_cabbage 7, noodles_instant 22, pork_belly 1, pork_loin 4, rice_jasmine 11, salt_pepper_shrimp 12, shrimp_chips 7, soy_milk 9, soy_sauce_light 8, stir_fried_bok_choy 12
-      produce: units 9, revenue 21.41, loss 0.00
-      seafood: units 18, revenue 324.32, deaths 0, loss 18.00
-      deli: units 32, revenue 253.76, loss 0.00, near-expiry cooked 2.50
-      * placed roast_station at 27,9
-  28      907.67     793.90     359.70    390.00    200.00     52.95     -155.80      751.87   120    72       12      29
-      sold: bok_choy 6, char_siu 5, chili_crisp 7, clams 15, crab 8, garlic_clams 4, ground_pork 6, jasmine_tea 4, live_shrimp 1, milk_candy 3, napa_cabbage 8, noodles_instant 1, pork_belly 2, pork_loin 4, pork_ribs 6, rice_jasmine 8, roast_duck 4, salt_pepper_shrimp 7, shrimp_chips 5, soy_milk 7, soy_sauce_light 3, stir_fried_bok_choy 1
+  28      903.62    1066.60     408.20    390.00    200.00     16.50       68.40      972.02    94    32       11      34
+      sold: bok_choy 6, chili_crisp 7, clams 16, crab 8, garlic_clams 8, ground_pork 3, jasmine_tea 6, lobster 2, milk_candy 8, napa_cabbage 8, noodles_instant 13, pork_belly 4, pork_loin 6, pork_ribs 3, rice_jasmine 10, salt_pepper_shrimp 4, shrimp_chips 10, soy_milk 6, soy_sauce_light 17, stir_fried_bok_choy 12
       produce: units 14, revenue 31.86, loss 0.00
-      seafood: units 24, revenue 244.26, deaths 0, loss 0.00
-      deli: units 21, revenue 176.24, loss 40.95, near-expiry cooked 0.00
+      seafood: units 26, revenue 386.35, deaths 0, loss 0.00
+      deli: units 24, revenue 181.52, loss 0.00, near-expiry cooked 0.00
+      * placed roast_station at 27,9
+  29      972.02     794.84     385.70    390.00    450.00     56.50     -430.86      541.16   120    58        9      55
+      sold: bok_choy 8, braised_pork 3, char_siu 8, chili_crisp 8, clams 9, garlic_clams 2, jasmine_tea 4, live_fish 5, live_shrimp 6, milk_candy 5, napa_cabbage 8, noodles_instant 13, pork_belly 2, pork_loin 2, pork_ribs 1, rice_jasmine 7, roast_duck 8, salt_pepper_shrimp 4, shrimp_chips 6, soy_milk 4, soy_sauce_light 8, sweet_sour_ribs 3
+      produce: units 16, revenue 35.84, loss 0.00
+      seafood: units 20, revenue 239.30, deaths 0, loss 12.00
+      deli: units 28, revenue 232.60, loss 44.50, near-expiry cooked 12.00
       * placed wok_stove at 27,11
-  29      751.87     917.81     324.90    390.00    250.00     21.75      -47.09      704.78   106    37       24      49
-      sold: bok_choy 7, braised_pork 5, chili_crisp 11, clams 8, garlic_clams 9, jasmine_tea 9, live_fish 6, live_shrimp 3, milk_candy 10, napa_cabbage 8, noodles_instant 9, pork_belly 4, pork_loin 4, rice_jasmine 12, salt_pepper_shrimp 7, shrimp_chips 4, soy_milk 7, soy_sauce_light 12, sweet_sour_ribs 5
-      produce: units 15, revenue 33.85, loss 0.00
-      seafood: units 17, revenue 215.83, deaths 0, loss 12.00
-      deli: units 26, revenue 226.35, loss 9.75, near-expiry cooked 9.00
       * placed produce_stand at 18,6
-  30      704.78     812.87     442.60    390.00      0.00     53.51      -19.73      685.05   123    60        4      83
-      sold: bok_choy 7, braised_lobster 4, chili_crisp 8, clams 10, crab 8, garlic_clams 3, ginger 6, jasmine_tea 2, live_shrimp 3, lobster 1, milk_candy 4, napa_cabbage 8, noodles_instant 7, rice_jasmine 10, roast_duck 4, salt_pepper_shrimp 2, scallion 7, shrimp_chips 5, soy_milk 5, soy_sauce_light 12, stir_fried_bok_choy 4
-      produce: units 28, revenue 49.72, loss 0.00
-      seafood: units 22, revenue 305.78, deaths 0, loss 0.00
-      deli: units 17, revenue 164.90, loss 53.51, near-expiry cooked 25.00
+  30      541.16     899.91     321.70    390.00      0.00     32.71      188.21      729.37   130    69       35      52
+      sold: bok_choy 5, braised_lobster 3, chili_crisp 11, clams 11, crab 8, garlic_clams 8, ginger 2, jasmine_tea 5, lobster 2, milk_candy 6, napa_cabbage 5, noodles_instant 13, rice_jasmine 9, salt_pepper_shrimp 4, scallion 8, shrimp_chips 4, soy_milk 6, soy_sauce_light 14, stir_fried_bok_choy 6
+      produce: units 20, revenue 33.30, loss 0.00
+      seafood: units 21, revenue 351.16, deaths 0, loss 0.00
+      deli: units 21, revenue 196.33, loss 32.71, near-expiry cooked 25.00
 
-Totals: revenue=22081.65 profit=-1314.95 customers=2360 angry=565 notFound=577 tooExpensive=1235
-Produce: units=224 revenue=484.86 loss=0.00
-Seafood: units=155 revenue=2197.48 deaths=0 loss=30.00
-Deli: units=146 revenue=1204.11 loss=115.96 nearExpiryCooked=42.50
-Waste by department: produce=0.00 seafood=30.00 meat=70.50 (together 100.50)
-Stage: 4  staff: butcher L1 knife 1, fishmonger L4 knife 8, chef L5 knife 5
+Totals: revenue=21794.97 profit=-1270.63 customers=2252 angry=480 notFound=577 tooExpensive=1222
+Produce: units=227 revenue=490.83 loss=0.00
+Seafood: units=165 revenue=2181.14 deaths=0 loss=97.50
+Deli: units=95 revenue=777.21 loss=77.21 nearExpiryCooked=47.00
+Waste by department: produce=0.00 seafood=97.50 meat=85.50 (together 183.00)
+Stage: 4  staff: butcher L1 knife 1, fishmonger L4 knife 8, chef L5 knife 7
 Rejected commands: 0  (orders cut for storage space: 20)
-State hash: 3E14873C64851B3B
+State hash: 1D8B2FC447AAE6B3
 No anomalies.

@@ -43,7 +43,7 @@ public partial class OrderPanel : PanelBase
             var facts = Text("");
             facts.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.66f));
             _rows[product.Id] = (facts, lastDay.FirstOrDefault(s => s.ProductId == product.Id)?.Units ?? 0);
-            Body.AddChild(facts);
+            Body.AddChild(Row(new Control { CustomMinimumSize = new Vector2(16, 0) }, facts));
         }
 
         Refresh();
@@ -55,11 +55,9 @@ public partial class OrderPanel : PanelBase
         foreach (var (id, (facts, sold)) in _rows)
         {
             var product = Host.Data.Products.Single(p => p.Id == id);
-            facts.Text = "    " + string.Join("  ·  ",
-                UiText.F("ui.order.per_slot", ("n", product.UnitsPerStorageSlot)),
-                UiText.F("ui.order.have", ("stock", sim.Inventory.Total(id)), ("pending", sim.PendingOrders.Where(o => o.ProductId == id).Sum(o => o.Quantity))),
-                UiText.F("ui.order.sold_last_day", ("n", sold)),
-                UiText.F("ui.order.room", ("n", sim.RoomFor(id))));
+            facts.Text = UiText.F("ui.order.facts",
+                ("per_slot", product.UnitsPerStorageSlot), ("stock", sim.Inventory.Total(id)),
+                ("pending", sim.PendingOrders.Where(o => o.ProductId == id).Sum(o => o.Quantity)), ("sold", sold), ("room", sim.RoomFor(id)));
         }
 
         foreach (var (storage, label) in _spaces)
