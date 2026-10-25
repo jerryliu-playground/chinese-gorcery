@@ -21,6 +21,9 @@ public enum EventKind
     DayModifier,
     ClearanceOffer,
     GroupOrder,
+
+    /// <summary>Ships at sea arrive late (spec 17.2): every import shipment is pushed back.</summary>
+    ShipDelay,
 }
 
 /// <summary>Row of events.json. The fields after <paramref name="Icon"/> apply to some kinds only.</summary>
@@ -49,13 +52,18 @@ public sealed record EventDef(
     InspectionDef? Inspection = null,
     PowerCutDef? PowerCut = null,
     ClearanceOfferDef? Offer = null,
-    GroupOrderDef? GroupOrder = null);
+    GroupOrderDef? GroupOrder = null,
+    IntRange? DelayDays = null);
 
 /// <summary>The inspector arrives, looks round for a while, then passes or fines the store.</summary>
 /// <param name="MinWaterQuality">Every tank's water must be at least this clean.</param>
 /// <param name="MinTidiness">Every produce stand must be at least this tidy.</param>
 /// <param name="FinePerProblemCents">Fine for each of the three checks failed.</param>
-public sealed record InspectionDef(int ArriveMinuteOfDay, int StayMinutes, int MinWaterQuality, int MinTidiness, long RewardCents, long FinePerProblemCents);
+/// <param name="ReputationReward">With reputation data: points for passing, given instead of <paramref name="RewardCents"/>.</param>
+/// <param name="ReputationPerProblem">With reputation data: points lost for each check failed, on top of the fine.</param>
+public sealed record InspectionDef(
+    int ArriveMinuteOfDay, int StayMinutes, int MinWaterQuality, int MinTidiness, long RewardCents, long FinePerProblemCents,
+    int ReputationReward = 0, int ReputationPerProblem = 0);
 
 /// <summary>
 /// Power is out between the two times: chilled goods lose <paramref name="AgeDays"/> of shelf life when it goes and

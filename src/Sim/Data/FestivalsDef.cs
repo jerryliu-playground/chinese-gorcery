@@ -7,6 +7,7 @@ namespace ChineseGrocery.Sim.Data;
 /// <param name="OrderWindowDays">Festival goods can be ordered while their festival is 1 to this many days away.</param>
 /// <param name="OffSeasonDemandPermille">Demand for festival goods outside their festival's window.</param>
 /// <param name="DecorationBonusPermille">Demand for a festival's goods while one of its decorations is hung (prep and day only).</param>
+/// <param name="DecorationReputation">With reputation data: points at the close of a festival day with one of its decorations hung.</param>
 public sealed record FestivalsDef(
     int DefaultPrepDays,
     int OrderWindowDays,
@@ -15,7 +16,8 @@ public sealed record FestivalsDef(
     FestivalCurveDef Curve,
     IReadOnlyList<FestivalDecorationDef> Decorations,
     IReadOnlyList<FestivalDef> Festivals,
-    [property: JsonPropertyName("_tbd")] bool Tbd = false);
+    [property: JsonPropertyName("_tbd")] bool Tbd = false,
+    int DecorationReputation = 0);
 
 /// <summary>
 /// How much of a festival's peak demand applies on each day around it, as a share (permille): rising in a straight line

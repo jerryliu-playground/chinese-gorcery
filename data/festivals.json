@@ -3,6 +3,7 @@
   "orderWindowDays": 10,
   "offSeasonDemandPermille": 30,
   "decorationBonusPermille": 1250,
+  "decorationReputation": 2,
   "curve": { "prepStartSharePermille": 150, "eveSharePermille": 700, "afterSharesPermille": [400, 100] },
   "decorations": [
     { "id": "couplet_left", "nameKey": "decoration.couplet_left.name", "sprite": "deco_couplet_left", "costCents": 1500, "festivals": ["spring_festival"] },

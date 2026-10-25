@@ -13,7 +13,7 @@
     },
     {
       "id": "hygiene_inspection", "nameKey": "event.hygiene_inspection.name", "kind": "inspection", "negative": true, "weight": 8, "icon": "ui_inspection",
-      "inspection": { "arriveMinuteOfDay": 780, "stayMinutes": 30, "minWaterQuality": 50, "minTidiness": 40, "rewardCents": 5000, "finePerProblemCents": 10000 }
+      "inspection": { "arriveMinuteOfDay": 780, "stayMinutes": 30, "minWaterQuality": 50, "minTidiness": 40, "rewardCents": 5000, "finePerProblemCents": 10000, "reputationReward": 3, "reputationPerProblem": 2 }
     },
     {
       "id": "power_cut", "nameKey": "event.power_cut.name", "kind": "power_cut", "negative": true, "weight": 6, "icon": "ui_power_out", "minStage": 2,
@@ -34,6 +34,10 @@
     {
       "id": "group_order", "nameKey": "event.group_order.name", "kind": "group_order", "negative": false, "weight": 8, "icon": "ui_phone",
       "groupOrder": { "products": { "min": 1, "max": 2 }, "units": { "min": 6, "max": 12 }, "rewardPermille": 1300, "pickupMinuteOfDay": 720 }
+    },
+    {
+      "id": "ship_delay", "nameKey": "event.ship_delay.name", "kind": "ship_delay", "negative": true, "weight": 8, "icon": "ui_truck", "minStage": 2,
+      "delayDays": { "min": 2, "max": 5 }
     }
   ],
   "_tbd": true

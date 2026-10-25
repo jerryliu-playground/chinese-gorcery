@@ -225,6 +225,7 @@ public sealed partial class GameSim
             if (worker.Step == WorkStep.Carrying && worker.Carrying.Count == 0) FinishTask(worker, completed: false);
         }
 
+        ReputationFromDecorations();
         CloseReputationDay();
         var report = AnnotateReport(Economy.CloseDay());
 

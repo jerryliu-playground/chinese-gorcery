@@ -83,11 +83,13 @@ public sealed partial class GameSim
             EventKind.CostRise => e with { Department = Pick(SellingProducts().Select(p => p.Department).Distinct().Order().ToList()) },
             EventKind.ClearanceOffer => ClearanceOffer(e, def.Offer!),
             EventKind.GroupOrder => GroupOrderRequest(e, def.GroupOrder!),
+            EventKind.ShipDelay => e with { DelayDays = _eventRng.NextInt(def.DelayDays!.Value.Min, def.DelayDays.Value.Max + 1) },
             _ => e,
         };
 
         _storeEvents.Add(e);
         _events.Add(new StoreEventAnnounced(e));
+        if (def.Kind == EventKind.ShipDelay) DelayShipments(e.DelayDays);
     }
 
     private bool CanHappen(EventDef def, EventsDef rules)
@@ -104,6 +106,7 @@ public sealed partial class GameSim
             EventKind.PowerCut => def.PowerCut is not null,
             EventKind.ClearanceOffer => def.Offer is { } offer && ClearanceCandidates(offer).Count > 0,
             EventKind.GroupOrder => def.GroupOrder is not null && SellingProducts().Any(p => p.Live is null),
+            EventKind.ShipDelay => def.DelayDays is not null && Shipments.Count > 0,
             _ => true,
         };
     }
@@ -279,17 +282,21 @@ public sealed partial class GameSim
     private void FinishInspection(StoreEvent e, InspectionDef rules)
     {
         var findings = CheckHygiene(rules);
+        var reputation = Data.Reputation is not null;
         long cash;
         if (findings.Passed)
         {
-            cash = rules.RewardCents;
+            // Spec 16.1: once there is reputation, passing earns reputation instead of the small cash reward.
+            cash = reputation && rules.ReputationReward > 0 ? 0 : rules.RewardCents;
             Economy.Refund(ExpenseCategory.Events, cash);
+            if (reputation && rules.ReputationReward > 0) NudgeReputation(rules.ReputationReward, "reputation.reason.inspection_passed");
         }
         else
         {
             var fine = findings.Problems * rules.FinePerProblemCents;
             Economy.Pay(ExpenseCategory.Events, fine);
             cash = -fine;
+            if (reputation && rules.ReputationPerProblem > 0) NudgeReputation(-findings.Problems * rules.ReputationPerProblem, "reputation.reason.inspection_failed");
         }
 
         Replace(e with { Status = findings.Passed ? StoreEventStatus.Passed : StoreEventStatus.Failed });

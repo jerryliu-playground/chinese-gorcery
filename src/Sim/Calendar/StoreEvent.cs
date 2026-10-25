@@ -12,6 +12,7 @@ namespace ChineseGrocery.Sim.Calendar;
 /// <param name="UnitCostCents">Clearance offer: price per unit.</param>
 /// <param name="BestBeforeDay">Clearance offer: last day the offered stock can be sold.</param>
 /// <param name="GeneratorRented">Power cut: a generator keeps everything running.</param>
+/// <param name="DelayDays">Ship delay: days every shipment at sea was pushed back.</param>
 public sealed record StoreEvent(
     int Id,
     string EventId,
@@ -24,7 +25,8 @@ public sealed record StoreEvent(
     IReadOnlyList<StockEntryDef>? Goods = null,
     long UnitCostCents = 0,
     int BestBeforeDay = 0,
-    bool GeneratorRented = false)
+    bool GeneratorRented = false,
+    int DelayDays = 0)
 {
     public bool IsOn(int day) => StartDay <= day && day <= EndDay;
 }

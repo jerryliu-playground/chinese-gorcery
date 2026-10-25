@@ -553,6 +553,9 @@ customer.restaurant.line.price,What's your wholesale price?,批发价多少？
 reputation.reason.customers,Customer satisfaction,顾客满意度
 reputation.reason.group_order_delivered,Group order delivered,团购订单按时交付
 reputation.reason.group_order_failed,Group order missed,团购订单没完成
+reputation.reason.inspection_passed,Passed the hygiene inspection,卫生检查通过
+reputation.reason.inspection_failed,Failed the hygiene inspection,卫生检查没通过
+reputation.reason.decorations,Festival decorations,节日装饰
 review.sold_out_1.text,"Wanted {product}, but the shelf was empty.",想买{product}，结果货架上已经空了。
 review.sold_out_2.text,{product} sells out fast here. Come early!,{product}卖得好快，要早点来！
 review.not_found_1.text,Couldn't find any {product}.,找了半天也没找到{product}。
@@ -662,6 +665,7 @@ event.rainy_day.name,Rainy day,下雨天
 event.influencer_visit.name,Influencer visit,网红打卡
 event.clearance_offer.name,Clearance offer,临期货推销
 event.group_order.name,Group order,老顾客团购
+event.ship_delay.name,Ship delayed,船期延误
 event.supplier_stockout.notice,The supplier will have no {product} from {start} to {end}. Stock up now!,供应商{start}到{end}没有{product}，赶紧囤货吧！
 event.cost_rise.notice,Wholesale prices for {department} go up {percent}% from {start} to {end}.,{start}到{end}，{department}的进价上涨 {percent}%。
 event.hygiene_inspection.notice,"A hygiene inspector visits today around {time}: no spoiled goods on display, clean tank water, tidy produce stands.",今天 {time} 左右卫生检查员会来：货架上不能有坏货，鱼池水要干净，果蔬架要整齐。
@@ -670,6 +674,7 @@ event.rainy_day.notice,Rain all day: fewer shoppers today.,今天一整天下雨
 event.influencer_visit.notice,A food influencer is coming today! Expect crowds after snacks and deli food.,今天有网红来打卡！会有很多人来买零食和熟食。
 event.clearance_offer.notice,A supplier offers {qty} {product} near expiry (sell by {date}) for {cost} in all.,供应商低价推销 {qty} 件临期{product}（{date}前要卖掉），一共 {cost}。
 event.group_order.notice,"A regular wants {goods} to collect tomorrow at {time}, and will pay {reward}.",老顾客想订 {goods}，明天 {time} 来取，付 {reward}。
+event.ship_delay.notice,"Bad weather at sea: every import ship arrives {days} days late.",海上天气不好：所有在途的进口货都要晚 {days} 天到。
 ui.department.dry_goods,dry goods,干货
 ui.department.sauces,sauces,酱料
 ui.department.snacks,snacks,零食
@@ -729,6 +734,7 @@ ui.notice.reminder_title,{name} is coming,{name}快到了
 ui.notice.goods_item,{qty} {product},{product} {qty} 件
 ui.event.inspector_arrived,The hygiene inspector is here.,卫生检查员来了。
 ui.event.inspection_passed,Inspection passed! Reward {cash}.,卫生检查通过！奖励 {cash}。
+ui.event.inspection_passed_plain,Inspection passed!,卫生检查通过！
 ui.event.inspection_failed,Inspection failed ({problems}). Fine {cash}.,卫生检查没通过（{problems}），罚款 {cash}。
 ui.inspection.spoiled,spoiled goods,坏货
 ui.inspection.water,dirty tank water,鱼池水质差

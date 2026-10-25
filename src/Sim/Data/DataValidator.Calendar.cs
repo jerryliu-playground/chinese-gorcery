@@ -107,6 +107,13 @@ public static partial class DataValidator
                     if (!OpenHours(e.Inspection.ArriveMinuteOfDay) || !OpenHours(e.Inspection.ArriveMinuteOfDay + e.Inspection.StayMinutes)) errors.Add($"{at}: the inspector must come and go during opening hours");
                     if (e.Inspection.StayMinutes <= 0) errors.Add($"{at}: inspection.stayMinutes must be > 0");
                     if (e.Inspection.RewardCents < 0 || e.Inspection.FinePerProblemCents < 0) errors.Add($"{at}: inspection reward and fine must be >= 0");
+                    if (e.Inspection.ReputationReward < 0 || e.Inspection.ReputationPerProblem < 0) errors.Add($"{at}: inspection reputation points must be >= 0");
+                    break;
+                case EventKind.ShipDelay when e.DelayDays is null:
+                    errors.Add($"{at}: a ship_delay event needs delayDays");
+                    break;
+                case EventKind.ShipDelay:
+                    CheckRange(at, "delayDays", e.DelayDays.Value, 1, errors);
                     break;
                 case EventKind.PowerCut when e.PowerCut is not { } p:
                     errors.Add($"{at}: a power cut needs a 'powerCut' block");

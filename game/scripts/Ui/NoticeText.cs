@@ -32,6 +32,7 @@ public static class NoticeText
                 ("goods", string.Join(", ", e.Goods!.Select(g => UiText.F("ui.notice.goods_item", ("qty", g.Quantity), ("product", Product(host, g.ProductId)))))),
                 ("time", UiText.ClockTime(def.GroupOrder!.PickupMinuteOfDay)),
                 ("reward", UiText.Money(e.Goods!.Sum(g => g.Quantity * host.Data.Products.Single(p => p.Id == g.ProductId).SuggestedPriceCents) * def.GroupOrder.RewardPermille / 1000))),
+            EventKind.ShipDelay => UiText.F(key, ("days", e.DelayDays)),
             _ => UiText.T(key),
         };
     }

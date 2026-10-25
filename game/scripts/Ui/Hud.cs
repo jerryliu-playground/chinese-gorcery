@@ -479,6 +479,7 @@ public partial class Hud : Control
             ReputationChanged c when c.ReasonKey != "reputation.reason.customers" && c.After != c.Before =>
                 UiText.F("ui.event.reputation", ("reason", UiText.T(c.ReasonKey)), ("change", (c.After - c.Before).ToString("+0;-0", System.Globalization.CultureInfo.InvariantCulture))),
             Sim.Calendar.InspectorArrived => UiText.T("ui.event.inspector_arrived"),
+            Sim.Calendar.InspectionFinished { Findings.Passed: true, CashCents: 0 } => UiText.T("ui.event.inspection_passed_plain"),
             Sim.Calendar.InspectionFinished { Findings.Passed: true } i => UiText.F("ui.event.inspection_passed", ("cash", UiText.Money(i.CashCents))),
             Sim.Calendar.InspectionFinished i => UiText.F("ui.event.inspection_failed", ("cash", UiText.Money(-i.CashCents)), ("problems", string.Join(", ",
                 new[] { (i.Findings.SpoiledGoods, "ui.inspection.spoiled"), (i.Findings.DirtyWater, "ui.inspection.water"), (i.Findings.MessyStands, "ui.inspection.messy") }

@@ -259,6 +259,14 @@ public sealed partial class GameSim
         };
     }
 
+    /// <summary>Spec 16.1: shoppers like a store dressed for the festival; counted once, at the close of the festival day.</summary>
+    private void ReputationFromDecorations()
+    {
+        if (Data.Festivals is not { DecorationReputation: > 0 } fs || FestivalAround(Clock.Day) is not { Offset: 0 } today) return;
+
+        if (IsDecorated(today.Festival)) NudgeReputation(fs.DecorationReputation, "reputation.reason.decorations");
+    }
+
     private void ReportSeasonIfOver()
     {
         if (Data.Calendar is not { } c || Date is not { } today) return;

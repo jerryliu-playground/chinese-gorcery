@@ -91,4 +91,21 @@ public class DecorationTests
         Assert.Equal(cash, sim.Economy.CashCents);
         Assert.True(sim.IsDecorated(Festivals.Festivals.Single(f => f.Id == "mid_autumn")));
     }
+
+    [Fact]
+    public void A_store_dressed_for_the_festival_gains_reputation_at_the_close_of_the_festival_day_only()
+    {
+        Assert.True(Festivals.DecorationReputation > 0);
+
+        int ReputationAfter(int day, bool decorated)
+        {
+            var sim = Store(Quiet(), day);
+            if (decorated) sim.Run(new BuyDecoration("rabbit_lantern"), new HangDecoration("rabbit_lantern"));
+            sim.OpenAndRunToClose();
+            return sim.Reputation;
+        }
+
+        Assert.Equal(ReputationAfter(MidAutumn, false) + Festivals.DecorationReputation, ReputationAfter(MidAutumn, true));
+        Assert.Equal(ReputationAfter(MidAutumn - 1, false), ReputationAfter(MidAutumn - 1, true));
+    }
 }

@@ -285,7 +285,8 @@ public class EventTests
     [Fact]
     public void The_inspector_visits_then_rewards_a_pass_or_fines_each_problem()
     {
-        var pass = Morning(OnlyEvent("hygiene_inspection"));
+        // Without reputation data (as before M13) a pass earns a small cash reward.
+        var pass = Morning(OnlyEvent("hygiene_inspection") with { Reputation = null });
         var cash = pass.Economy.CashCents;
         OpenUntil(pass, Rules.ArriveMinuteOfDay);
         Assert.False(pass.InspectorPresent);
@@ -306,6 +307,54 @@ public class EventTests
         Assert.Equal(-Rules.FinePerProblemCents, verdict.CashCents);
         Assert.Equal(cash - Rules.FinePerProblemCents, fail.Economy.CashCents);
         Assert.Equal(StoreEventStatus.Failed, Single(fail).Status);
+    }
+
+    [Fact]
+    public void With_reputation_a_pass_earns_reputation_instead_of_cash_and_each_problem_costs_some()
+    {
+        Assert.True(Rules.ReputationReward > 0 && Rules.ReputationPerProblem > 0);
+
+        var pass = Morning(OnlyEvent("hygiene_inspection"));
+        var cash = pass.Economy.CashCents;
+        var reputation = pass.Reputation;
+        pass.DrainEvents();
+        OpenUntil(pass, Rules.ArriveMinuteOfDay + Rules.StayMinutes + 1);
+        Assert.Equal(0, pass.DrainEvents().OfType<InspectionFinished>().Single().CashCents);
+        Assert.Equal(cash, pass.Economy.CashCents);
+        Assert.Equal(reputation + Rules.ReputationReward, pass.Reputation);
+
+        var fail = Morning(OnlyEvent("hygiene_inspection"));
+        Shelve(fail, Rice, 4, bestBefore: fail.Clock.Day - 1);
+        cash = fail.Economy.CashCents;
+        reputation = fail.Reputation;
+        OpenUntil(fail, Rules.ArriveMinuteOfDay + Rules.StayMinutes + 1);
+        Assert.Equal(cash - Rules.FinePerProblemCents, fail.Economy.CashCents);
+        Assert.Equal(reputation - Rules.ReputationPerProblem, fail.Reputation);
+    }
+
+    // --- Ship delay (spec 17.2) ---
+
+    [Fact]
+    public void A_ship_delay_only_comes_while_imports_are_at_sea_and_pushes_every_one_back()
+    {
+        var data = OnlyEvent("ship_delay");
+        var idle = Morning(data);
+        idle.Economy.Stage = 2;
+        NextMorning(idle);
+        Assert.Empty(idle.StoreEvents);
+
+        var sim = Store(data, day: 4);
+        sim.Economy.Stage = 2;
+        var import = sim.Data.Products.First(p => p.Import is not null);
+        Assert.Null(Send(sim, new Sim.Imports.PlaceImportOrder(import.Id, import.Import!.MinUnits)));
+        var due = Assert.Single(sim.Shipments).ArrivalDay;
+        NextMorning(sim);
+
+        var delay = Single(sim);
+        Assert.Equal("ship_delay", delay.EventId);
+        Assert.InRange(delay.DelayDays, 2, 5);
+        Assert.Equal(due + delay.DelayDays, Assert.Single(sim.Shipments).ArrivalDay);
+        Assert.Single(sim.DrainEvents().OfType<Sim.Imports.ShipmentsDelayed>());
     }
 
     // --- Power cut ---
@@ -390,14 +439,14 @@ public class EventTests
     [Fact]
     public void The_daily_report_lists_the_festival_and_the_events_and_balances()
     {
-        var sim = Morning(OnlyEvent("hygiene_inspection"), day: MidAutumn - 2);
+        var sim = Morning(OnlyEvent("hygiene_inspection") with { Reputation = null }, day: MidAutumn - 2);
         sim.OpenAndRunToClose();
         var report = sim.Reports[^1];
 
         Assert.Equal(("mid_autumn", -2), (report.FestivalId, report.FestivalDayOffset));
         Assert.Equal(["hygiene_inspection"], report.EventIds!);
         Assert.Equal(-Rules.RewardCents, report.EventCostCents);
-        Assert.Equal(report.RevenueCents - report.PurchaseCostCents - report.WagesCents - report.FixtureSpendCents - report.EventCostCents, report.ProfitCents);
+        Assert.Equal(report.RevenueCents - report.PurchaseCostCents - report.WagesCents - report.FixtureSpendCents - report.LoanPaymentCents - report.EventCostCents, report.ProfitCents);
         Assert.Equal(report.CashEndCents - report.CashStartCents, report.ProfitCents);
     }
 }
