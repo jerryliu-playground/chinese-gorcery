@@ -399,3 +399,47 @@ review.labels_confused_1.text,Wish the price tags were in English too.,希望价
 review.labels_loved_1.text,Love the bilingual labels. Easy to shop here.,双语价签很贴心，买东西方便多了。
 review.group_order_delivered_1.text,Our restaurant's order was ready on time. We'll be back.,餐馆订的货按时备齐了，下次还来。
 review.group_order_failed_1.text,They couldn't fill our restaurant's order.,餐馆订的货没备齐，太耽误事了。
+ui.hud.rating,{stars} {rep},{stars} {rep}
+ui.hud.trend,This season's trend: {products},这季流行：{products}
+ui.list.separator,", ",、
+ui.hud.reviews,Reviews,点评
+ui.hud.group_orders,Group,团购
+ui.reviews.title,Reviews & Reputation,点评与口碑
+ui.reviews.reputation,Reputation {rep}/100  {stars},口碑 {rep}/100  {stars}
+ui.reviews.no_trend,Nothing is trending this season.,这季没有流行商品。
+ui.reviews.labels_owned,Bilingual price labels: up,双语价签：已安装
+ui.reviews.labels_missing,Bilingual price labels: not yet (Upgrade),双语价签：还没有（在“升级”里购买）
+ui.reviews.chart,Reputation over the last days,最近的口碑走势
+ui.reviews.recent,Recent reviews,最近的点评
+ui.reviews.none,No reviews yet. They come in at closing.,还没有点评，打烊后会有。
+ui.reviews.someone,A customer,一位顾客
+ui.reviews.header,Day {day}  {stars}  {who},第 {day} 天  {stars}  {who}
+ui.reviews.star_on,★,★
+ui.reviews.star_off,☆,☆
+ui.group.title,Restaurant Group Orders,餐馆团购
+ui.group.none,"No group orders right now. Restaurant buyers come once the store has 3 stars and both meat and seafood, and sometimes ask for a bulk order.",目前没有团购订单。店铺达到 3 星、并且有肉类和海鲜部后，餐馆采购会来店里，偶尔会下团购订单。
+ui.group.offer,{buyer} wants to place an order:,{buyer}想订一批货：
+ui.group.active,Order due at closing on day {day} ({days} days left):,进行中的订单，第 {day} 天打烊前交付（还剩 {days} 天）：
+ui.group.progress,set aside {have}/{need},已备 {have}/{need}
+ui.group.line,x{qty} at {price},{qty} 件 × {price}
+ui.group.deadline,Deadline: {days} days after accepting,期限：接单后 {days} 天
+ui.group.reward,Pays {money} (wholesale price),报酬 {money}（批发价）
+ui.group.accept,Accept,接单
+ui.group.decline,Decline,拒绝
+ui.group.reserved_note,"Goods for the order are set aside from storage as they come in and are not put on shelves. It is delivered at closing once complete; short on the due day, it is cancelled and reputation drops.",订单需要的货从仓库里预留出来，不会上架。备齐后在打烊时交付；到期还没备齐就取消，口碑下降。
+ui.labels.title,Bilingual price labels,双语价签
+ui.labels.desc,Local shoppers are happier and buy more.,本地顾客更满意，买得更多。
+ui.labels.owned,Installed.,已安装。
+ui.labels.cost,One-off cost {cost},一次性费用 {cost}
+ui.labels.buy,Buy labels,购买价签
+ui.event.group_offered,A restaurant buyer wants a group order. Open Group to answer.,餐馆采购想下团购订单，打开“团购”看看。
+ui.event.group_accepted,Group order accepted: due at closing on day {day}.,已接团购订单：第 {day} 天打烊前交付。
+ui.event.group_delivered,Group order delivered: +{money},团购订单已交付：+{money}
+ui.event.group_failed,Group order missed and cancelled.,团购订单没备齐，已取消。
+ui.event.group_expired,The restaurant's offer has lapsed.,餐馆的订货请求已过期。
+ui.event.labels_bought,Bilingual price labels are up!,双语价签已经挂上了！
+ui.event.new_season,New season! {trend},新的一季！{trend}
+ui.event.reviews,{count} new reviews. See Reviews.,有 {count} 条新点评，去“点评”看看。
+ui.event.reputation,Reputation {change}: {reason},口碑 {change}：{reason}
+ui.report.reputation,Reputation,口碑
+ui.report.reputation_change,{before} → {after},{before} → {after}

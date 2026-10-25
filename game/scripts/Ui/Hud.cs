@@ -2,6 +2,7 @@ using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Customers;
 using ChineseGrocery.Sim.Economy;
 using ChineseGrocery.Sim.Inventory;
+using ChineseGrocery.Sim.Reputation;
 using ChineseGrocery.Sim.Staff;
 using ChineseGrocery.Sim.Tasks;
 using ChineseGrocery.Game.View;
@@ -11,9 +12,9 @@ using Godot;
 namespace ChineseGrocery.Game.Ui;
 
 /// <summary>
-/// Top bar (day, time, cash, stage, speed, open button), a left column of tool buttons and a message line under the
-/// store (showing the controls when there is nothing to say). Turns Sim
-/// events into short translated messages; opens the report when the day closes.
+/// Top bar (day, time, cash, stage, speed, open button), the reputation stars and this season's trend under it, a left
+/// column of tool buttons and a message line under the store (showing the controls when there is nothing to say). Turns
+/// Sim events into short translated messages; opens the report when the day closes.
 /// </summary>
 public partial class Hud : Control
 {
@@ -27,6 +28,9 @@ public partial class Hud : Control
     private readonly Label _cash = new();
     private readonly Label _stage = new();
     private readonly Label _ships = new();
+    private readonly Label _rating = new();
+    private readonly Label _trend = new();
+    private readonly Button _groupOrders = new() { Text = "ui.hud.group_orders" };
     private readonly Label _message = new();
     private readonly Button _open = new() { Text = "ui.hud.open_store" };
     private readonly Button _restockAll = new() { Text = "ui.hud.restock_all" };
@@ -70,6 +74,33 @@ public partial class Hud : Control
             ContentMarginLeft = 3, ContentMarginRight = 3,
         });
         AddChild(_message);
+
+        // Just under the top bar, over the wall: the reputation stars and score, then this season's trend.
+        var info = new PanelContainer { Position = new Vector2(ToolColumnWidth + 4, 19), MouseFilter = MouseFilterEnum.Ignore };
+        info.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.08f, 0.1f, 0.75f),
+            ContentMarginLeft = 3, ContentMarginRight = 3,
+        });
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 6);
+        info.AddChild(row);
+        row.AddChild(new TextureRect
+        {
+            Texture = GD.Load<Texture2D>("res://assets/sprites/ui_star.png"),
+            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+            StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+            CustomMinimumSize = new Vector2(12, 12),
+            TextureFilter = TextureFilterEnum.Nearest,
+        });
+        foreach (var label in new[] { _rating, _trend })
+        {
+            label.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
+            row.AddChild(label);
+        }
+
+        _rating.AddThemeColorOverride("font_color", new Color(1f, 0.85f, 0.4f));
+        AddChild(info);
 
         AddChild(_celebration);
         host.EventsReady += OnEvents;
@@ -169,6 +200,8 @@ public partial class Hud : Control
         var staff = AddPanel<StaffPanel>();
         var upgrade = AddPanel<UpgradePanel>();
         var settings = AddPanel<SettingsPanel>();
+        var reviews = AddPanel<ReviewsPanel>();
+        var groupOrders = AddPanel<GroupOrderPanel>();
         _menu = AddPanel<MenuPanel>();
         _report.OrderRequested += () => ShowOnly(order);
 
@@ -200,6 +233,9 @@ public partial class Hud : Control
         bar.AddChild(PanelButton("ui.hud.menu", _menu));
         bar.AddChild(PanelButton("ui.hud.upgrade", upgrade));
         bar.AddChild(PanelButton("ui.hud.report", _report));
+        bar.AddChild(PanelButton("ui.hud.reviews", reviews));
+        _groupOrders.Pressed += () => ShowOnly(groupOrders);
+        bar.AddChild(_groupOrders);
 
         var save = new Button { Text = "ui.hud.save" };
         save.Pressed += () => _messages.Enqueue(UiText.T(_host.SaveToSlot() ? "ui.event.saved" : "ui.event.save_failed"));
@@ -283,6 +319,12 @@ public partial class Hud : Control
         _ships.Text = sim.Shipments.Count > 0
             ? UiText.F("ui.hud.ships", ("count", sim.Shipments.Count), ("days", sim.Shipments.Min(s => s.ArrivalDay) - sim.Clock.Day))
             : UiText.F("ui.hud.pallets", ("count", sim.Pallets.Count));
+        _rating.Text = UiText.F("ui.hud.rating", ("stars", ReviewsPanel.StarText(sim.Stars)), ("rep", sim.Reputation));
+        _trend.Text = ReviewsPanel.TrendText(_host) ?? "";
+        _trend.Visible = _trend.Text.Length > 0;
+
+        // A waiting offer lights up the group order button.
+        _groupOrders.Modulate = sim.GroupOrders.Any(o => o.Status == GroupOrderStatus.Offered) ? new Color(1f, 0.85f, 0.4f) : Colors.White;
         _open.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         _restockAll.Visible = sim.Clock.Phase == DayPhase.PreOpen;
         foreach (var p in _panels) p.RefreshIfOpen();
@@ -325,6 +367,16 @@ public partial class Hud : Control
             StoreOpened => UiText.T("ui.event.store_opened"),
             ShelvesRestocked s => UiText.F("ui.event.restocked", ("units", s.Units)),
             GoodsReturned g => UiText.F("ui.event.returned", ("product", ProductName(g.ProductId)), ("qty", g.Quantity)),
+            GroupOrderOffered => UiText.T("ui.event.group_offered"),
+            GroupOrderAccepted a => UiText.F("ui.event.group_accepted", ("day", a.DueDay)),
+            GroupOrderClosed { Outcome: GroupOrderOutcome.Delivered } c => UiText.F("ui.event.group_delivered", ("money", UiText.Money(c.PaymentCents))),
+            GroupOrderClosed { Outcome: GroupOrderOutcome.Failed } => UiText.T("ui.event.group_failed"),
+            GroupOrderClosed { Outcome: GroupOrderOutcome.Expired } => UiText.T("ui.event.group_expired"),
+            BilingualLabelsBought => UiText.T("ui.event.labels_bought"),
+            TrendsPicked => ReviewsPanel.TrendText(_host) is { } trend ? UiText.F("ui.event.new_season", ("trend", trend)) : null,
+            ReviewsPosted p when p.Reviews.Count > 0 => UiText.F("ui.event.reviews", ("count", p.Reviews.Count)),
+            ReputationChanged c when c.ReasonKey != "reputation.reason.customers" && c.After != c.Before =>
+                UiText.F("ui.event.reputation", ("reason", UiText.T(c.ReasonKey)), ("change", (c.After - c.Before).ToString("+0;-0", System.Globalization.CultureInfo.InvariantCulture))),
             _ => null,
         };
     }
