@@ -525,9 +525,18 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
                 var pipeline = sim.Inventory.Total(product.Id) + sim.Shipments.Where(s => s.ProductId == product.Id).Sum(s => s.Quantity)
                                + sim.Pallets.SelectMany(p => p.Lots).Where(l => l.ProductId == product.Id).Sum(l => l.Quantity);
                 var cover = (sim.Data.Economy.Imports!.MaxDays + 2) * daily;
-                if (pipeline < cover) Send(sim, new Sim.Imports.PlaceImportOrder(product.Id, Math.Max(import.MinUnits, cover - pipeline)));
+                if (pipeline >= cover) continue;
 
-                continue;
+                // Imports are paid up front: keep the cash reserve for wages and loan payments, and while it is short
+                // keep the shelf going from the local wholesaler.
+                var units = Math.Max(import.MinUnits, cover - pipeline);
+                if (sim.Economy.CashCents >= units * import.CostCents + cashReserveCents)
+                {
+                    Send(sim, new Sim.Imports.PlaceImportOrder(product.Id, units));
+                    continue;
+                }
+
+                if (!product.Orderable) continue;
             }
 
             var fills = sim.Shelves.Assigned.Values.Count(id => id == product.Id) * product.UnitsPerShelfSlot;
