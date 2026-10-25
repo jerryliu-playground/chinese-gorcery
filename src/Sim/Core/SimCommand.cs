@@ -35,4 +35,9 @@ namespace ChineseGrocery.Sim.Core;
 [JsonDerivedType(typeof(AssignManager), "assign_manager")]
 [JsonDerivedType(typeof(SetAutomation), "set_automation")]
 [JsonDerivedType(typeof(SetOrderTarget), "set_order_target")]
+[JsonDerivedType(typeof(Calendar.BuyDecoration), "buy_decoration")]
+[JsonDerivedType(typeof(Calendar.HangDecoration), "hang_decoration")]
+[JsonDerivedType(typeof(Calendar.StoreDecoration), "store_decoration")]
+[JsonDerivedType(typeof(Calendar.AnswerOffer), "answer_offer")]
+[JsonDerivedType(typeof(Calendar.RentGenerator), "rent_generator")]
 public abstract record SimCommand;

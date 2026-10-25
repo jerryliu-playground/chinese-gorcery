@@ -1,0 +1,54 @@
+{
+  "defaultPrepDays": 7,
+  "orderWindowDays": 10,
+  "offSeasonDemandPermille": 30,
+  "decorationBonusPermille": 1250,
+  "curve": { "prepStartSharePermille": 150, "eveSharePermille": 700, "afterSharesPermille": [400, 100] },
+  "decorations": [
+    { "id": "couplet_left", "nameKey": "decoration.couplet_left.name", "sprite": "deco_couplet_left", "costCents": 1500, "festivals": ["spring_festival"] },
+    { "id": "couplet_right", "nameKey": "decoration.couplet_right.name", "sprite": "deco_couplet_right", "costCents": 1500, "festivals": ["spring_festival"] },
+    { "id": "festival_banner", "nameKey": "decoration.festival_banner.name", "sprite": "deco_festival_banner", "costCents": 2000, "festivals": ["dragon_boat", "thanksgiving", "christmas", "spring_festival"] },
+    { "id": "rabbit_lantern", "nameKey": "decoration.rabbit_lantern.name", "sprite": "deco_rabbit_lantern", "costCents": 2500, "festivals": ["mid_autumn"] }
+  ],
+  "festivals": [
+    {
+      "id": "spring_festival", "nameKey": "festival.spring_festival.name", "season": "winter", "day": 20,
+      "goods": ["mandarins", "candy_box", "red_envelope", "nian_gao"], "goodsPeakPermille": 5000,
+      "demand": [
+        { "productId": "crab", "permille": 3000 }, { "productId": "lobster", "permille": 3000 }, { "productId": "live_fish", "permille": 2500 },
+        { "productId": "pork_belly", "permille": 2500 }, { "productId": "dumplings", "permille": 2500 }
+      ],
+      "dayCustomersPermille": 1500,
+      "lineKeys": ["festival.spring_festival.line.0", "festival.spring_festival.line.1"]
+    },
+    {
+      "id": "dragon_boat", "nameKey": "festival.dragon_boat.name", "season": "summer", "day": 5,
+      "goods": ["zongzi", "glutinous_rice"], "goodsPeakPermille": 5000,
+      "demand": [],
+      "dayCustomersPermille": 1300,
+      "lineKeys": ["festival.dragon_boat.line.0", "festival.dragon_boat.line.1"]
+    },
+    {
+      "id": "mid_autumn", "nameKey": "festival.mid_autumn.name", "season": "autumn", "day": 15,
+      "goods": ["mooncake", "mooncake_box"], "goodsPeakPermille": 5000,
+      "demand": [{ "productId": "orange", "permille": 2000 }, { "productId": "crab", "permille": 2500 }],
+      "dayCustomersPermille": 1400,
+      "lineKeys": ["festival.mid_autumn.line.0", "festival.mid_autumn.line.1"]
+    },
+    {
+      "id": "thanksgiving", "nameKey": "festival.thanksgiving.name", "season": "autumn", "day": 25,
+      "goods": [], "goodsPeakPermille": 1000,
+      "demand": [{ "department": "deli", "permille": 1800 }, { "department": "snacks", "permille": 1600 }, { "department": "drinks", "permille": 1600 }],
+      "dayCustomersPermille": 1300,
+      "lineKeys": ["festival.thanksgiving.line.0", "festival.thanksgiving.line.1"]
+    },
+    {
+      "id": "christmas", "nameKey": "festival.christmas.name", "season": "winter", "day": 10,
+      "goods": [], "goodsPeakPermille": 1000,
+      "demand": [{ "department": "deli", "permille": 1800 }, { "department": "snacks", "permille": 1600 }, { "department": "drinks", "permille": 1600 }],
+      "dayCustomersPermille": 1300,
+      "lineKeys": ["festival.christmas.line.0", "festival.christmas.line.1"]
+    }
+  ],
+  "_tbd": true
+}

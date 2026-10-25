@@ -35,7 +35,13 @@ public class StringsCsvTests
             .Concat(data.CustomerTypes.Select(t => t.NameKey))
             .Concat(data.Employees.Roles.Select(r => r.NameKey))
             .Concat(data.Stages.Select(s => s.NameKey))
-            .Concat(data.CustomerTypes.SelectMany(t => t.LineKeys ?? []));
+            .Concat(data.CustomerTypes.SelectMany(t => t.LineKeys ?? []))
+            .Concat(data.Calendar!.Seasons.Select(s => s.NameKey))
+            .Concat(data.Festivals!.Festivals.SelectMany(f => (f.LineKeys ?? []).Append(f.NameKey).Append($"festival.{f.Id}.reminder")))
+            .Concat(data.Festivals.Decorations.Select(d => d.NameKey))
+            .Concat(data.Events!.Events.SelectMany(e => new[] { e.NameKey, $"event.{e.Id}.notice" }))
+            .Concat(Enum.GetValues<Department>().Select(d => "ui.department." + System.Text.Json.JsonNamingPolicy.SnakeCaseLower.ConvertName(d.ToString())))
+            .Concat(Enum.GetValues<Sim.Calendar.StoreEventStatus>().Select(s => "ui.store_event.status." + s.ToString().ToLowerInvariant()));
 
         var missing = nameKeys.Where(k => !keys.Contains(k)).ToList();
 

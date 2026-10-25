@@ -16,16 +16,19 @@ public sealed partial class GameSim
         if (order.Quantity <= 0) return Reject(RejectReason.InvalidQuantity);
         if (!_products.TryGetValue(order.ProductId, out var product)) return Reject(RejectReason.UnknownProduct);
         if (!product.Orderable) return Reject(RejectReason.NotOrderable);
+        if (!InOrderWindow(product.Id)) return Reject(RejectReason.OutOfSeason);
+        if (IsOutOfStock(product.Id)) return Reject(RejectReason.SupplierOutOfStock);
         if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is null) return Reject(RejectReason.NoStorageForProduct);
 
-        var cost = checked(order.Quantity * product.CostCents);
+        var unitCost = CostOf(product);
+        var cost = checked(order.Quantity * unitCost);
         if (!Economy.CanAfford(cost)) return Reject(RejectReason.InsufficientCash);
         if (AllocateStorage(product, order.Quantity) is not { } parts) return Reject(RejectReason.StorageFull);
 
         Economy.Spend(ExpenseCategory.Purchases, cost);
         foreach (var (storage, units) in parts)
         {
-            _orders.Add(new PendingOrder(product.Id, units, product.CostCents, Clock.Day, storage));
+            _orders.Add(new PendingOrder(product.Id, units, unitCost, Clock.Day, storage));
         }
 
         _events.Add(new OrderPlaced(Clock.Day, product.Id, order.Quantity, cost));

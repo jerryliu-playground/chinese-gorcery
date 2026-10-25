@@ -320,7 +320,8 @@ public sealed partial class GameSim
 
                     var spread = (RoleOf(manager)!.KnifeSkill.Max - manager.KnifeSkill) * Data.Employees.ManagerErrorPerPointPermille;
                     var wanted = (int)Math.Max(1, need * (1000L + _staffRng.NextInt(-spread, spread + 1)) / 1000);
-                    var affordable = product.CostCents == 0 ? wanted : (int)Math.Min(wanted, Math.Max(0, Economy.CashCents) / product.CostCents);
+                    var unitCost = CostOf(product);
+                    var affordable = unitCost == 0 ? wanted : (int)Math.Min(wanted, Math.Max(0, Economy.CashCents) / unitCost);
                     var quantity = Math.Min(affordable, RoomFor(product.Id));
                     if (quantity > 0) HandlePlaceOrder(new PlaceOrder(product.Id, quantity));
                     if (quantity < wanted) _events.Add(new AutoOrderShort(product.Id, wanted, quantity));

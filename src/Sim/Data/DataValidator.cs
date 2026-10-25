@@ -41,6 +41,7 @@ public static partial class DataValidator
         ValidateSeafoodSettings(data, errors);
         ValidateRecipes(data, products, errors);
         ValidateDeliSettings(data, errors);
+        ValidateCalendar(data, products, stageIds, errors);
 
         return errors;
     }

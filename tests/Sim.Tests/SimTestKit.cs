@@ -14,7 +14,8 @@ public static class SimTestKit
 
     /// <summary>
     /// The real data minus the opening stock and pre-assigned shelf slots, so mechanics tests start from an empty
-    /// store and control exactly what is in it.
+    /// store and control exactly what is in it. The calendar keeps its dates, but there is no seasonal demand, no
+    /// festivals and no random events (calendar tests use <see cref="CalendarData"/>).
     /// </summary>
     public static GameData Data { get; } = RealData with
     {
@@ -23,7 +24,13 @@ public static class SimTestKit
             StartingStock = [],
             StartingLayout = RealData.Economy.StartingLayout.Select(e => e with { Slots = null }).ToList(),
         },
+        Calendar = RealData.Calendar! with { SeasonalDemand = [] },
+        Festivals = null,
+        Events = null,
     };
+
+    /// <summary><see cref="Data"/> with the real seasons, festivals and random events back on.</summary>
+    public static GameData CalendarData { get; } = Data with { Calendar = RealData.Calendar, Festivals = RealData.Festivals, Events = RealData.Events };
 
     public static GameSim NewSim(ulong seed = 1, GameData? data = null) => new(data ?? Data, seed);
 

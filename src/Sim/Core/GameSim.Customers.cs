@@ -23,7 +23,7 @@ public sealed partial class GameSim
         if (Clock.Phase != DayPhase.Open || Clock.MinuteOfDay >= Data.Economy.CloseMinuteOfDay) return;
 
         // Expected arrivals this tick = rate per hour x tick length; the fractional part is a seeded roll.
-        var perHourTimesSeconds = CurrentArrivalRate() * Data.Economy.SecondsPerTick;
+        var perHourTimesSeconds = (int)((long)CurrentArrivalRate() * Data.Economy.SecondsPerTick * ArrivalPermille() / 1000);
         var count = perHourTimesSeconds / SecondsPerHour;
         if (Rng.NextInt(0, SecondsPerHour) < perHourTimesSeconds % SecondsPerHour) count++;
 
@@ -67,7 +67,10 @@ public sealed partial class GameSim
 
     /// <summary>
     /// Items drawn from what is on display right now: a department by the type's preferences, then a product in it by
-    /// the type's product weights.
+    /// the type's product weights. On days when demand is not normal (season, festivals, events) the draws are scaled:
+    /// a product's weight by its demand, a department's by how far its displayed goods' demand is above or below normal,
+    /// and the list's length by the same amount on average, so a department in demand gets extra items while the others
+    /// keep theirs. With normal demand the draws are exactly the plain ones.
     /// </summary>
     internal List<string> BuildShoppingList(CustomerTypeDef type)
     {
@@ -80,21 +83,62 @@ public sealed partial class GameSim
             .GroupBy(id => _products[id].Department)
             .ToDictionary(g => g.Key, g => g.ToList());
         var wanted = type.Preferences.Where(p => p.Weight > 0 && onDisplay.ContainsKey(p.Department)).ToList();
+        var demand = onDisplay.Values.SelectMany(ids => ids).ToDictionary(id => id, id => DemandOf(_products[id]), StringComparer.Ordinal);
+        var (departmentWeights, lengthPermille) = DepartmentWeights(type, wanted, onDisplay, demand);
 
         var size = Rng.NextInt(type.ShoppingListSize.Min, type.ShoppingListSize.Max + 1);
+        if (lengthPermille != 1000)
+        {
+            var scaled = (long)size * lengthPermille;
+            size = (int)Math.Max(1, scaled / 1000 + (Rng.NextInt(0, 1000) < scaled % 1000 ? 1 : 0));
+        }
+
         var list = new List<string>();
         for (var i = 0; i < size && wanted.Count > 0; i++)
         {
-            var department = wanted[PickWeighted(wanted.Select(p => p.Weight).ToList())].Department;
+            var department = wanted[PickWeighted(departmentWeights)].Department;
             var products = onDisplay[department];
             var weights = products.Select(type.WeightOf).ToList();
             if (weights.Sum() <= 0) continue;
+
+            // Products whose demand differs from each other are weighted by it.
+            if (products.Select(id => demand[id].Permille).Distinct().Count() > 1)
+            {
+                weights = products.Select((id, k) => (int)Math.Min(int.MaxValue / products.Count, (long)weights[k] * demand[id].Permille)).ToList();
+            }
 
             // Equal weights keep the plain uniform roll, so stores without weighted products play out as before.
             list.Add(products[weights.Distinct().Count() == 1 ? Rng.NextInt(0, products.Count) : PickWeighted(weights)]);
         }
 
         return list;
+    }
+
+    /// <summary>
+    /// The type's department preferences, each scaled by the demand of the department's displayed goods against their
+    /// normal level (weighted by the type's product weights), and how much longer the list gets for it (the
+    /// preference-weighted average of those scales). Unscaled when no department is off normal.
+    /// </summary>
+    private (List<int> Weights, long LengthPermille) DepartmentWeights(
+        CustomerTypeDef type, List<DepartmentWeight> wanted, Dictionary<Department, List<string>> onDisplay, Dictionary<string, (int Permille, int Baseline)> demand)
+    {
+        var plain = wanted.Select(p => p.Weight).ToList();
+        var scales = wanted.Select(p =>
+        {
+            long now = 0, normal = 0;
+            foreach (var id in onDisplay[p.Department])
+            {
+                now += (long)type.WeightOf(id) * demand[id].Permille;
+                normal += (long)type.WeightOf(id) * demand[id].Baseline;
+            }
+
+            return normal <= 0 || now == normal ? 1000 : now * 1000 / normal;
+        }).ToList();
+        if (scales.All(s => s == 1000)) return (plain, 1000);
+
+        var length = plain.Select((w, k) => w * scales[k]).Sum() / plain.Sum();
+        return (plain.Select((w, k) => (int)Math.Max(1, w * scales[k])).ToList(), length);
+
     }
 
     private void UpdateCustomers()

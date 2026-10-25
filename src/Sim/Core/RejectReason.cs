@@ -44,4 +44,12 @@ public enum RejectReason
     NotAgainstWall,
     UnknownApplicant,
     NotAManager,
+    OutOfSeason,
+    SupplierOutOfStock,
+    UnknownDecoration,
+    AlreadyOwned,
+    NotOwned,
+    WallTaken,
+    UnknownStoreEvent,
+    OfferClosed,
 }

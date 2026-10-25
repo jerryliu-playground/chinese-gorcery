@@ -22,4 +22,5 @@ public sealed record LedgerSave(
     int SeafoodDeaths = 0,
     long MeatLossCents = 0,
     long DeliLossCents = 0,
-    long KitchenRescuedCents = 0);
+    long KitchenRescuedCents = 0,
+    long EventCostCents = 0);

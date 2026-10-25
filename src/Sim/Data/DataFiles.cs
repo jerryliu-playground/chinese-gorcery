@@ -11,7 +11,10 @@ public static class DataFiles
     public const string Stages = "stages.json";
     public const string Economy = "economy.json";
     public const string Recipes = "recipes.json";
+    public const string Calendar = "calendar.json";
+    public const string Festivals = "festivals.json";
+    public const string Events = "events.json";
 
     public static readonly IReadOnlyList<string> All =
-        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy, Recipes];
+        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy, Recipes, Calendar, Festivals, Events];
 }
