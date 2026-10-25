@@ -54,3 +54,29 @@ python3 make_sprites.py      # 输出到 sprites/，并生成预览图
 **角色**：`chef` 厨师（高帽、白色厨师服、红领巾），正面、背面各 3 帧
 
 预览：`preview_deli_4x.png`
+
+## 新增内容（v5 · 为 M11–M15 准备）
+
+**员工**（M11）：`cashier` 收银员（扎马尾、红围裙）、`stocker` 理货员（红帽、黄色马甲）、`manager` 店长（深色西装、红领带、眼镜）
+
+**顾客**（M13）：`abc_teen` ABC 青少年（粉色卫衣、耳机）、`local_a` / `local_b` 本地非华人顾客（两种外形）、`restaurant_buyer` 餐馆采购（抱纸箱）
+
+**其他角色**（M12、M14）：`driver` 货运司机、`inspector` 卫生检查员（拿记录板）
+
+以上角色都有正面、背面各 3 帧，命名规则同前。
+
+**剧情对话头像**（M15，64×64）：`portrait_<protagonist|dad|mom>_<normal|happy|worried>`，主角、父亲、母亲各三种表情
+
+**干货**：`doubanjiang` 豆瓣酱、`fermented_tofu` 腐乳、`seaweed` 紫菜、`rice_crackers` 仙贝、`dried_shiitake` 干香菇、`instant_noodles_5pack` 五连包泡面、`soy_milk` 豆奶、`herbal_tea` 凉茶、`vinegar` 香醋、`frozen_buns` 速冻包子
+
+**亚洲特色果蔬**：`a_choy` A 菜、`tong_ho` 茼蒿、`bitter_melon` 苦瓜、`winter_melon` 冬瓜、`chinese_chives` 韭菜、`gai_lan` 芥兰、`mango` 芒果、`dragon_fruit` 火龙果、`persimmon` 柿子、`taro` 芋头、`yangmei` 杨梅、`longan` 龙眼
+
+**节日商品**：`mooncake` 月饼、`mooncake_box` 月饼礼盒、`zongzi` 粽子、`glutinous_rice` 糯米、`red_envelope` 红包、`candy_box` 新年糖果盒、`mandarins` 年桔、`nian_gao` 年糕
+
+**节日装饰**：`deco_couplet_left` / `deco_couplet_right`（春联，挂门两侧）、`deco_festival_banner`（彩旗，可横向拼接）、`deco_rabbit_lantern`（中秋兔子灯）
+
+**物流与其他**：`pallet` 进口货托盘、`product_cardboard_box` 纸箱、`dining_table` 餐桌（以后做用餐区用）
+
+**UI 图标**：`ui_calendar` 日历、`ui_thumb_up` / `ui_thumb_down` 好评差评、`ui_rating` 星级、`ui_warning` 警告、`ui_inspection` 检查、`ui_power_out` 停电、`ui_truck` 货车、`ui_ship` 货船、`ui_phone` 来电、`ui_morale_happy` / `ok` / `sad` 员工士气、`ui_level_up` 升级
+
+预览：`preview_festival_4x.png`、`preview_portraits_3x.png`

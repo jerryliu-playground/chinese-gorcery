@@ -520,6 +520,7 @@ CHARACTERS = {
 def person(cfg, back=False, step=0):
     im = new()
     hair = cfg.get("hair", "hair")
+    sk, sks = cfg.get("skin", "skin"), cfg.get("skins", "skins")
     shirt, shirt_d, pants = cfg["shirt"], cfg["shirt_d"], cfg["pants"]
     # legs: step 1 lifts left leg, step 2 lifts right leg
     for i, lx in enumerate((12, 17)):
@@ -532,21 +533,21 @@ def person(cfg, back=False, step=0):
     # arms swing opposite to legs
     la = {0: 16, 1: 17, 2: 15}[step]; ra = {0: 16, 1: 15, 2: 17}[step]
     r(im, 8, la, 2, 8, shirt); r(im, 22, ra, 2, 8, shirt_d)
-    r(im, 8, la + 8, 2, 2, "skin"); r(im, 22, ra + 8, 2, 2, "skins")
+    r(im, 8, la + 8, 2, 2, sk); r(im, 22, ra + 8, 2, 2, sks)
     apron = cfg.get("apron")
     if back:
         if apron:
             r(im, 10, 20, 12, 1, apron); r(im, 15, 21, 2, 2, apron)
         r(im, 11, 5, 10, 10, hair); r(im, 10, 3, 12, 4, hair)
-        r(im, 13, 14, 6, 1, "skins")
+        r(im, 13, 14, 6, 1, sks)
         if cfg.get("back"):
             cfg["back"](im)
     else:
         if apron:
             r(im, 12, 16, 8, 10, apron); r(im, 13, 15, 6, 1, apron)
-        r(im, 11, 5, 10, 10, "skin"); r(im, 19, 6, 2, 9, "skins")
+        r(im, 11, 5, 10, 10, sk); r(im, 19, 6, 2, 9, sks)
         r(im, 13, 10, 1, 2, "soy"); r(im, 18, 10, 1, 2, "soy")
-        p(im, 12, 12, "redl"); p(im, 19, 12, "redl"); r(im, 15, 13, 2, 1, "skins")
+        p(im, 12, 12, "redl"); p(im, 19, 12, "redl"); r(im, 15, 13, 2, 1, sks)
         r(im, 10, 3, 12, 4, hair); r(im, 10, 7, 1, 4, hair); r(im, 21, 7, 1, 4, hair)
         if cfg.get("front"):
             cfg["front"](im)
@@ -943,6 +944,520 @@ SPRITES.update({
 SPRITES.update(character_sprites())
 
 
+# ---------- batch 5: generic item helpers ----------
+def jar(lid, content, label, label2="gold"):
+    im = new()
+    r(im, 10, 6, 12, 4, lid); r(im, 10, 6, 12, 1, "wht")
+    r(im, 9, 10, 14, 17, "glass"); r(im, 10, 12, 12, 14, content)
+    r(im, 9, 16, 14, 6, label); r(im, 12, 17, 8, 4, label2)
+    r(im, 10, 11, 1, 14, "wht")
+    return shadow(outline(im), rx=7)
+
+def can(color, band, mark="wht"):
+    im = new()
+    r(im, 11, 4, 10, 2, "gry"); r(im, 10, 6, 12, 22, color)
+    r(im, 10, 6, 12, 1, "gry"); r(im, 10, 27, 12, 1, "gry")
+    r(im, 10, 13, 12, 7, band); r(im, 14, 14, 4, 5, mark)
+    r(im, 11, 7, 1, 19, "wht")
+    return shadow(outline(im), rx=6)
+
+def pack(color, accent, window=None, crinkle=True):
+    im = new()
+    r(im, 7, 7, 18, 20, color)
+    if crinkle:
+        r(im, 7, 5, 18, 2, accent); r(im, 7, 27, 18, 2, accent)
+        for x in range(7, 25, 2):
+            p(im, x, 4, accent); p(im, x, 29, accent)
+    r(im, 10, 11, 12, 10, accent)
+    if window:
+        window(im)
+    r(im, 8, 8, 1, 17, "wht")
+    return shadow(outline(im), rx=8)
+
+def boxy(color, accent, mark="gold", tall=False):
+    im = new()
+    top = 5 if tall else 10
+    r(im, 7, top, 18, 28 - top, color); r(im, 7, top, 18, 2, accent)
+    r(im, 11, top + 6, 10, 8, accent); r(im, 13, top + 8, 6, 4, mark)
+    r(im, 8, top + 2, 1, 24 - top, "wht")
+    return shadow(outline(im), rx=9)
+
+def ball_cluster(points, col, cold, rad=3, stem=None):
+    im = new()
+    for cx, cy in points:
+        for y in range(cy - rad, cy + rad + 1):
+            for x in range(cx - rad, cx + rad + 1):
+                if (x - cx) ** 2 + (y - cy) ** 2 <= rad * rad + 1:
+                    p(im, x, y, col)
+        p(im, cx + 1, cy + 1, cold); p(im, cx - 1, cy - 1, "wht")
+    if stem:
+        stem(im)
+    return shadow(outline(im), rx=9)
+
+# ---------- batch 5: more dry goods ----------
+def seaweed():
+    def w(im):
+        r(im, 10, 11, 12, 10, (40, 60, 44)); r(im, 12, 13, 8, 6, (60, 88, 60))
+    return pack((230, 210, 150), "red", w, crinkle=False)
+
+def rice_crackers():
+    def w(im):
+        for x, y in ((12, 13), (17, 14), (14, 17)):
+            r(im, x, y, 4, 3, (236, 200, 130)); p(im, x + 1, y + 1, "wd")
+    return pack("redl", "wht", w)
+
+def shiitake():
+    def w(im):
+        for x, y in ((11, 13), (17, 14), (13, 17)):
+            r(im, x, y, 5, 3, (120, 80, 52)); r(im, x + 2, y + 3, 1, 2, (220, 196, 160)); p(im, x + 1, y, (170, 120, 80))
+    return pack("glass", (200, 170, 120), w, crinkle=False)
+
+def noodle_5pack():
+    im = new()
+    r(im, 4, 9, 24, 17, "red"); r(im, 4, 9, 24, 2, "redd")
+    for x in (7, 15, 23):
+        r(im, x - 2, 13, 5, 4, "yel")
+    r(im, 6, 19, 20, 4, "wht"); r(im, 9, 20, 14, 2, "gold")
+    r(im, 5, 11, 1, 13, "redl")
+    return shadow(outline(im), rx=12)
+
+def soy_milk():
+    im = new()
+    r(im, 11, 9, 10, 19, "wht"); r(im, 12, 5, 8, 4, "wht"); r(im, 14, 3, 4, 2, "fs")
+    r(im, 11, 15, 10, 8, "grn"); r(im, 13, 16, 6, 5, (240, 220, 160))
+    r(im, 12, 10, 1, 16, "glass")
+    return shadow(outline(im), rx=6)
+
+# ---------- batch 5: asian produce ----------
+def leafy(col, cold, stemcol, fluffy=False, long=False):
+    im = new()
+    if long:
+        for x in (10, 14, 18):
+            r(im, x, 3, 4, 20, col); r(im, x + 1, 3, 1, 20, cold); p(im, x, 3, "grnl")
+        r(im, 11, 23, 10, 5, stemcol)
+    elif fluffy:
+        for x, y in ((9, 6), (14, 4), (19, 6), (11, 10), (17, 10), (14, 13)):
+            r(im, x, y, 5, 5, col); p(im, x, y, "grnl"); p(im, x + 2, y + 3, cold)
+        for x in (12, 15, 18):
+            r(im, x, 17, 1, 10, stemcol)
+        r(im, 11, 22, 9, 2, "red")
+    return shadow(outline(im), rx=6)
+
+def bitter_melon():
+    im = new()
+    for y in range(4, 28):
+        w = 4 if y in (4, 27) else (6 if y in (5, 26) else 8)
+        r(im, 16 - w // 2, y, w, 1, "grn")
+        if y % 2 == 0:
+            p(im, 13, y, "grnl"); p(im, 17, y, "grnl")
+        else:
+            p(im, 15, y, "grnd")
+    r(im, 15, 2, 2, 2, "grnd")
+    return shadow(outline(im), rx=5)
+
+def winter_melon():
+    im = new()
+    for y in range(8, 26):
+        half = int((90 - (y - 17) ** 2 * 1.1) ** 0.5) if (y - 17) ** 2 * 1.1 < 90 else 0
+        r(im, 16 - half, y, half * 2, 1, (240, 244, 226))
+    r(im, 7, 8, 18, 3, "grnd"); r(im, 7, 11, 18, 1, "grn")
+    for x, y in ((12, 16), (16, 18), (20, 15), (14, 21), (18, 22)):
+        p(im, x, y, (210, 200, 150))
+    return shadow(outline(im), rx=9)
+
+def chives():
+    im = new()
+    for i, x in enumerate(range(9, 23, 2)):
+        r(im, x, 3 + (i % 2), 1, 22, "grn"); p(im, x, 3 + (i % 2), "grnl")
+    r(im, 9, 20, 14, 2, "red"); r(im, 9, 25, 14, 2, "wht")
+    return shadow(outline(im), rx=6)
+
+def gai_lan():
+    im = new()
+    for x, y in ((8, 5), (17, 4), (12, 9)):
+        r(im, x, y, 7, 6, (54, 110, 80)); p(im, x + 1, y + 1, "grnl")
+    p(im, 13, 4, "yel"); p(im, 14, 3, "yel")
+    for x in (11, 15, 19):
+        r(im, x, 14, 2, 13, (130, 176, 110))
+    r(im, 10, 22, 12, 2, "red")
+    return shadow(outline(im), rx=6)
+
+def mango():
+    im = new()
+    for y in range(8, 26):
+        half = int((70 - (y - 17) ** 2) ** 0.5) if (y - 17) ** 2 < 70 else 0
+        off = (y - 17) // 4
+        r(im, 16 - half + off, y, half * 2, 1, (246, 190, 60))
+    r(im, 18, 9, 5, 5, (230, 120, 50)); r(im, 19, 10, 3, 3, "redl")
+    r(im, 14, 6, 2, 3, "grnd"); p(im, 12, 13, "wht")
+    return shadow(outline(im), rx=8)
+
+def dragon_fruit():
+    im = new()
+    pink, pinkd = (226, 70, 130), (170, 40, 96)
+    for y in range(9, 27):
+        half = int((64 - (y - 18) ** 2) ** 0.5) if (y - 18) ** 2 < 64 else 0
+        r(im, 16 - half, y, half * 2, 1, pink)
+    for x, y in ((9, 13), (22, 12), (12, 22), (21, 22), (15, 9), (16, 26)):
+        r(im, x, y, 2, 2, "grnl")
+    p(im, 13, 15, pinkd); p(im, 18, 19, pinkd); p(im, 12, 12, "wht")
+    r(im, 15, 6, 2, 3, "grnl")
+    return shadow(outline(im), rx=8)
+
+def persimmon():
+    im = new()
+    oc, od = (238, 120, 40), (196, 84, 30)
+    for y in range(11, 26):
+        half = int((90 - (y - 18) ** 2 * 1.6) ** 0.5) if (y - 18) ** 2 * 1.6 < 90 else 0
+        r(im, 16 - half, y, half * 2, 1, oc)
+    r(im, 12, 9, 8, 3, "grnd"); r(im, 15, 7, 2, 3, "wd"); r(im, 9, 20, 14, 1, od); p(im, 11, 13, "yel")
+    return shadow(outline(im), rx=9)
+
+def taro():
+    im = new()
+    for y in range(9, 27):
+        half = int((49 - (y - 18) ** 2 * .8) ** 0.5) if (y - 18) ** 2 * .8 < 49 else 0
+        r(im, 16 - half, y, half * 2, 1, (150, 110, 80))
+    for y in (12, 16, 20, 24):
+        r(im, 11, y, 10, 1, (110, 76, 56))
+    r(im, 15, 5, 2, 4, (190, 160, 200)); p(im, 13, 13, (190, 160, 200))
+    return shadow(outline(im), rx=7)
+
+def yangmei():
+    return ball_cluster(((11, 17), (20, 17), (16, 11), (15, 22)), (150, 30, 60), (100, 20, 44), rad=4,
+                        stem=lambda im: (r(im, 15, 4, 2, 4, "grnd"), r(im, 17, 4, 4, 2, "grn")))
+
+def longan():
+    return ball_cluster(((10, 16), (16, 14), (22, 16), (13, 21), (19, 21), (16, 26)), (200, 166, 110), (160, 126, 80), rad=3,
+                        stem=lambda im: (r(im, 15, 3, 2, 8, "wd"), r(im, 12, 9, 8, 1, "wd")))
+
+# ---------- batch 5: festival ----------
+def mooncake():
+    im = new()
+    gold, goldd = (214, 150, 70), (170, 106, 44)
+    for y in range(8, 26):
+        half = int((81 - (y - 17) ** 2) ** 0.5) if (y - 17) ** 2 < 81 else 0
+        r(im, 16 - half, y, half * 2, 1, gold)
+    for y in range(11, 23):
+        half = int((30 - (y - 17) ** 2) ** 0.5) if (y - 17) ** 2 < 30 else 0
+        r(im, 16 - half, y, half * 2, 1, goldd)
+    r(im, 14, 15, 4, 4, gold); p(im, 11, 11, "yel")
+    for x, y in ((8, 17), (24, 17), (16, 9), (16, 25)):
+        p(im, x, y, goldd)
+    return shadow(outline(im), rx=9)
+
+def mooncake_box():
+    return boxy("red", "gold", "redd")
+
+def zongzi():
+    im = new()
+    for i, y in enumerate(range(6, 27)):
+        w = 2 + i
+        r(im, 16 - w // 2, y, w, 1, "grn" if i % 4 else "grnd")
+    r(im, 6, 18, 20, 1, (220, 200, 140)); r(im, 11, 10, 1, 17, (220, 200, 140))
+    r(im, 20, 10, 1, 17, (220, 200, 140)); p(im, 15, 8, "grnl")
+    return shadow(outline(im), rx=10)
+
+def glutinous_rice():
+    im = new()
+    r(im, 8, 6, 16, 22, "wht"); r(im, 12, 3, 8, 3, "fs")
+    r(im, 8, 13, 16, 8, "blu"); r(im, 13, 15, 6, 4, "wht"); r(im, 15, 16, 2, 2, "blu")
+    return shadow(outline(im), rx=8)
+
+def red_envelope():
+    im = new()
+    r(im, 9, 5, 14, 22, "red"); r(im, 9, 5, 14, 6, "redd")
+    for i in range(7):
+        r(im, 9 + i, 11 + i // 2, 14 - 2 * i, 1, "redd") if 14 - 2 * i > 0 else None
+    for y in range(15, 22):
+        half = 3 - abs(y - 18) // 1 if abs(y - 18) < 3 else 0
+        r(im, 16 - half, y, half * 2, 1, "gold")
+    r(im, 14, 17, 4, 2, "gold")
+    return shadow(outline(im), rx=7)
+
+def candy_box():
+    im = new()
+    for y in range(8, 26):
+        half = int((110 - (y - 17) ** 2 * 1.3) ** 0.5) if (y - 17) ** 2 * 1.3 < 110 else 0
+        r(im, 16 - half, y, half * 2, 1, "red")
+    r(im, 8, 14, 16, 6, "gold"); r(im, 15, 9, 2, 16, "gold")
+    for x, y, c in ((10, 11, "yel"), (20, 11, "grnl"), (10, 22, "blul"), (20, 22, "wht")):
+        r(im, x, y, 3, 2, c)
+    r(im, 14, 15, 4, 4, "redd")
+    return shadow(outline(im), rx=10)
+
+def mandarins():
+    oc, od = (246, 150, 40), (210, 110, 30)
+    return ball_cluster(((11, 19), (21, 19), (16, 14)), oc, od, rad=5,
+                        stem=lambda im: (r(im, 15, 7, 2, 3, "grnd"), r(im, 17, 6, 5, 2, "grn"), r(im, 10, 7, 5, 2, "grn")))
+
+def nian_gao():
+    im = new()
+    r(im, 6, 13, 20, 12, (240, 210, 160)); r(im, 6, 13, 20, 2, (250, 230, 190)); r(im, 6, 23, 20, 2, (200, 160, 110))
+    r(im, 12, 17, 8, 4, "red"); r(im, 14, 18, 4, 2, "gold")
+    return shadow(outline(im), rx=11)
+
+def couplet(side):
+    im = new()
+    x = 3 if side == "l" else 23
+    r(im, x, 2, 6, 28, "red"); r(im, x, 2, 6, 1, "redl")
+    for y in range(5, 28, 5):
+        r(im, x + 2, y, 2, 3, "gold")
+    return outline(im)
+
+def festival_banner():
+    im = new()
+    r(im, 0, 6, 32, 2, "gold")
+    for i, x in enumerate(range(1, 31, 6)):
+        r(im, x, 8, 5, 8, "red" if i % 2 == 0 else "gold")
+        r(im, x + 1, 16, 3, 1, "red" if i % 2 == 0 else "gold"); p(im, x + 2, 17, "red" if i % 2 == 0 else "gold")
+    return outline(im)
+
+def rabbit_lantern():
+    im = new()
+    r(im, 8, 10, 16, 12, "wht"); r(im, 9, 9, 14, 1, "wht"); r(im, 9, 22, 14, 1, "wht")
+    r(im, 10, 3, 3, 7, "wht"); r(im, 18, 3, 3, 7, "wht"); p(im, 11, 5, "redl"); p(im, 19, 5, "redl")
+    p(im, 12, 14, "red"); p(im, 18, 14, "red"); r(im, 9, 18, 14, 2, "redl")
+    r(im, 6, 15, 2, 4, "wht"); r(im, 15, 23, 2, 3, "gryd"); r(im, 14, 26, 4, 4, "wd")   # handle stick
+    return outline(im)
+
+# ---------- batch 5: logistics, seating ----------
+def pallet():
+    im = new()
+    r(im, 2, 24, 28, 3, "wm"); r(im, 2, 27, 28, 2, "wd")
+    for x in (3, 15, 26):
+        r(im, x, 27, 3, 3, "wm")
+    for (x, y, w, h) in ((3, 12, 13, 12), (16, 12, 13, 12), (8, 2, 15, 10)):
+        r(im, x, y, w, h, (196, 150, 96)); r(im, x, y, w, 1, (220, 180, 126))
+        r(im, x + w // 2 - 1, y, 2, h, (176, 130, 80)); r(im, x + 2, y + 4, 4, 3, "wht")
+    return outline(im)
+
+def cardboard_box():
+    im = new()
+    r(im, 6, 11, 20, 16, (196, 150, 96)); r(im, 6, 11, 20, 3, (220, 180, 126))
+    r(im, 15, 11, 2, 16, (176, 130, 80)); r(im, 9, 18, 5, 4, "wht"); r(im, 19, 17, 4, 2, "red")
+    return shadow(outline(im), rx=10)
+
+def dining_table():
+    im = new()
+    r(im, 6, 8, 20, 11, "wl"); r(im, 6, 18, 20, 2, "wm")
+    r(im, 8, 20, 2, 7, "wd"); r(im, 22, 20, 2, 7, "wd")
+    for x, y in ((1, 12), (27, 12)):
+        r(im, x, y, 4, 4, "red"); r(im, x + 1, y + 4, 2, 4, "wd")
+    r(im, 10, 10, 5, 4, "wht"); r(im, 17, 11, 5, 4, "wht"); p(im, 12, 11, BRAISE); p(im, 19, 12, "grn")
+    return shadow(outline(im), rx=12)
+
+# ---------- batch 5: UI icons ----------
+def icon(draw):
+    im = new()
+    draw(im)
+    return outline(im)
+
+def ic_calendar(im):
+    r(im, 6, 8, 20, 18, "wht"); r(im, 6, 8, 20, 5, "red")
+    r(im, 10, 5, 2, 5, "gryd"); r(im, 20, 5, 2, 5, "gryd")
+    for x in range(9, 24, 4):
+        for y in (16, 20):
+            r(im, x, y, 2, 2, "gry")
+    r(im, 13, 16, 2, 2, "red")
+
+def ic_thumb(up):
+    def d(im):
+        if up:
+            r(im, 8, 15, 5, 11, "blu"); r(im, 13, 13, 11, 13, "skin"); r(im, 15, 6, 5, 8, "skin")
+            for y in (16, 19, 22):
+                r(im, 13, y, 10, 1, "skins")
+        else:
+            r(im, 8, 6, 5, 11, "redd"); r(im, 13, 6, 11, 13, "skin"); r(im, 15, 18, 5, 8, "skin")
+            for y in (9, 12, 15):
+                r(im, 13, y, 10, 1, "skins")
+    return d
+
+def ic_warning(im):
+    for i, y in enumerate(range(5, 27)):
+        w = 2 + i
+        r(im, 16 - w // 2, y, w, 1, "yel")
+    r(im, 15, 11, 2, 9, "soy"); r(im, 15, 22, 2, 2, "soy")
+
+def ic_clipboard(im):
+    r(im, 8, 6, 16, 21, "wm"); r(im, 10, 8, 12, 17, "wht"); r(im, 12, 4, 8, 4, "gryd")
+    for y in (12, 16, 20):
+        r(im, 12, y, 2, 2, "grn"); r(im, 15, y, 6, 1, "gry")
+
+def ic_power_out(im):
+    r(im, 16, 4, 4, 8, "yel"); r(im, 12, 11, 10, 3, "yel"); r(im, 12, 13, 4, 8, "yel"); r(im, 10, 20, 4, 6, "yel")
+    for i in range(20):
+        p(im, 6 + i, 6 + i, "red"); p(im, 7 + i, 6 + i, "red")
+
+def ic_truck(im):
+    r(im, 3, 9, 17, 12, "wht"); r(im, 5, 12, 11, 5, "red")
+    r(im, 20, 13, 8, 8, "blu"); r(im, 22, 14, 4, 3, "glass")
+    for x in (8, 23):
+        r(im, x, 21, 5, 5, "soy"); r(im, x + 2, 23, 1, 1, "gry")
+
+def ic_ship(im):
+    r(im, 4, 18, 24, 6, "blud"); r(im, 6, 24, 20, 2, "blud")
+    for i, (x, c) in enumerate(((7, "red"), (12, "grn"), (17, "yel"))):
+        r(im, x, 12, 5, 6, c); r(im, x, 12, 5, 1, "wht")
+    r(im, 22, 9, 4, 9, "wht"); r(im, 23, 10, 2, 2, "glass")
+    r(im, 2, 27, 28, 2, WATER)
+
+def ic_phone(im):
+    r(im, 10, 5, 12, 22, "soy"); r(im, 11, 7, 10, 16, "blul"); r(im, 15, 24, 2, 1, "gry")
+    for x, y in ((5, 9), (4, 13), (5, 17), (26, 9), (27, 13), (26, 17)):
+        p(im, x, y, "red"); p(im, x, y + 1, "red")
+
+def ic_face(mood):
+    def d(im):
+        col = {"happy": "yel", "ok": (246, 200, 120), "sad": (180, 200, 220)}[mood]
+        for y in range(6, 27):
+            half = int((100 - (y - 16) ** 2) ** 0.5) if (y - 16) ** 2 < 100 else 0
+            r(im, 16 - half, y, half * 2, 1, col)
+        r(im, 12, 12, 2, 3, "soy"); r(im, 18, 12, 2, 3, "soy")
+        if mood == "happy":
+            r(im, 11, 19, 10, 1, "soy"); p(im, 10, 18, "soy"); p(im, 21, 18, "soy")
+        elif mood == "ok":
+            r(im, 12, 20, 8, 1, "soy")
+        else:
+            r(im, 12, 20, 8, 1, "soy"); p(im, 11, 21, "soy"); p(im, 20, 21, "soy"); r(im, 21, 14, 1, 3, WATER)
+    return d
+
+def ic_level_up(im):
+    for i, y in enumerate(range(5, 15)):
+        r(im, 16 - i, y, 2 * i + 1, 1, "grn")
+    r(im, 12, 15, 9, 11, "grn"); r(im, 13, 16, 2, 9, "grnl")
+
+def ic_star_rating(im):
+    import math
+    from PIL import ImageDraw
+    for k, cx in enumerate((7, 16, 25)):
+        pts = []
+        for i in range(10):
+            a = -math.pi / 2 + i * math.pi / 5
+            rad = 5 if i % 2 == 0 else 2.2
+            pts.append((cx + rad * math.cos(a), 16 + rad * math.sin(a)))
+        ImageDraw.Draw(im).polygon(pts, fill=(C["gold"] if k < 2 else C["gry"]) + (255,))
+
+# ---------- batch 5: characters ----------
+CHARACTERS.update({
+    "cashier": dict(shirt="wht", shirt_d="gry", pants="soy", apron="red",
+                    hat=lambda im, back: (r(im, 21, 6, 3, 8, "hair"), p(im, 21, 6, "red"))),
+    "stocker": dict(shirt="gry", shirt_d="gryd", pants="blud", apron="gold",
+                    hat=lambda im, back: (r(im, 10, 2, 12, 3, "red"), r(im, 9 if not back else 10, 5, 14 if not back else 12, 1, "redd"))),
+    "manager": dict(shirt=(64, 64, 84), shirt_d=(44, 44, 60), pants=(44, 44, 60),
+                    front=lambda im: (r(im, 14, 15, 4, 3, "wht"), r(im, 15, 16, 2, 7, "red"), r(im, 12, 9, 3, 2, "gryd"), r(im, 17, 9, 3, 2, "gryd"))),
+    "abc_teen": dict(shirt=(232, 140, 170), shirt_d=(196, 100, 136), pants="blu",
+                     hat=lambda im, back: (r(im, 10, 2, 12, 3, "soy"), r(im, 9, 14, 2, 3, "gryd"), r(im, 21, 14, 2, 3, "gryd"), r(im, 10, 15, 12, 1, "gryd")),
+                     front=lambda im: (r(im, 13, 19, 6, 3, (196, 100, 136)),)),
+    "local_a": dict(shirt="blul", shirt_d="blu", pants=(120, 100, 80), hair=(226, 196, 120)),
+    "local_b": dict(shirt=(240, 190, 76), shirt_d=(188, 132, 50), pants="soy", hair=(40, 30, 30),
+                    skin=(150, 100, 70), skins=(120, 78, 56)),
+    "restaurant_buyer": dict(shirt=(70, 100, 70), shirt_d=(50, 74, 54), pants="gryd",
+                             hat=lambda im, back: (r(im, 10, 2, 12, 3, "wd"), r(im, 9, 5, 14, 1, "wd")),
+                             any=lambda im, back: (r(im, 6, 18, 20, 9, (196, 150, 96)), r(im, 6, 18, 20, 2, (220, 180, 126)), r(im, 15, 18, 2, 9, (176, 130, 80)))),
+    "driver": dict(shirt=(150, 110, 70), shirt_d=(110, 80, 50), pants=(110, 80, 50),
+                   hat=lambda im, back: (r(im, 10, 2, 12, 3, (110, 80, 50)), r(im, 9, 5, 14, 1, (90, 64, 40))),
+                   front=lambda im: (r(im, 17, 17, 3, 2, "gold"),)),
+    "inspector": dict(shirt="blud", shirt_d=(30, 50, 84), pants=(30, 50, 84),
+                      front=lambda im: (r(im, 14, 15, 4, 3, "wht"),),
+                      any=lambda im, back: (r(im, 23, 17, 5, 7, "wm"), r(im, 24, 18, 3, 5, "wht"))),
+})
+
+# ---------- batch 5: dialogue portraits (64x64) ----------
+def portrait(cfg, mood="normal"):
+    im = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    bg = C["walls"] + (255,)
+    for y in range(64):
+        for x in range(64):
+            im.putpixel((x, y), bg)
+    hair = cfg.get("hair", "hair")
+    sk, sks = cfg.get("skin", "skin"), cfg.get("skins", "skins")
+    shirt, shirt_d = cfg["shirt"], cfg["shirt_d"]
+    r(im, 10, 48, 44, 16, shirt); r(im, 46, 48, 8, 16, shirt_d)       # shoulders
+    if cfg.get("apron"):
+        r(im, 22, 50, 20, 14, cfg["apron"])
+    r(im, 27, 42, 10, 7, sks)                                           # neck
+    r(im, 18, 14, 28, 30, sk); r(im, 40, 16, 6, 28, sks)               # face
+    r(im, 16, 24, 2, 8, sk); r(im, 46, 24, 2, 8, sks)                   # ears
+    r(im, 16, 6, 32, 10, hair); r(im, 16, 16, 3, 10, hair); r(im, 45, 16, 3, 10, hair)
+    if cfg.get("grey_temples"):
+        r(im, 16, 18, 3, 8, cfg["grey_temples"]); r(im, 45, 18, 3, 8, cfg["grey_temples"])
+    if cfg.get("bun"):
+        r(im, 26, 1, 12, 7, hair)
+    # eyes
+    if mood == "happy":
+        for x0 in (23, 36):
+            r(im, x0, 26, 5, 1, "soy"); p(im, x0, 27, "soy"); p(im, x0 + 4, 27, "soy")
+    else:
+        r(im, 24, 25, 3, 4, "soy"); r(im, 37, 25, 3, 4, "soy"); p(im, 24, 25, "wht"); p(im, 37, 25, "wht")
+    if mood == "worried":
+        r(im, 22, 21, 6, 1, "soy"); p(im, 27, 20, "soy"); r(im, 36, 21, 6, 1, "soy"); p(im, 36, 20, "soy")
+    else:
+        r(im, 22, 21, 6, 1, hair); r(im, 36, 21, 6, 1, hair)
+    r(im, 20, 31, 3, 2, "redl"); r(im, 41, 31, 3, 2, "redl")            # blush
+    r(im, 31, 30, 2, 2, sks)                                            # nose
+    if mood == "happy":
+        r(im, 27, 35, 10, 2, "soy"); r(im, 28, 37, 8, 1, "redd")
+    elif mood == "worried":
+        r(im, 28, 37, 8, 1, "soy"); p(im, 27, 38, "soy"); p(im, 36, 38, "soy")
+    else:
+        r(im, 28, 36, 8, 1, "soy")
+    if cfg.get("wrinkles"):
+        r(im, 21, 34, 2, 1, sks); r(im, 41, 34, 2, 1, sks); r(im, 28, 18, 8, 1, sks)
+    if cfg.get("glasses"):
+        for x0 in (21, 34):
+            r(im, x0, 23, 9, 1, "gryd"); r(im, x0, 30, 9, 1, "gryd"); r(im, x0, 23, 1, 8, "gryd"); r(im, x0 + 8, 23, 1, 8, "gryd")
+        r(im, 30, 25, 4, 1, "gryd")
+    if cfg.get("extra"):
+        cfg["extra"](im)
+    # frame
+    for i in range(64):
+        for (x, y) in ((i, 0), (i, 63), (0, i), (63, i)):
+            im.putpixel((x, y), C["out"] + (255,))
+    return im
+
+PORTRAITS = {
+    "protagonist": dict(shirt="blu", shirt_d="blud", apron="red"),
+    "dad": dict(shirt=(140, 104, 72), shirt_d=(104, 76, 54), hair=(80, 76, 76), grey_temples=(176, 172, 168), wrinkles=True, glasses=True),
+    "mom": dict(shirt="redl", shirt_d="red", apron=(246, 214, 160), bun=True, wrinkles=True),
+}
+
+SPRITES.update({
+    # dry goods
+    "product_doubanjiang": lambda: jar("red", (170, 60, 40), "yel", "red"),
+    "product_fermented_tofu": lambda: jar("gold", (210, 120, 80), "wht", "red"),
+    "product_seaweed": seaweed, "product_rice_crackers": rice_crackers,
+    "product_dried_shiitake": shiitake, "product_instant_noodles_5pack": noodle_5pack,
+    "product_soy_milk": soy_milk, "product_herbal_tea": lambda: can("red", "gold", "red"),
+    "product_vinegar": lambda: bottle2((70, 30, 30), "gold", "red"),
+    "product_frozen_buns": lambda: pack("wht", "blu", lambda im: (r(im, 12, 13, 8, 6, "wht"), r(im, 14, 12, 4, 1, "wht")), crinkle=True),
+    # asian produce
+    "product_a_choy": lambda: leafy("grn", "grnl", (220, 236, 196), long=True),
+    "product_tong_ho": lambda: leafy((70, 140, 70), "grnd", "grnl", fluffy=True),
+    "product_bitter_melon": bitter_melon, "product_winter_melon": winter_melon,
+    "product_chinese_chives": chives, "product_gai_lan": gai_lan,
+    "product_mango": mango, "product_dragon_fruit": dragon_fruit, "product_persimmon": persimmon,
+    "product_taro": taro, "product_yangmei": yangmei, "product_longan": longan,
+    # festival
+    "product_mooncake": mooncake, "product_mooncake_box": mooncake_box, "product_zongzi": zongzi,
+    "product_glutinous_rice": glutinous_rice, "product_red_envelope": red_envelope,
+    "product_candy_box": candy_box, "product_mandarins": mandarins, "product_nian_gao": nian_gao,
+    "deco_couplet_left": lambda: couplet("l"), "deco_couplet_right": lambda: couplet("r"),
+    "deco_festival_banner": festival_banner, "deco_rabbit_lantern": rabbit_lantern,
+    # logistics + seating
+    "pallet": pallet, "product_cardboard_box": cardboard_box, "dining_table": dining_table,
+    # UI
+    "ui_calendar": lambda: icon(ic_calendar), "ui_thumb_up": lambda: icon(ic_thumb(True)),
+    "ui_thumb_down": lambda: icon(ic_thumb(False)), "ui_warning": lambda: icon(ic_warning),
+    "ui_inspection": lambda: icon(ic_clipboard), "ui_power_out": lambda: icon(ic_power_out),
+    "ui_truck": lambda: icon(ic_truck), "ui_ship": lambda: icon(ic_ship), "ui_phone": lambda: icon(ic_phone),
+    "ui_morale_happy": lambda: icon(ic_face("happy")), "ui_morale_ok": lambda: icon(ic_face("ok")),
+    "ui_morale_sad": lambda: icon(ic_face("sad")), "ui_level_up": lambda: icon(ic_level_up),
+    "ui_rating": lambda: icon(ic_star_rating),
+})
+SPRITES.update(character_sprites())
+
+
 def sheet(imgs, names, cols, path, scale):
     rows = (len(names) + cols - 1) // cols
     sh = Image.new("RGBA", (cols * 32, rows * 32), (0, 0, 0, 0))
@@ -1031,6 +1546,40 @@ def main():
     dput("char_chef_front_0", 2, 2, dx=6); dput("char_student_back_1", 4, 4, dx=-6)
     dput("char_family_back_0", 6, 2, dx=10); dput("ui_bubble_heart", 4, 3, dx=-6, dy=-22)
     deli.resize((deli.width * 4, deli.height * 4), Image.NEAREST).save(base / "preview_deli_4x.png")
+
+    # dialogue portraits (64x64)
+    ports = []
+    for pname, pcfg in PORTRAITS.items():
+        for mood in ("normal", "happy", "worried"):
+            pim = portrait(pcfg, mood)
+            pim.save(OUT_DIR / f"portrait_{pname}_{mood}.png")
+            ports.append(pim)
+    psheet = Image.new("RGBA", (64 * 3, 64 * len(PORTRAITS)), (0, 0, 0, 0))
+    for k, pim in enumerate(ports):
+        psheet.paste(pim, ((k % 3) * 64, (k // 3) * 64))
+    psheet.resize((psheet.width * 3, psheet.height * 3), Image.NEAREST).save(base / "preview_portraits_3x.png")
+
+    # festival corner preview, 9 x 5 tiles
+    fest = Image.new("RGBA", (9 * 32, 5 * 32), C["fl"] + (255,))
+    def fput(n, x, y, dx=0, dy=0):
+        im = imgs[n]
+        fest.paste(im, (x * 32 + dx, y * 32 + dy), im)
+    for x in range(9):
+        fput("tile_wall", x, 0)
+        for y in range(1, 5):
+            fput("tile_floor", x, y)
+    fput("deco_couplet_left", 0, 0); fput("deco_couplet_right", 8, 0)
+    for x in range(1, 8):
+        fput("deco_festival_banner", x, 0, dy=-4)
+    fput("deco_fu_poster", 4, 0, dy=6)
+    fput("pallet", 1, 1); fput("pallet", 2, 1)
+    fput("shelf_full", 4, 1); fput("shelf_full_b", 5, 1)
+    fput("produce_stand_full", 7, 1)
+    for k, n in enumerate(("product_mooncake_box", "product_candy_box", "product_mandarins", "product_zongzi", "product_red_envelope", "product_nian_gao")):
+        fput(n, 1 + k, 3, dy=-4)
+    fput("char_cashier_front_0", 7, 3); fput("char_abc_teen_front_1", 3, 2, dx=10)
+    fput("char_local_a_back_0", 5, 3, dx=-4); fput("char_driver_front_0", 0, 2, dx=8)
+    fest.resize((fest.width * 4, fest.height * 4), Image.NEAREST).save(base / "preview_festival_4x.png")
     print(f"{len(imgs)} sprites written ({len(static)} static, {len(chars)} character frames)")
 
 if __name__ == "__main__":
