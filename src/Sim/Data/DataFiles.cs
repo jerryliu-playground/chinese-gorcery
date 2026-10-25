@@ -13,6 +13,10 @@ public static class DataFiles
     public const string Recipes = "recipes.json";
     public const string Reputation = "reputation.json";
 
+    public const string Calendar = "calendar.json";
+    public const string Festivals = "festivals.json";
+    public const string Events = "events.json";
+
     public static readonly IReadOnlyList<string> All =
-        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy, Recipes, Reputation];
+        [Products, Fixtures, CustomerTypes, Employees, MeatCuts, Stages, Economy, Recipes, Reputation, Calendar, Festivals, Events];
 }

@@ -29,7 +29,7 @@ public sealed partial class GameSim
                 today.Day, today.CashStartCents, today.RevenueCents, today.CostOfGoodsSoldCents, today.PurchaseCostCents,
                 today.WagesCents, today.FixtureSpendCents, today.LossCents, today.Customers, today.AngryLeaves,
                 today.ItemsNotFound, today.ItemsTooExpensive, today.Sales, today.ProduceLossCents, today.SeafoodLossCents, today.SeafoodDeaths, today.MeatLossCents, today.DeliLossCents,
-                today.KitchenRescuedCents, today.LoanPaymentCents),
+                today.KitchenRescuedCents, today.LoanPaymentCents, today.EventCostCents),
             _reports.ToList(),
             Layout.Size,
             Layout.Fixtures.ToList(),
@@ -60,7 +60,8 @@ public sealed partial class GameSim
             StaffSave(),
             ImportSave(),
             SaveStory(),
-            ReputationSave());
+            ReputationSave(),
+            CalendarSave());
     }
 
     internal static GameSim FromSave(GameData data, SaveFile save) => new(data, save);
@@ -85,6 +86,7 @@ public sealed partial class GameSim
             ProduceLossCents = t.ProduceLossCents, SeafoodLossCents = t.SeafoodLossCents, SeafoodDeaths = t.SeafoodDeaths,
             MeatLossCents = t.MeatLossCents, DeliLossCents = t.DeliLossCents, KitchenRescuedCents = t.KitchenRescuedCents,
             LoanPaymentCents = t.LoanPaymentCents,
+            EventCostCents = t.EventCostCents,
         };
         ledger.RestoreSales(t.Sales);
         Economy = new EconomyState(save.CashCents)
@@ -154,6 +156,7 @@ public sealed partial class GameSim
         RestoreImports(save.Imports, (ulong)save.TickCount);
         RestoreReputation(save.Reputation, (ulong)save.TickCount);
         RebuildOccupancy();
+        RestoreCalendar(save.Calendar, (ulong)save.TickCount);
         foreach (var m in save.Menu ?? [])
         {
             _menu[m.Slot] = m.Item;

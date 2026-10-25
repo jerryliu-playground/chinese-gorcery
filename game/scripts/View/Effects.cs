@@ -81,6 +81,10 @@ public partial class Effects : Node2D
             if (_pops.OfType<Bubble>().Any(b => b.CustomerId == c.Id) || GD.Randf() >= chance) continue;
 
             var lines = sim.Data.CustomerTypes.Single(t => t.Id == c.TypeId).LineKeys;
+
+            // Around a festival, half the chatter is about it.
+            if (sim.FestivalAround(sim.Clock.Day)?.Festival.LineKeys is { Count: > 0 } festive && GD.Randi() % 2 == 0) lines = festive;
+
             if (lines is not { Count: > 0 }) continue;
 
             _pops.Add(new Bubble(c.Id, BubbleKind.Speech, lines[(int)(GD.Randi() % lines.Count)], _feel.SpeechSeconds));

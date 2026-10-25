@@ -25,7 +25,7 @@ public static class AnomalyCheck
             if (value < 0) yield return $"{day}: {name} is negative ({value})";
         }
 
-        var expectedChange = r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents;
+        var expectedChange = r.RevenueCents - r.PurchaseCostCents - r.WagesCents - r.FixtureSpendCents - r.LoanPaymentCents - r.EventCostCents;
         if (r.CashEndCents - r.CashStartCents != expectedChange)
         {
             yield return $"{day}: cash changed by {r.CashEndCents - r.CashStartCents} but ledger says {expectedChange}";

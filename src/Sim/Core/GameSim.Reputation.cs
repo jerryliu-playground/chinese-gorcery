@@ -18,9 +18,6 @@ public sealed partial class GameSim
 {
     private const ulong ReputationStreamSalt = 0x7E9A_7105_ABC5_57A2;
 
-    /// <summary>Placeholder until the calendar (M12) exists: a season is this many days. Only <see cref="SeasonOf"/> uses it.</summary>
-    private const int PlaceholderSeasonDays = 28;
-
     private const int Milli = 1000;
     private const int MaxReputation = 100;
 
@@ -56,11 +53,8 @@ public sealed partial class GameSim
     /// <summary>What has happened today that reviews can be written about.</summary>
     public IReadOnlyList<DayFact> TodaysFacts => _facts;
 
-    /// <summary>
-    /// The season a day falls in (0 = the first). The one place that decides seasons for trending products: rewire it
-    /// to the calendar when that exists.
-    /// </summary>
-    public static int SeasonOf(int day) => (day - 1) / PlaceholderSeasonDays;
+    /// <summary>The season a day falls in, counted from the first (0); trending products change with it.</summary>
+    public int SeasonOf(int day) => SeasonsSinceStart(day);
 
     /// <summary>
     /// Moves reputation by whole points (negative lowers it), clamped to 0-100. The entry point for other systems:

@@ -1,4 +1,6 @@
+using ChineseGrocery.Sim.Calendar;
 using ChineseGrocery.Sim.Core;
+
 using ChineseGrocery.Sim.Data;
 using ChineseGrocery.Sim.Deli;
 using ChineseGrocery.Sim.Economy;
@@ -18,13 +20,26 @@ namespace ChineseGrocery.SimRunner;
 /// each shelved product up to a stock target (fresh goods first: produce and clams to two fills of their slots, live
 /// seafood to one since it dies in storage), keeps a primal on hand per cutting recipe, fills the shelves in one go, and
 /// does any work left. With <c>runDeli</c> it also builds a deli corner once the seafood corner is done, plans the
-/// menu each morning and keeps ducks and pork shoulder on hand. While open it works the highest-priority open task.
+/// menu each morning and keeps ducks and pork shoulder on hand. With <c>festivalStock</c> it keeps one extra shelf for
+/// festival goods: before each festival (inside the order window) it gives the shelf's empty slots to that festival's
+/// goods and orders them, and hangs the festival's decorations through its prep days. It takes clearance offers and
+/// group orders it can fill, and rents a generator when the power is going out on chilled goods or tanks.
+/// While open it works the highest-priority open task.
 /// Service comparisons: <c>frontStaff</c> hires a cashier and a stocker as soon as they are unlocked;
 /// <c>checkoutLast</c> leaves the register until nothing else is waiting (long lines).
 /// Runner policy only, not a game rule.
 /// </summary>
-public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false, bool imports = false, bool frontStaff = false, bool checkoutLast = false)
+public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashReserveCents = 50_000, int produceStands = 4, bool runDeli = true, bool autoStaff = false, bool imports = false, bool frontStaff = false,
+    bool checkoutLast = false, bool festivalStock = true, int cashiers = 0)
 {
+    /// <summary>Fills of the festival shelf's slots the bot orders of each festival good.</summary>
+    private const int FestivalFills = 2;
+
+    /// <summary>The bot stops ordering a festival's goods this many days before it.</summary>
+    private const int FestivalLastOrderDays = 3;
+
+
+    private int? _festivalShelf;
     private const int MaxTicksPerDay = 3 * 24 * 60 * 60;
     private const int MaxPreOpenTicks = 12_000;
 
@@ -79,8 +94,10 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         if (runDeli && IsComplete(sim, SeafoodFixtures)) PlaceCorner(sim, DeliFixtures, besideKind: FixtureKind.WokStove);
         PlaceProduceStands(sim);
         HireUnlockedRoles(sim);
+        StockForFestivals(sim);
         AssignEmptySlots(sim);
         if (frontStaff && !autoStaff) HireFrontStaff(sim);
+        AnswerEvents(sim);
         if (autoStaff)
         {
             StaffTheStore(sim);
@@ -248,6 +265,9 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
 
     private void HireUnlockedRoles(GameSim sim)
     {
+        // Cashiers on request, so the player is not the only one at the till (a busy store loses half its shoppers in line).
+        if (!autoStaff && sim.Workers.Count(w => w.RoleId == "cashier") < cashiers && Send(sim, new HireEmployee("cashier")) is null) _notes.Add("hired cashier");
+
         foreach (var role in sim.Data.Employees.Roles.Where(r => r.UnlockStage <= sim.Economy.Stage))
         {
             if (sim.Workers.Any(w => w.RoleId == role.Id)) continue;
@@ -268,11 +288,11 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         foreach (var fixture in sim.Layout.Fixtures)
         {
             var def = Def(data, fixture);
-            if (!DataValidator.IsDisplay(def.Kind)) continue;
+            if (!DataValidator.IsDisplay(def.Kind) || fixture.InstanceId == FestivalShelf(sim)) continue;
 
-            // Sell what can be bought or cut, but never a whole primal; produce goes on produce stands and only there.
+            // Sell what can be bought or cut, but never a whole primal or a festival good; produce goes on produce stands and only there.
             var candidates = data.Products
-                .Where(p => def.Storage.Contains(p.Storage) && !primals.Contains(p.Id) && (p.Orderable || producible.Contains(p.Id)))
+                .Where(p => def.Storage.Contains(p.Storage) && !primals.Contains(p.Id) && (p.Orderable || producible.Contains(p.Id)) && !sim.IsFestivalGood(p.Id))
                 .Where(p => (p.Department == Department.Produce) == (def.Kind == FixtureKind.ProduceStand))
                 .Where(p => (p.Department == Department.Seafood) == (DataValidator.IsTank(def.Kind) || def.Kind == FixtureKind.IceTable))
                 .ToList();
@@ -287,6 +307,115 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
             }
         }
     }
+
+    /// <summary>The shelf kept for festival goods: the one the bot bought, else one with a slot given to a festival good.</summary>
+    private int? FestivalShelf(GameSim sim)
+    {
+        if (_festivalShelf is { } id && sim.Layout.Find(id) is not null) return id;
+
+        _festivalShelf = sim.Shelves.Assigned.Where(kv => sim.IsFestivalGood(kv.Value)).Select(kv => (int?)kv.Key.FixtureInstanceId).Min();
+        return _festivalShelf;
+    }
+
+    /// <summary>
+    /// The next festival with goods, while its goods can be ordered: a shelf for them (bought once), its free slots
+    /// given to the goods (not produce), the goods ordered up to two fills; and the festival's decorations hung from the
+    /// first prep day to the day itself, stored again after. Without <c>festivalStock</c> the shelf is still bought (so
+    /// both runs of a comparison have the same floor) but left empty, and nothing is decorated.
+    /// </summary>
+    private void StockForFestivals(GameSim sim)
+    {
+        if (sim.Data.Festivals is not { } festivals || sim.Data.Calendar is null) return;
+
+        var upcoming = festivals.Festivals
+            .Where(f => f.Goods.Count > 0 && sim.DaysUntil(f) is var d && d >= 1 && d <= festivals.OrderWindowDays)
+            .OrderBy(sim.DaysUntil)
+            .FirstOrDefault();
+        if (upcoming is not null)
+        {
+            if (FestivalShelf(sim) is null) BuyFestivalShelf(sim);
+            if (festivalStock && FestivalShelf(sim) is { } shelf)
+            {
+                var goods = upcoming.Goods.Where(id => sim.Data.Products.Single(p => p.Id == id).Department != Department.Produce).ToList();
+                var def = Def(sim.Data, sim.Layout.Find(shelf)!);
+                for (var slot = 0; slot < def.Capacity && goods.Count > 0; slot++)
+                {
+                    var location = new StockLocation(shelf, slot);
+                    var current = sim.Shelves.ProductAt(location);
+                    if (current is not null && (goods.Contains(current) || sim.Inventory.Count(location, current) > 0)) continue;
+
+                    Send(sim, new AssignShelfSlot(shelf, slot, goods[slot % goods.Count]));
+                }
+
+                // The last orders go in three days ahead, so little is left over after the day.
+                foreach (var id in goods.Where(_ => sim.DaysUntil(upcoming) >= FestivalLastOrderDays))
+                {
+                    var slots = sim.Shelves.Assigned.Count(kv => kv.Key.FixtureInstanceId == shelf && kv.Value == id);
+                    if (slots > 0) TopUp(sim, id, FestivalFills * slots * sim.Data.Products.Single(p => p.Id == id).UnitsPerShelfSlot);
+                }
+            }
+        }
+
+        var around = sim.FestivalAround(sim.Clock.Day);
+        foreach (var deco in festivalStock ? festivals.Decorations : [])
+
+        {
+            var wanted = around is { } a && a.Offset <= 0 && deco.Festivals.Contains(a.Festival.Id);
+            var owned = sim.Decorations.FirstOrDefault(d => d.DecorationId == deco.Id);
+            if (wanted && owned is null && sim.Economy.CashCents >= deco.CostCents + cashReserveCents && Send(sim, new BuyDecoration(deco.Id)) is null)
+            {
+                owned = new OwnedDecoration(deco.Id, null);
+                _notes.Add($"bought {deco.Id}");
+            }
+
+            if (wanted && owned is { WallX: null }) Send(sim, new HangDecoration(deco.Id));
+            if (!wanted && owned is { WallX: not null }) Send(sim, new StoreDecoration(deco.Id));
+        }
+    }
+
+    private void BuyFestivalShelf(GameSim sim)
+    {
+        var def = sim.Data.Fixtures.First(f => f.Kind == FixtureKind.Shelf);
+        if (sim.Economy.CashCents < def.PriceCents + cashReserveCents || FindSpot(sim, def) is not { } spot) return;
+        if (Send(sim, new PlaceFixture(def.Id, spot.Origin, spot.Rotation)) is not null) return;
+
+        _festivalShelf = sim.Layout.Fixtures[^1].InstanceId;
+        _notes.Add($"placed festival shelf at {spot.Origin.X},{spot.Origin.Y}");
+    }
+
+    /// <summary>
+    /// Before opening: a clearance offer is taken if the product is below its target and it fits the cash reserve; a
+    /// group order if twice its units are on hand or on order; a generator if the power cut would hit chilled goods or tanks.
+    /// </summary>
+    private void AnswerEvents(GameSim sim)
+    {
+        foreach (var e in sim.StoreEvents.ToList())
+        {
+            var def = sim.EventDefOf(e);
+            if (e.Status == StoreEventStatus.Offered && def.Kind == EventKind.ClearanceOffer)
+            {
+                var units = e.Goods![0].Quantity;
+                var below = OnHand(sim, e.ProductId!) < (Targets(sim).TryGetValue(e.ProductId!, out var t) ? t : 0);
+                var take = below && sim.Economy.CashCents >= units * e.UnitCostCents + cashReserveCents;
+                if (Send(sim, new AnswerOffer(e.Id, take)) is null && take) _notes.Add($"took clearance {e.ProductId} x{units}");
+            }
+            else if (e.Status == StoreEventStatus.Offered && def.Kind == EventKind.GroupOrder)
+            {
+                var take = e.Goods!.All(g => OnHand(sim, g.ProductId) >= 2 * g.Quantity);
+                if (Send(sim, new AnswerOffer(e.Id, take)) is null && take) _notes.Add($"took group order {string.Join("+", e.Goods!.Select(g => $"{g.ProductId}x{g.Quantity}"))}");
+            }
+            else if (def.PowerCut is { } cut && e.Status == StoreEventStatus.Announced && e.StartDay == sim.Clock.Day && !e.GeneratorRented
+                     && sim.Economy.CashCents >= cut.GeneratorCostCents + cashReserveCents
+                     && (sim.Inventory.Locations.SelectMany(l => l.Lots).Any(l => sim.Data.Products.Single(p => p.Id == l.ProductId).Storage == StorageType.Chilled)
+                         || sim.Layout.Fixtures.Any(f => DataValidator.IsTank(Def(sim.Data, f).Kind))))
+            {
+                if (Send(sim, new RentGenerator(e.Id)) is null) _notes.Add("rented a generator");
+            }
+        }
+    }
+
+    private static int OnHand(GameSim sim, string productId) =>
+        sim.Inventory.Total(productId) + sim.PendingOrders.Where(o => o.ProductId == productId).Sum(o => o.Quantity);
 
     /// <summary>The departments a manager runs, so the bot leaves their ordering and menu alone.</summary>
     private static bool IsAutomated(GameSim sim, Department department) =>
@@ -347,9 +476,10 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         foreach (var id in sim.Shelves.Assigned.Values.Distinct())
         {
             var product = sim.Data.Products.Single(p => p.Id == id);
-            if (!product.Orderable) continue;
+            if (!product.Orderable || sim.IsFestivalGood(id)) continue;
 
-            var fills = sim.Shelves.Assigned.Values.Count(x => x == id) * product.UnitsPerShelfSlot;
+            var fills
+ = sim.Shelves.Assigned.Values.Count(x => x == id) * product.UnitsPerShelfSlot;
             targets[id] = product.Live is not null ? fills : product.FreshnessDays is not null ? 2 * fills : stockTarget;
         }
 
@@ -371,7 +501,7 @@ public sealed class PlayerBot(int stockTarget, int primalsOnHand = 1, long cashR
         var orderable = sim.Data.Products.Where(p => p.Orderable).Select(p => p.Id).ToHashSet();
         // Fresh goods first, so dry goods do not crowd them out of the backroom. Produce and clams spoil, so only two
         // fills of their slots; live seafood dies if left in storage, so just what its tank slots hold.
-        var products = sim.Shelves.Assigned.Values.Distinct().Where(orderable.Contains)
+        var products = sim.Shelves.Assigned.Values.Distinct().Where(id => orderable.Contains(id) && !sim.IsFestivalGood(id))
             .Select(id => sim.Data.Products.Single(p => p.Id == id))
             .OrderBy(p => p.Department is not (Department.Produce or Department.Seafood))
             .ThenBy(p => p.Id, StringComparer.Ordinal);

@@ -13,6 +13,9 @@ public sealed class DayLedger(int day, long cashStartCents)
     public long WagesCents { get; internal set; }
     public long FixtureSpendCents { get; internal set; }
     public long LoanPaymentCents { get; internal set; }
+
+    /// <summary>Net cost of random events (negative when rewards outweigh fines).</summary>
+    public long EventCostCents { get; internal set; }
     public long LossCents { get; internal set; }
     public long ProduceLossCents { get; internal set; }
     public long SeafoodLossCents { get; internal set; }
@@ -33,6 +36,7 @@ public sealed class DayLedger(int day, long cashStartCents)
             case ExpenseCategory.Wages: WagesCents += cents; break;
             case ExpenseCategory.Fixtures: FixtureSpendCents += cents; break;
             case ExpenseCategory.Loan: LoanPaymentCents += cents; break;
+            case ExpenseCategory.Events: EventCostCents += cents; break;
             default: throw new ArgumentOutOfRangeException(nameof(category), category, null);
         }
     }
@@ -83,7 +87,7 @@ public sealed class DayLedger(int day, long cashStartCents)
         FixtureSpendCents,
         LossCents,
         ProduceLossCents,
-        RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents - LoanPaymentCents,
+        RevenueCents - PurchaseCostCents - WagesCents - FixtureSpendCents - LoanPaymentCents - EventCostCents,
         Customers,
         AngryLeaves,
         ItemsNotFound,
@@ -94,5 +98,6 @@ public sealed class DayLedger(int day, long cashStartCents)
         MeatLossCents,
         DeliLossCents,
         KitchenRescuedCents,
-        LoanPaymentCents);
+        LoanPaymentCents,
+        EventCostCents);
 }

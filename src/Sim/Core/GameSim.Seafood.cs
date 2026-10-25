@@ -70,7 +70,7 @@ public sealed partial class GameSim
             var dead = DeadIn(tank).Sum(l => l.Quantity);
             var perHourMilli = s.WaterDropBasePerHourMilli + (long)s.WaterDropPerUnitPerHourMilli * live + (long)s.WaterDropPerDeadPerHourMilli * dead;
             var rate = _fixtures[Layout.Find(tank)!.FixtureId].WaterDropPermille;
-            var drop = perHourMilli * rate * Data.Economy.SecondsPerTick / 3600;
+            var drop = perHourMilli * rate * Data.Economy.SecondsPerTick / 3600 * PowerCutWaterPermille() / 1000;
             _water[tank] = Math.Max(0, WaterMicro(tank) - drop);
         }
     }

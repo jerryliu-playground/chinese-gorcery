@@ -1,0 +1,40 @@
+{
+  "firstDay": 3,
+  "dailyChancePermille": 300,
+  "maxNegativeAtOnce": 1,
+  "events": [
+    {
+      "id": "supplier_stockout", "nameKey": "event.supplier_stockout.name", "kind": "supplier_stockout", "negative": true, "weight": 10, "icon": "ui_truck",
+      "leadDays": 1, "durationDays": { "min": 2, "max": 3 }
+    },
+    {
+      "id": "cost_rise", "nameKey": "event.cost_rise.name", "kind": "cost_rise", "negative": true, "weight": 10, "icon": "ui_warning",
+      "leadDays": 1, "durationDays": { "min": 3, "max": 5 }, "costPermille": 1300
+    },
+    {
+      "id": "hygiene_inspection", "nameKey": "event.hygiene_inspection.name", "kind": "inspection", "negative": true, "weight": 8, "icon": "ui_inspection",
+      "inspection": { "arriveMinuteOfDay": 780, "stayMinutes": 30, "minWaterQuality": 50, "minTidiness": 40, "rewardCents": 5000, "finePerProblemCents": 10000 }
+    },
+    {
+      "id": "power_cut", "nameKey": "event.power_cut.name", "kind": "power_cut", "negative": true, "weight": 6, "icon": "ui_power_out", "minStage": 2,
+      "powerCut": { "startMinuteOfDay": 720, "endMinuteOfDay": 1080, "ageDays": 1, "waterDropPermille": 3000, "generatorCostCents": 6000 }
+    },
+    {
+      "id": "rainy_day", "nameKey": "event.rainy_day.name", "kind": "day_modifier", "negative": true, "weight": 10, "icon": "ui_warning",
+      "seasons": ["spring", "summer", "autumn"], "customersPermille": 600
+    },
+    {
+      "id": "influencer_visit", "nameKey": "event.influencer_visit.name", "kind": "day_modifier", "negative": false, "weight": 4, "icon": "ui_phone",
+      "customersPermille": 1800, "demand": [{ "department": "snacks", "permille": 2000 }, { "department": "deli", "permille": 2000 }]
+    },
+    {
+      "id": "clearance_offer", "nameKey": "event.clearance_offer.name", "kind": "clearance_offer", "negative": false, "weight": 8, "icon": "ui_phone",
+      "offer": { "units": { "min": 12, "max": 24 }, "costPermille": 400, "daysLeft": 3 }
+    },
+    {
+      "id": "group_order", "nameKey": "event.group_order.name", "kind": "group_order", "negative": false, "weight": 8, "icon": "ui_phone",
+      "groupOrder": { "products": { "min": 1, "max": 2 }, "units": { "min": 6, "max": 12 }, "rewardPermille": 1300, "pickupMinuteOfDay": 720 }
+    }
+  ],
+  "_tbd": true
+}

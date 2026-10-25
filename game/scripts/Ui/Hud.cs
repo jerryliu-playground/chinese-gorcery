@@ -25,6 +25,8 @@ public partial class Hud : Control
     public const int ToolColumnWidth = 58;
 
     private readonly Label _day = new();
+    private readonly Label _date = new();
+    private readonly Button _calendarButton = new() { TooltipText = "ui.hud.calendar", Flat = true };
     private readonly Label _clock = new();
     private readonly Label _cash = new();
     private readonly Label _stage = new();
@@ -56,6 +58,9 @@ public partial class Hud : Control
     private MenuPanel _menu = null!;
     private ShelfPanel _shelf = null!;
     private ReportPanel _report = null!;
+    private CalendarPanel _calendar = null!;
+    private NoticePanel _notices = null!;
+    private QuarterReportPanel _quarter = null!;
 
     public void Init(SimHost host, UiState ui, FeelConfig feel)
     {
@@ -160,7 +165,11 @@ public partial class Hud : Control
         var bar = new HBoxContainer { Position = new Vector2(4, 0), CustomMinimumSize = new Vector2(632, 18) };
         bar.AddThemeConstantOverride("separation", 10);
         AddChild(bar);
-        foreach (var label in new[] { _day, _clock, _cash, _stage, _ships })
+        _calendarButton.Icon = new Game.View.Art().Get("ui_calendar");
+        _calendarButton.ExpandIcon = false;
+        _calendarButton.Pressed += () => ShowOnly(_calendar);
+        bar.AddChild(_calendarButton);
+        foreach (var label in new[] { _date, _day, _clock, _cash, _stage, _ships })
         {
             label.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
             bar.AddChild(label);
@@ -219,6 +228,7 @@ public partial class Hud : Control
     {
         _shownCash = double.NaN;
         foreach (var p in _panels.Where(p => p.Visible)) p.Close();
+        _notices.Clear();
         _ui.Mode = ToolMode.Play;
         _ui.ClearTool();
         _ui.SelectedInstanceId = null;
@@ -239,8 +249,16 @@ public partial class Hud : Control
         var reviews = AddPanel<ReviewsPanel>();
         var groupOrders = AddPanel<GroupOrderPanel>();
         _menu = AddPanel<MenuPanel>();
+        _calendar = AddPanel<CalendarPanel>();
+        _quarter = AddPanel<QuarterReportPanel>();
+        _notices = AddPanel<NoticePanel>();
         _report.OrderRequested += () => ShowOnly(order);
         _report.Closed += () => _host.Send(new ReportViewed());
+        _report.SeasonReportRequested += q =>
+        {
+            _quarter.Report = q;
+            _quarter.Open();
+        };
 
         _build.Closed += () =>
         {
@@ -316,6 +334,19 @@ public partial class Hud : Control
 
     public void ShowPanel<T>() where T : PanelBase => ShowOnly(_panels.OfType<T>().Single());
 
+    /// <summary>Pops up a festival reminder or event notice (the tour uses it for notices from skipped time).</summary>
+    public void ShowNotice(SimEvent notice)
+    {
+        _notices.Add(notice);
+        ShowOnly(_notices);
+    }
+
+    public void ShowSeasonReport(Sim.Economy.QuarterReport report)
+    {
+        _quarter.Report = report;
+        ShowOnly(_quarter);
+    }
+
     public T Panel<T>() where T : PanelBase => _panels.OfType<T>().Single();
 
     public void CloseAllPanels()
@@ -352,6 +383,10 @@ public partial class Hud : Control
     {
         var sim = _host.Sim;
         _day.Text = UiText.F("ui.hud.day", ("day", sim.Clock.Day)) + "  " + UiText.T("ui.phase." + UiText.Snake(sim.Clock.Phase));
+        _date.Text = sim.Date is { } date
+            ? UiText.F("ui.hud.date", ("season", UiText.T(_host.Data.Calendar!.Seasons[date.SeasonIndex].NameKey)), ("day", date.DayOfSeason),
+                ("weekday", UiText.T("ui.weekday.short." + sim.Clock.Weekday)))
+            : "";
         _clock.Text = UiText.ClockTime(sim.Clock.MinuteOfDay);
         UpdateCashLabel(0);
         _stage.Text = UiText.T(_host.Data.Stages[sim.Economy.Stage - 1].NameKey);
@@ -391,6 +426,12 @@ public partial class Hud : Control
         foreach (var e in events)
         {
             if (Describe(e) is { } text) _messages.Enqueue(text);
+
+            if (e is Sim.Calendar.FestivalReminder or Sim.Calendar.StoreEventAnnounced)
+            {
+                _notices.Add(e);
+                if (!_notices.Visible) _notices.Open();
+            }
 
             if (e is DailyReportReady ready)
             {
@@ -437,6 +478,18 @@ public partial class Hud : Control
             ReviewsPosted p when p.Reviews.Count > 0 => UiText.F("ui.event.reviews", ("count", p.Reviews.Count)),
             ReputationChanged c when c.ReasonKey != "reputation.reason.customers" && c.After != c.Before =>
                 UiText.F("ui.event.reputation", ("reason", UiText.T(c.ReasonKey)), ("change", (c.After - c.Before).ToString("+0;-0", System.Globalization.CultureInfo.InvariantCulture))),
+            Sim.Calendar.InspectorArrived => UiText.T("ui.event.inspector_arrived"),
+            Sim.Calendar.InspectionFinished { Findings.Passed: true } i => UiText.F("ui.event.inspection_passed", ("cash", UiText.Money(i.CashCents))),
+            Sim.Calendar.InspectionFinished i => UiText.F("ui.event.inspection_failed", ("cash", UiText.Money(-i.CashCents)), ("problems", string.Join(", ",
+                new[] { (i.Findings.SpoiledGoods, "ui.inspection.spoiled"), (i.Findings.DirtyWater, "ui.inspection.water"), (i.Findings.MessyStands, "ui.inspection.messy") }
+                    .Where(x => x.Item1).Select(x => UiText.T(x.Item2))))),
+            Sim.Calendar.PowerCutStarted p => UiText.T(p.Generator ? "ui.event.power_out_generator" : "ui.event.power_out"),
+            Sim.Calendar.PowerRestored => UiText.T("ui.event.power_back"),
+            Sim.Calendar.ClearanceBought c => UiText.F("ui.event.clearance_bought", ("qty", c.Units), ("product", ProductName(c.ProductId))),
+            Sim.Calendar.GroupOrderFinished { Delivered: true } g => UiText.F("ui.event.group_order_done", ("revenue", UiText.Money(g.RevenueCents))),
+            Sim.Calendar.GroupOrderFinished => UiText.T("ui.event.group_order_missed"),
+            Sim.Calendar.DecorationBought d => UiText.F("ui.event.decoration_bought", ("name", UiText.T(_host.Data.Festivals!.Decorations.Single(x => x.Id == d.DecorationId).NameKey))),
+
             _ => null,
         };
     }

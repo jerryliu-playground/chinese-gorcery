@@ -1,0 +1,16 @@
+{
+  "seasons": [
+    { "id": "spring", "nameKey": "season.spring.name", "days": 28 },
+    { "id": "summer", "nameKey": "season.summer.name", "days": 28 },
+    { "id": "autumn", "nameKey": "season.autumn.name", "days": 28 },
+    { "id": "winter", "nameKey": "season.winter.name", "days": 28 }
+  ],
+  "seasonalDemand": [
+    { "season": "summer", "department": "drinks", "permille": 1500 },
+    { "season": "winter", "department": "drinks", "permille": 800 },
+    { "season": "summer", "category": "fruit", "permille": 1300 },
+    { "season": "autumn", "category": "fruit", "permille": 1100 },
+    { "season": "winter", "category": "fruit", "permille": 900 }
+  ],
+  "_tbd": true
+}

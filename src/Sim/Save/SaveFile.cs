@@ -44,4 +44,5 @@ public sealed record SaveFile(
     StaffSave? Staff = null,
     ImportSave? Imports = null,
     StorySave? Story = null,
-    ReputationSave? Reputation = null);
+    ReputationSave? Reputation = null,
+    CalendarSave? Calendar = null);

@@ -24,13 +24,13 @@ public class SeasonalGoodsTests
     public void Yangmei_is_a_summer_fruit_and_persimmon_an_autumn_one()
     {
         var spring = OnDay(1);
-        Assert.Equal(0, spring.Season);
+        Assert.Equal(0, spring.SeasonIndexOf(spring.Clock.Day));
         Assert.Equal(RejectReason.OutOfSeason, Order(spring, "yangmei"));
         Assert.Equal(RejectReason.OutOfSeason, Order(spring, "persimmon"));
         Assert.Null(Order(spring, "gai_lan"));
 
-        var summer = OnDay(spring.DaysPerSeason + 1);
-        Assert.Equal(1, summer.Season);
+        var summer = OnDay(spring.Data.Calendar!.Seasons[0].Days + 1);
+        Assert.Equal(1, summer.SeasonIndexOf(summer.Clock.Day));
         Assert.Null(Order(summer, "yangmei"));
         Assert.Equal(RejectReason.OutOfSeason, Order(summer, "persimmon"));
     }

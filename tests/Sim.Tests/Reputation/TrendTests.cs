@@ -61,19 +61,21 @@ public class TrendTests
             if (sim.Clock.Day <= 28) Assert.Equal(first, sim.TrendingProducts);
         }
 
-        Assert.Equal(1, GameSim.SeasonOf(29));
+        Assert.Equal(1, sim.SeasonOf(29));
         var season = Assert.Single(picked);
         Assert.Equal(1, season.Season);
         Assert.Equal(season.ProductIds, sim.TrendingProducts);
     }
 
     [Fact]
-    public void Seasons_are_28_days_until_the_calendar_takes_over()
+    public void Trend_seasons_follow_the_calendar_and_count_on_across_years()
     {
-        Assert.Equal(0, GameSim.SeasonOf(1));
-        Assert.Equal(0, GameSim.SeasonOf(28));
-        Assert.Equal(1, GameSim.SeasonOf(29));
-        Assert.Equal(3, GameSim.SeasonOf(112));
+        var sim = SimTestKit.NewSim();
+        Assert.Equal(0, sim.SeasonOf(1));
+        Assert.Equal(0, sim.SeasonOf(28));
+        Assert.Equal(1, sim.SeasonOf(29));
+        Assert.Equal(3, sim.SeasonOf(112));
+        Assert.Equal(4, sim.SeasonOf(113));
     }
 
     [Fact]

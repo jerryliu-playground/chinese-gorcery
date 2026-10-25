@@ -79,6 +79,14 @@ public sealed class Stockpile(StockLocation location)
         return expired;
     }
 
+    /// <summary>Brings the last day of every matching lot forward by <paramref name="days"/> (goods spoiling faster).</summary>
+    internal void ShortenShelfLife(Func<StockLot, bool> matches, int days)
+    {
+        var aged = _lots.Where(matches).ToList();
+        _lots.RemoveAll(l => matches(l));
+        foreach (var lot in aged) Add(lot with { BestBeforeDay = lot.BestBeforeDay - days });
+    }
+
     private static int Compare(StockLot a, StockLot b)
     {
         var byDay = a.BestBeforeDay.CompareTo(b.BestBeforeDay);

@@ -257,6 +257,8 @@ public partial class StoreView : Node2D
         DrawCarryTarget();
         foreach (var c in sim.Customers.OrderBy(c => c.Position.Y)) DrawCustomer(c);
         foreach (var w in sim.Workers) DrawWorker(w);
+        if (sim.InspectorPresent) DrawInspector();
+        if (sim.PowerOut) DrawRect(new Rect2(0, -WallHeight, sim.Layout.Size.W * Cell, sim.Layout.Size.H * Cell + WallHeight), new Color(0.02f, 0.02f, 0.08f, 0.45f));
         if (_ui.Mode == ToolMode.Play) DrawPriceTag();
     }
 
@@ -456,7 +458,12 @@ public partial class StoreView : Node2D
             else DrawRect(dest, Palette.Outline.Lightened(0.3f));
         }
 
-        foreach (var deco in stage.Decorations ?? [])
+        // The stage's own ornaments, then the festival decorations hung on the back wall.
+        var hung = (Data.Festivals?.Decorations ?? [])
+            .Select(d => (d.Sprite, Hung: _host.Sim.Decorations.FirstOrDefault(o => o.DecorationId == d.Id)?.WallX))
+            .Where(d => d.Hung is not null)
+            .Select(d => new DecorationDef(d.Sprite, new GridPoint(d.Hung!.Value, -1)));
+        foreach (var deco in (stage.Decorations ?? []).Concat(hung))
         {
             if (_art.Get(deco.Sprite) is not { } texture) continue;
 
@@ -927,6 +934,17 @@ public partial class StoreView : Node2D
 
         var icon = w.MoralePermille >= 600 ? "ui_morale_happy" : w.MoralePermille >= 300 ? "ui_morale_ok" : "ui_morale_sad";
         if (_art.Get(icon) is { } texture) DrawTextureRect(texture, new Rect2(at + new Vector2(-6, -30), new Vector2(12, 12)), false);
+    }
+
+    /// <summary>The hygiene inspector stands just inside the door with a clipboard icon while the visit lasts.</summary>
+    private void DrawInspector()
+    {
+        var door = _host.Sim.Layout.Fixtures.FirstOrDefault(f => Data.Fixtures.Single(d => d.Id == f.FixtureId).Kind == Sim.Data.FixtureKind.Entrance);
+        if (door is null) return;
+
+        var at = CenterOf(new GridPoint(door.Origin.X + 1, door.Origin.Y - 1));
+        DrawCharacter("inspector", at, new SpriteDef("char_inspector"), Palette.Staff);
+        if (_art.Get("ui_inspection") is { } icon) DrawTextureRect(icon, new Rect2(at + new Vector2(-6, -30), new Vector2(12, 12)), false);
     }
 
     private void DrawWorker(Worker w)

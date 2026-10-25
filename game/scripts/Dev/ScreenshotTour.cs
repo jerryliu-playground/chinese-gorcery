@@ -115,6 +115,12 @@ public partial class ScreenshotTour : Node
             return;
         }
 
+        if (OS.GetCmdlineUserArgs().Contains("--tour=m12"))
+        {
+            PlanCalendar();
+            return;
+        }
+
         if (OS.GetCmdlineUserArgs().Contains("--tour=fixes"))
         {
             PlanFixes();
@@ -969,7 +975,152 @@ public partial class ScreenshotTour : Node
         });
     }
 
+    // ---------- M12: calendar, festivals, events ----------
+
+    private IReadOnlyList<SimEvent> _morning = [];
+
+    /// <summary>
+    /// Skips the calendar ahead: the game is saved, moved to the close of the day before (with any given events added
+    /// to the ones in progress), loaded, and the next morning started (its reminders and events kept in _morning).
+    /// </summary>
+    private void Jump(int toDay, params System.Text.Json.Nodes.JsonObject[] events)
+    {
+        if (Sim.Clock.Phase == DayPhase.Open) RunToNextDay();
+
+        // Skipped days sold nothing, so the shelves' goods are reordered (and cash topped up) to keep the store stocked.
+        var root = System.Text.Json.Nodes.JsonNode.Parse(SaveGame.Write(Sim))!.AsObject();
+        root["cashCents"] = Math.Max(Sim.Economy.CashCents, 500_000);
+        Host.LoadFromJson(root.ToJsonString());
+        foreach (var id in Sim.Shelves.Assigned.Values.Distinct().Where(id => Sim.Data.Products.Single(p => p.Id == id).Orderable && Sim.InOrderWindow(id)))
+        {
+            var want = Math.Min(24 - Sim.Inventory.Total(id), Sim.RoomFor(id));
+            if (want > 0) Send(new PlaceOrder(id, want));
+        }
+
+        root = System.Text.Json.Nodes.JsonNode.Parse(SaveGame.Write(Sim))!.AsObject();
+        root["day"] = toDay - 1;
+        root["phase"] = "closed";
+        root["today"]!["day"] = toDay;
+        foreach (var e in events) root["calendar"]!["events"]!.AsArray().Add(e);
+        Host.LoadFromJson(root.ToJsonString());
+        Sim.Enqueue(new StartNextDay());
+        Sim.Tick();
+        _morning = Sim.DrainEvents();
+    }
+
+    private static System.Text.Json.Nodes.JsonObject TourEvent(int id, string eventId, int day, string status = "announced", System.Text.Json.Nodes.JsonObject? extra = null)
+    {
+        var e = new System.Text.Json.Nodes.JsonObject
+        {
+            ["id"] = id, ["eventId"] = eventId, ["announcedDay"] = day, ["startDay"] = day, ["endDay"] = day, ["status"] = status,
+        };
+        foreach (var (k, v) in extra ?? []) e[k] = v?.DeepClone();
+        return e;
+    }
+
+    private void ShowAnnounced(int id)
+    {
+        var e = Sim.StoreEvents.Single(x => x.Id == id);
+        Hud.ShowNotice(new Sim.Calendar.StoreEventAnnounced(e));
+    }
+
+    private void PlanCalendar()
+    {
+        Step("01-hud-date-and-calendar-panel", () => Hud.ShowPanel<CalendarPanel>());
+        Step("02-daily-report-with-season-report-button", () =>
+        {
+            RunToNextDay();
+            Jump(28);
+            Send(new RestockAll());
+            WalkTo(new GridPoint(2, 4));
+            RunToNextDay();
+            Hud.ShowReport(Sim.Reports[^1]);
+        });
+        Step("03-season-report", () => Hud.ShowSeasonReport(Sim.QuarterReports()[^1]));
+        Step("04-mid-autumn-reminder", () =>
+        {
+            Jump(64);
+            foreach (var r in _morning.OfType<Sim.Calendar.FestivalReminder>()) Hud.ShowNotice(r);
+        });
+        Step("05-calendar-prep-days-and-festival-goods", () => Hud.ShowPanel<CalendarPanel>());
+        Step("06-order-screen-with-mooncakes", () => Hud.ShowPanel<OrderPanel>());
+        Step("07-lantern-hung-and-mooncakes-shelved", () =>
+        {
+            Send(new Sim.Calendar.BuyDecoration("rabbit_lantern"));
+            Send(new Sim.Calendar.HangDecoration("rabbit_lantern", 5));
+            Send(new PlaceFixture("shelf", new GridPoint(7, 3)));
+            var shelf = Sim.Layout.Fixtures[^1].InstanceId;
+            Send(new AssignShelfSlot(shelf, 0, "mooncake"));
+            Send(new AssignShelfSlot(shelf, 1, "mooncake"));
+            Send(new AssignShelfSlot(shelf, 2, "mooncake_box"));
+            Send(new AssignShelfSlot(shelf, 3, "mooncake_box"));
+            Send(new PlaceOrder("mooncake", 24));
+            Send(new PlaceOrder("mooncake_box", 8));
+
+            RunToNextDay();
+            Send(new RestockAll());
+            Hud.ShowPanel<CalendarPanel>();
+        });
+        Step("08-store-dressed-for-mid-autumn", () => Send(new RestockAll()));
+        Live("09-mid-autumn-day-crowd", () =>
+        {
+            Jump(71);
+            Send(new RestockAll());
+            WalkTo(new GridPoint(2, 4));
+            FeelConfig.Load().SpeechChancePerGameMinute = 1;
+            Host.Send(new OpenStore());
+        }, () => Sim.Customers.Count >= 2, frames: 30);
+        Step("10-power-cut-notice", () =>
+        {
+            Jump(Sim.Clock.Day + 1, TourEvent(901, "power_cut", Sim.Clock.Day + 1));
+            ShowAnnounced(901);
+        });
+        Live("11-power-out", () =>
+        {
+            Send(new RestockAll());
+            WalkTo(new GridPoint(2, 4));
+            Host.Send(new OpenStore());
+            for (var i = 0; i < 20_000 && !Sim.PowerOut; i++) Sim.Tick();
+        }, () => Sim.PowerOut, frames: 10);
+        Step("12-inspection-notice", () =>
+        {
+            Jump(Sim.Clock.Day + 1, TourEvent(902, "hygiene_inspection", Sim.Clock.Day + 1));
+            ShowAnnounced(902);
+        });
+        Live("13-inspector-in-the-store", () =>
+        {
+            Send(new RestockAll());
+            WalkTo(new GridPoint(2, 4));
+            Host.Send(new OpenStore());
+            for (var i = 0; i < 20_000 && !Sim.InspectorPresent; i++) Sim.Tick();
+        }, () => Sim.InspectorPresent, frames: 10);
+        Step("14-clearance-offer", () =>
+        {
+            var day = Sim.Clock.Day + 1;
+            Jump(day, TourEvent(903, "clearance_offer", day, "offered", new()
+            {
+                ["productId"] = "soy_milk", ["goods"] = new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject { ["productId"] = "soy_milk", ["quantity"] = 20 }),
+                ["unitCostCents"] = 36, ["bestBeforeDay"] = day + 2,
+            }));
+            ShowAnnounced(903);
+        });
+        Step("15-group-order", () =>
+        {
+            var day = Sim.Clock.Day;
+            Jump(day + 1, TourEvent(904, "group_order", day + 1, "offered", new()
+            {
+                ["startDay"] = day + 2, ["endDay"] = day + 2,
+                ["goods"] = new System.Text.Json.Nodes.JsonArray(
+                    new System.Text.Json.Nodes.JsonObject { ["productId"] = "rice_jasmine", ["quantity"] = 8 },
+                    new System.Text.Json.Nodes.JsonObject { ["productId"] = "jasmine_tea", ["quantity"] = 12 }),
+            }), TourEvent(905, "supplier_stockout", day + 1, extra: new() { ["startDay"] = day + 2, ["endDay"] = day + 3, ["productId"] = "chili_crisp" }));
+            ShowAnnounced(904);
+        });
+        Step("16-calendar-with-events", () => Hud.ShowPanel<CalendarPanel>());
+    }
+
     // ---------- playtest fixes, 2026-10-25 ----------
+
 
     private void PlanFixes()
     {

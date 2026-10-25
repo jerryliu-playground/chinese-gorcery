@@ -23,4 +23,5 @@ public sealed record LedgerSave(
     long MeatLossCents = 0,
     long DeliLossCents = 0,
     long KitchenRescuedCents = 0,
-    long LoanPaymentCents = 0);
+    long LoanPaymentCents = 0,
+    long EventCostCents = 0);

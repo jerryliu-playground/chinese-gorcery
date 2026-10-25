@@ -22,6 +22,12 @@ public sealed partial class GameSim
 
     public int TidinessOf(int standInstanceId) => _tidiness.GetValueOrDefault(standInstanceId, PerfectlyTidy);
 
+    internal void SetTidiness(int standInstanceId, int tidiness)
+    {
+        if (tidiness >= PerfectlyTidy) _tidiness.Remove(standInstanceId);
+        else _tidiness[standInstanceId] = tidiness;
+    }
+
     private bool IsProduceStand(int instanceId) =>
         Layout.Find(instanceId) is { } f && _fixtures[f.FixtureId].Kind == FixtureKind.ProduceStand;
 

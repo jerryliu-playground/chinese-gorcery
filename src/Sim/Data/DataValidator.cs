@@ -42,6 +42,7 @@ public static partial class DataValidator
         ValidateRecipes(data, products, errors);
         ValidateDeliSettings(data, errors);
         ValidateReputation(data, products, stageIds, errors);
+        ValidateCalendar(data, products, stageIds, errors);
 
         return errors;
     }

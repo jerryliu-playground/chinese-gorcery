@@ -54,4 +54,10 @@ public enum RejectReason
     AlreadyOwned,
     UnknownGroupOrder,
     GroupOrderLimit,
+    SupplierOutOfStock,
+    UnknownDecoration,
+    NotOwned,
+    WallTaken,
+    UnknownStoreEvent,
+    OfferClosed,
 }

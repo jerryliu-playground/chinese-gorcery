@@ -1,4 +1,5 @@
 using System.Globalization;
+using ChineseGrocery.Sim.Core;
 using ChineseGrocery.Sim.Economy;
 
 namespace ChineseGrocery.SimRunner;
@@ -49,6 +50,30 @@ public static class ReportPrinter
         {
             Console.WriteLine($"      deli: units {deliSales.Sum(s => s.Units)}, revenue {Money(deliSales.Sum(s => s.RevenueCents))}, " +
                               $"loss {Money(r.DeliLossCents)}, near-expiry cooked {Money(r.KitchenRescuedCents)}");
+        }
+    }
+
+    /// <summary>The day's date, the festival whose window it is in, its random events and their net cost.</summary>
+    public static void PrintCalendar(GameSim sim, DailyReport r)
+    {
+        if (sim.DateOf(r.Day) is not { } date) return;
+
+        var line = $"      calendar: Y{date.Year} {sim.Data.Calendar!.Seasons[date.SeasonIndex].Id} {date.DayOfSeason}";
+        if (r.FestivalId is { } festival) line += $" | {festival} {(r.FestivalDayOffset == 0 ? "DAY" : r.FestivalDayOffset!.Value.ToString("+0;-0", CultureInfo.InvariantCulture))}";
+        if (r.EventIds is { Count: > 0 } events) line += $" | events: {string.Join(", ", events)}";
+        if (r.EventCostCents != 0) line += $" | event cost {Money(r.EventCostCents)}";
+        if (r.FestivalId is not null || r.EventIds is not null) Console.WriteLine(line);
+    }
+
+    /// <summary>A season's summary: money, waste and each festival period's daily revenue against the other days.</summary>
+    public static void PrintQuarter(GameSim sim, QuarterReport q)
+    {
+        var season = sim.Data.Calendar!.Seasons[q.SeasonIndex].Id;
+        Console.WriteLine($"  === Y{q.Year} {season} (days {q.FirstDay}-{q.LastDay}): revenue {Money(q.RevenueCents)}, profit {Money(q.ProfitCents)}, " +
+                          $"waste {Money(q.LossCents)}, customers {q.Customers}, other days avg revenue {Money(q.OtherDaysAverageRevenueCents)}/day");
+        foreach (var f in q.Festivals)
+        {
+            Console.WriteLine($"      {f.FestivalId}: {f.Days} days, avg revenue {Money(f.AverageDailyRevenueCents)}/day, festival goods {f.GoodsUnits} units / {Money(f.GoodsRevenueCents)}");
         }
     }
 

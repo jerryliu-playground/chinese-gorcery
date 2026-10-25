@@ -356,7 +356,7 @@ ui.order.more_room,+{slots} slots {cost},扩容 +{slots} 格 {cost}
 ui.storage.pallet,{name} {count} on a pallet (unload first),{name} {count} 个（托盘上，要先卸货）
 ui.hud.ships,Ship x{count}: {days}d,船 {count} 艘：{days} 天后到
 ui.hud.pallets,Pallets x{count},待卸托盘 {count}
-ui.reject.out_of_season,Not in season.,现在不是这个的季节。
+ui.reject.out_of_season,Not available at this time of year.,这个时节进不到这个货。
 dialogue.opening_captions.line_01,"The summer I graduated, I had a degree and big plans.",那年夏天，我大学毕业了。
 dialogue.opening_captions.line_02,I sent out dozens of applications. Hardly anyone wrote back.,投了几十份简历，回音寥寥。
 dialogue.opening_captions.line_03,"The student loan statements, though, arrived right on time.",倒是学生贷款的账单，每个月都准时寄到。
@@ -618,3 +618,143 @@ ui.event.reviews,{count} new reviews. See Reviews.,有 {count} 条新点评，�
 ui.event.reputation,Reputation {change}: {reason},口碑 {change}：{reason}
 ui.report.reputation,Reputation,口碑
 ui.report.reputation_change,{before} → {after},{before} → {after}
+product.mooncake.name,Mooncakes,月饼
+product.mooncake_box.name,Mooncake gift box,月饼礼盒
+product.zongzi.name,Zongzi,粽子
+product.glutinous_rice.name,Glutinous rice,糯米
+product.red_envelope.name,Red envelopes,红包
+product.candy_box.name,New Year candy box,糖果盒
+product.mandarins.name,Mandarins,年桔
+product.nian_gao.name,Nian gao,年糕
+season.spring.name,Spring,春
+season.summer.name,Summer,夏
+season.autumn.name,Autumn,秋
+season.winter.name,Winter,冬
+festival.spring_festival.name,Spring Festival,春节
+festival.dragon_boat.name,Dragon Boat Festival,端午节
+festival.mid_autumn.name,Mid-Autumn Festival,中秋节
+festival.thanksgiving.name,Thanksgiving,感恩节
+festival.christmas.name,Christmas,圣诞节
+festival.spring_festival.reminder,"{days} days to the Spring Festival: stock up on mandarins, candy boxes, red envelopes and nian gao.",还有 {days} 天就是春节，记得准备年桔、糖果盒、红包和年糕。
+festival.dragon_boat.reminder,{days} days to the Dragon Boat Festival: stock up on zongzi and glutinous rice.,还有 {days} 天就是端午节，记得准备粽子和糯米。
+festival.mid_autumn.reminder,{days} days to the Mid-Autumn Festival: remember the mooncakes!,还有 {days} 天就是中秋节，记得准备月饼！
+festival.thanksgiving.reminder,"{days} days to Thanksgiving: more shoppers will want deli food, snacks and drinks.",还有 {days} 天就是感恩节，熟食、零食和饮料会更好卖。
+festival.christmas.reminder,"{days} days to Christmas: more shoppers will want deli food, snacks and drinks.",还有 {days} 天就是圣诞节，熟食、零食和饮料会更好卖。
+festival.spring_festival.line.0,Mandarins for the New Year!,过年要买年桔！
+festival.spring_festival.line.1,Red envelopes for the kids.,给孩子们包红包。
+festival.dragon_boat.line.0,Any zongzi left?,还有粽子吗？
+festival.dragon_boat.line.1,Making zongzi at home this year.,今年在家自己包粽子。
+festival.mid_autumn.line.0,Mooncakes for the whole family!,给全家买月饼！
+festival.mid_autumn.line.1,The moon will be so round tonight.,今晚的月亮一定很圆。
+festival.thanksgiving.line.0,"Snacks for the party, please.",聚会要买点零食。
+festival.thanksgiving.line.1,Roast duck instead of turkey!,今年不吃火鸡，吃烧鸭！
+festival.christmas.line.0,Treats for the Christmas party.,圣诞派对买点吃的。
+festival.christmas.line.1,Merry Christmas!,圣诞快乐！
+decoration.couplet_left.name,Couplet (left),春联（上联）
+decoration.couplet_right.name,Couplet (right),春联（下联）
+decoration.festival_banner.name,Festival bunting,节日彩旗
+decoration.rabbit_lantern.name,Rabbit lantern,兔子灯
+event.supplier_stockout.name,Supplier out of stock,供应商断货
+event.cost_rise.name,Wholesale prices up,进价上涨
+event.hygiene_inspection.name,Hygiene inspection,卫生检查
+event.power_cut.name,Power cut,停电
+event.rainy_day.name,Rainy day,下雨天
+event.influencer_visit.name,Influencer visit,网红打卡
+event.clearance_offer.name,Clearance offer,临期货推销
+event.group_order.name,Group order,老顾客团购
+event.supplier_stockout.notice,The supplier will have no {product} from {start} to {end}. Stock up now!,供应商{start}到{end}没有{product}，赶紧囤货吧！
+event.cost_rise.notice,Wholesale prices for {department} go up {percent}% from {start} to {end}.,{start}到{end}，{department}的进价上涨 {percent}%。
+event.hygiene_inspection.notice,"A hygiene inspector visits today around {time}: no spoiled goods on display, clean tank water, tidy produce stands.",今天 {time} 左右卫生检查员会来：货架上不能有坏货，鱼池水要干净，果蔬架要整齐。
+event.power_cut.notice,Power cut today from {start} to {end}: chilled goods spoil faster and tank water fouls quickly.,今天 {start} 到 {end} 停电：冷藏商品坏得更快，鱼池水质下降更快。
+event.rainy_day.notice,Rain all day: fewer shoppers today.,今天一整天下雨，顾客会少一些。
+event.influencer_visit.notice,A food influencer is coming today! Expect crowds after snacks and deli food.,今天有网红来打卡！会有很多人来买零食和熟食。
+event.clearance_offer.notice,A supplier offers {qty} {product} near expiry (sell by {date}) for {cost} in all.,供应商低价推销 {qty} 件临期{product}（{date}前要卖掉），一共 {cost}。
+event.group_order.notice,"A regular wants {goods} to collect tomorrow at {time}, and will pay {reward}.",老顾客想订 {goods}，明天 {time} 来取，付 {reward}。
+ui.department.dry_goods,dry goods,干货
+ui.department.sauces,sauces,酱料
+ui.department.snacks,snacks,零食
+ui.department.drinks,drinks,饮料
+ui.department.meat,meat,肉类
+ui.department.produce,produce,果蔬
+ui.department.seafood,seafood,海鲜
+ui.department.deli,deli,熟食
+ui.department.frozen,frozen food,冷冻食品
+ui.reject.supplier_out_of_stock,The supplier is out of that right now.,供应商现在断货了。
+ui.reject.unknown_decoration,No such decoration.,没有这种装饰。
+ui.reject.not_owned,Buy it first.,要先买下来。
+ui.reject.wall_taken,No free spot on the wall there.,墙上那里没有空位。
+ui.reject.unknown_store_event,That has already passed.,这件事已经过去了。
+ui.reject.offer_closed,Too late for that now.,现在已经来不及了。
+ui.hud.date,{season} {day} · {weekday},{season}季{day}日 周{weekday}
+ui.hud.calendar,Calendar,日历
+ui.date.short,{season} {day},{season}季{day}日
+ui.calendar.title,Year {year} · {season},第{year}年 · {season}季
+ui.calendar.today,"Today: {season} {day}, {weekday} (day {n})",今天：{season}季{day}日 周{weekday}（第 {n} 天）
+ui.calendar.legend,Red: festival day · pink: prep days · gold: today,红色：节日 · 粉色：准备期 · 金色：今天
+ui.calendar.festivals,Festivals this season,本季节日
+ui.calendar.no_festivals,No festivals this season.,本季没有节日。
+ui.calendar.next_festival,"Next: {name}, in {days} days",下一个：{name}，还有 {days} 天
+ui.calendar.festival_line,{name}: {date},{name}：{date}
+ui.calendar.in_days,in {days} days,还有 {days} 天
+ui.calendar.on_day,today!,就是今天！
+ui.calendar.past,passed,已过
+ui.calendar.goods,Festival goods: {goods},节日商品：{goods}
+ui.calendar.order_window,Order festival goods from {date} until the day before.,节日商品从{date}起可以进货，到节前一天为止。
+ui.calendar.events,Events,事件
+ui.calendar.no_events,Nothing coming up.,暂时没有事件。
+ui.calendar.event_line,{name}: {start} – {end},{name}：{start} – {end}
+ui.calendar.decorations,Festival decorations,节日装饰
+ui.calendar.deco_line,{name} ({cost}): {festivals},{name}（{cost}）：{festivals}
+ui.calendar.deco_hung,hung,已挂上
+ui.calendar.deco_stored,stored,已收起
+ui.calendar.buy,Buy,购买
+ui.calendar.hang,Hang,挂上
+ui.calendar.store,Take down,收起
+ui.store_event.status.announced,coming,将要发生
+ui.store_event.status.offered,waiting for your answer,等你答复
+ui.store_event.status.accepted,accepted,已接受
+ui.store_event.status.declined,declined,已拒绝
+ui.store_event.status.started,under way,进行中
+ui.store_event.status.ended,over,已结束
+ui.store_event.status.passed,passed,通过
+ui.store_event.status.failed,failed,没通过
+ui.store_event.status.delivered,delivered,已交付
+ui.store_event.status.missed,missed,没能交付
+ui.notice.ok,OK,知道了
+ui.notice.accept,Accept,接受
+ui.notice.decline,Decline,拒绝
+ui.notice.rent_generator,Rent a generator ({cost}),租发电机（{cost}）
+ui.notice.generator_rented,A generator is booked.,已经租好发电机。
+ui.notice.reminder_title,{name} is coming,{name}快到了
+ui.notice.goods_item,{qty} {product},{product} {qty} 件
+ui.event.inspector_arrived,The hygiene inspector is here.,卫生检查员来了。
+ui.event.inspection_passed,Inspection passed! Reward {cash}.,卫生检查通过！奖励 {cash}。
+ui.event.inspection_failed,Inspection failed ({problems}). Fine {cash}.,卫生检查没通过（{problems}），罚款 {cash}。
+ui.inspection.spoiled,spoiled goods,坏货
+ui.inspection.water,dirty tank water,鱼池水质差
+ui.inspection.messy,messy produce stands,果蔬架凌乱
+ui.event.power_out,Power cut! Chilled goods are spoiling.,停电了！冷藏商品在变质。
+ui.event.power_out_generator,Power cut: the generator keeps everything running.,停电了，发电机保证一切正常运转。
+ui.event.power_back,The power is back on.,来电了。
+ui.event.clearance_bought,Bought {qty} {product} cheap.,低价买进 {qty} 件{product}。
+ui.event.group_order_done,Group order collected: {revenue}.,团购已取货：{revenue}。
+ui.event.group_order_missed,Not enough stock: the group order was missed.,货不够，团购没能交付。
+ui.event.decoration_bought,Bought: {name},买了：{name}
+ui.report.date,Date,日期
+ui.report.festival,Festival,节日
+ui.report.festival_before,{days} days to {name},{name}前 {days} 天
+ui.report.festival_on,{name} today,今天是{name}
+ui.report.festival_after,{days} days after {name},{name}后第 {days} 天
+ui.report.events,Events,事件
+ui.report.event_cost,Fines and rewards (net),事件收支（净支出）
+ui.report.season_report,Season report,季度报表
+ui.quarter.title,"{season}, year {year}",第{year}年{season}季报表
+ui.quarter.days,Days,日期
+ui.quarter.days_value,{first} – {last},第 {first} – {last} 天
+ui.quarter.other_days,Average day without a festival,平常日均营收
+ui.quarter.festivals,Festival periods,节日期间
+ui.quarter.festival_line,"{name}: {days} days, {avg} a day",{name}：{days} 天，日均 {avg}
+ui.quarter.goods_line,festival goods: {units} sold for {revenue},节日商品：卖出 {units} 件，{revenue}
+ui.quarter.no_festivals,No festival this season.,本季没有节日。
+ui.order.out_of_stock,Supplier out of stock,供应商断货
+ui.order.price_up,Price up,涨价中

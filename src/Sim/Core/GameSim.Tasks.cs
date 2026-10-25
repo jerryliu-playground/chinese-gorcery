@@ -423,8 +423,27 @@ public sealed partial class GameSim
         }
     }
 
+    /// <summary>Returns goods to the storage they came from if it still stands, else wherever they can be kept, else writes them off.</summary>
+    private void PutBackInStorage(StockLot lot, StockLocation source)
+    {
+        var product = _products[lot.ProductId];
+        if (Layout.Find(source.FixtureInstanceId) is not null && IsStorageArea(source.FixtureInstanceId))
+        {
+            Inventory.GetOrCreate(source).Add(lot);
+        }
+        else if (StorageRouting.FindDestination(Data, Layout.Fixtures, product) is { } storage)
+        {
+            Inventory.GetOrCreate(StockLocation.Storage(storage.InstanceId)).Add(lot);
+        }
+        else
+        {
+            Economy.RecordLoss(checked(lot.Quantity * lot.UnitCostCents), product.Department);
+        }
+    }
+
     private void CompleteStep(Worker worker)
     {
+
         var task = Tasks.Find(worker.TaskId!.Value)!;
         switch (worker.Step, task)
         {
@@ -444,9 +463,18 @@ public sealed partial class GameSim
             case (WorkStep.Shelving, RestockTask r):
                 var shelf = Inventory.GetOrCreate(r.Target);
                 var wasEmpty = shelf.Count(r.ProductId) == 0;
-                var shelved = worker.DropAll();
-                foreach (var lot in shelved) shelf.Add(lot);
-                _events.Add(new ItemsShelved(r.Target, r.ProductId, shelved.Sum(l => l.Quantity), wasEmpty));
+                var room = _products[r.ProductId].UnitsPerShelfSlot - shelf.Count(r.ProductId);
+                var shelvedUnits = 0;
+                foreach (var lot in worker.DropAll())
+                {
+                    // Shoppers may have put goods back while this was being carried: what no longer fits goes back to storage.
+                    var fits = Math.Clamp(room - shelvedUnits, 0, lot.Quantity);
+                    if (fits > 0) shelf.Add(lot with { Quantity = fits });
+                    if (fits < lot.Quantity) PutBackInStorage(lot with { Quantity = lot.Quantity - fits }, r.Source);
+                    shelvedUnits += fits;
+                }
+
+                _events.Add(new ItemsShelved(r.Target, r.ProductId, shelvedUnits, wasEmpty));
                 FinishTask(worker, completed: true);
                 break;
 

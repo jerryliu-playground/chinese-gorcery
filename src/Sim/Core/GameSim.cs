@@ -48,9 +48,11 @@ public sealed partial class GameSim
         StartImportStream(seed);
         StartReputation(seed);
         RefreshApplicants();
+        StartEventStream(seed);
 
         _events.Add(new DayStarted(Clock.Day));
         StartStory(seed);
+        RemindFestivals();
     }
 
     public GameData Data { get; }
@@ -98,6 +100,7 @@ public sealed partial class GameSim
         if (Clock.Phase == DayPhase.Open)
         {
             FoulTankWater();
+            RunStoreEvents();
             Clock.Advance(Data.Economy.SecondsPerTick);
 
             // Doors shut at closing time, but the day only ends once the last customer is out.
@@ -145,6 +148,11 @@ public sealed partial class GameSim
             SetWage wage => HandleSetWage(wage),
             RestockAll => HandleRestockAll(),
             Story.StoryCommand story => HandleStoryCommand(story),
+            Calendar.BuyDecoration buy => HandleBuyDecoration(buy),
+            Calendar.HangDecoration hang => HandleHangDecoration(hang),
+            Calendar.StoreDecoration store => HandleStoreDecoration(store),
+            Calendar.AnswerOffer answer => HandleAnswerOffer(answer),
+            Calendar.RentGenerator rent => HandleRentGenerator(rent),
             _ => throw new ArgumentException($"Unknown command type {command.GetType().Name}", nameof(command)),
         };
 
@@ -161,6 +169,7 @@ public sealed partial class GameSim
         if (Clock.Phase != DayPhase.PreOpen) return Reject(RejectReason.WrongPhase);
 
         Clock.Open();
+        CloseOffers();
         _events.Add(new StoreOpened(Clock.Day));
         return null;
     }
@@ -177,6 +186,7 @@ public sealed partial class GameSim
         DeliverShipments();
         StartReputationDay();
         RefreshApplicants();
+        BeginCalendarDay();
         RunManagers();
         return null;
     }
@@ -184,6 +194,7 @@ public sealed partial class GameSim
     private void CloseDay()
     {
         Clock.Close();
+        SettleStoreEventsAtClose();
         _events.Add(new StoreClosed(Clock.Day));
         KillTankAnimals();
         KillStrandedLiveSeafood();
@@ -215,12 +226,13 @@ public sealed partial class GameSim
         }
 
         CloseReputationDay();
-        var report = Economy.CloseDay();
+        var report = AnnotateReport(Economy.CloseDay());
 
         // The day's books close now: anything spent after closing (orders for tomorrow) goes on the next day's report.
         Economy.BeginDay(Clock.Day + 1);
         _reports.Add(report);
         _events.Add(new DailyReportReady(report));
+        ReportSeasonIfOver();
     }
 
     /// <summary>New game only: the parents' shelves start assigned and full, with the rest of the opening stock in storage.</summary>
