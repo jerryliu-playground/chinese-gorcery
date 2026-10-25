@@ -1,8 +1,8 @@
 # M15 台词草稿（待 Jerry 审核）
 
 全部台词都是 agent 写的**草稿**，中英文对照，按场景分组。数据里每段对话都带 `"_draft": true`；
-翻译在 `game/locale/strings.csv`（键名见每段标题下）。改台词只需改 CSV 里的中英文两列；
-改说话人、表情、触发条件改 `data/dialogue/` 下的 JSON。
+翻译在 `game/locale/strings.csv`，键名是 `dialogue.<对话ID>.line_<序号>`（选项是 `dialogue.<对话ID>.choice_<选项ID>`），对话 ID 写在每段标题下。改台词只需改 CSV 里的中英文两列；
+改说话人、表情、触发条件改 `data/dialogue/` 下的 JSON。截图见 `docs/screenshots/M15/`，规则上的决定见 `docs/notes/M15-decisions.md`。
 
 占位变量：`{protagonist}` 主角名、`{dad}` 父亲、`{mom}` 母亲（名字待定，目前的占位翻译见文末），`{shop}` 玩家起的店名。
 
